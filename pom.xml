@@ -44,7 +44,7 @@
 
   <modules>
     <module>3rdparty</module>
-    <module>contrib</module>
+    <module>lib</module>
     <module>haox-kerb</module>
     <module>haox-kdc</module>
     <module>benchmark</module>

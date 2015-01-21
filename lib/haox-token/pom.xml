@@ -19,7 +19,7 @@
 
     <parent>
         <groupId>org.haox</groupId>
-        <artifactId>contrib</artifactId>
+        <artifactId>lib</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
