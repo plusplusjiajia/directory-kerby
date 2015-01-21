@@ -21,25 +21,35 @@
     <version>1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>lib</artifactId>
-  <name>Lib Projects</name>
-  <description>Lib Projects</description>
-  <packaging>pom</packaging>
-
-  <modules>
-    <module>haox-config</module>
-    <module>haox-event</module>
-    <module>haox-pkix</module>
-    <module>haox-token</module>
-    <module>haox-util</module>
-  </modules>
+  <artifactId>kdc-server</artifactId>
+  <name>Haox KDC Server</name>
+  <description>Haox-kdc Server</description>
 
   <dependencies>
+    <dependency>
+      <groupId>org.haox</groupId>
+      <artifactId>haox-config</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.haox</groupId>
+      <artifactId>kerb-server</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.haox</groupId>
+      <artifactId>ldap-identity-backend</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.haox</groupId>
+      <artifactId>haox-token</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
-
 </project>

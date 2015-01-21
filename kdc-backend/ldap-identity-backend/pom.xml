@@ -13,29 +13,29 @@
   limitations under the License. See accompanying LICENSE file.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+  <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.haox</groupId>
-        <artifactId>haox-kdc</artifactId>
-        <version>1.0-SNAPSHOT</version>
-    </parent>
+  <parent>
+    <groupId>org.haox</groupId>
+    <artifactId>kdc-backend</artifactId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
 
-    <artifactId>ldap-identity-backend</artifactId>
+  <artifactId>ldap-identity-backend</artifactId>
 
-    <name>Ldap identity backend</name>
-    <description>Ldap identity backend</description>
+  <name>Ldap identity backend</name>
+  <description>Ldap identity backend</description>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.haox</groupId>
-            <artifactId>haox-config</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.haox</groupId>
-            <artifactId>kerb-identity</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-    </dependencies>
+  <dependencies>
+    <dependency>
+      <groupId>org.haox</groupId>
+      <artifactId>haox-config</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.haox</groupId>
+      <artifactId>kerb-identity</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
 </project>

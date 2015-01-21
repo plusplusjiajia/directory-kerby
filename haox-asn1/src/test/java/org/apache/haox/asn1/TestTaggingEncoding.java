@@ -19,8 +19,6 @@
  */
 package org.apache.haox.asn1;
 
-import org.apache.haox.asn1.EncodingOption;
-import org.apache.haox.asn1.TaggingOption;
 import org.apache.haox.asn1.type.Asn1Tagging;
 import org.apache.haox.asn1.type.Asn1VisibleString;
 import org.junit.Assert;

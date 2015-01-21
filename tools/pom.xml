@@ -21,25 +21,25 @@
     <version>1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>lib</artifactId>
-  <name>Lib Projects</name>
-  <description>Lib Projects</description>
-  <packaging>pom</packaging>
-
-  <modules>
-    <module>haox-config</module>
-    <module>haox-event</module>
-    <module>haox-pkix</module>
-    <module>haox-token</module>
-    <module>haox-util</module>
-  </modules>
+  <artifactId>tools</artifactId>
+  <name>Tools</name>
+  <description>Haox KDC Tools</description>
 
   <dependencies>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
+      <groupId>org.haox</groupId>
+      <artifactId>haox-config</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.haox</groupId>
+      <artifactId>kerb-client</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.haox</groupId>
+      <artifactId>haox-token</artifactId>
+      <version>${project.version}</version>
     </dependency>
   </dependencies>
-
 </project>
