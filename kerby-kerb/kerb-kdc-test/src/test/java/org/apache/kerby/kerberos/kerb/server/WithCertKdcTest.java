@@ -22,7 +22,7 @@ package org.apache.kerby.kerberos.kerb.server;
 import org.apache.kerby.kerberos.kerb.KrbException;
 import org.apache.kerby.kerberos.kerb.spec.ticket.ServiceTicket;
 import org.apache.kerby.kerberos.kerb.spec.ticket.TgtTicket;
-import org.haox.pki.Pkix;
+import org.apache.kerby.pki.Pkix;
 import org.junit.Assert;
 
 import java.io.IOException;

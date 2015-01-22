@@ -19,7 +19,7 @@
  */
 package org.apache.kerby.kerberos.kerb.crypto;
 
-import org.haox.util.HexUtil;
+import org.apache.kerby.util.HexUtil;
 import org.junit.Assert;
 import org.junit.Test;
 

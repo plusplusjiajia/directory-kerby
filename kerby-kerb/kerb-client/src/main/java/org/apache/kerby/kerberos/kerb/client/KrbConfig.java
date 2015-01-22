@@ -19,7 +19,7 @@
  */
 package org.apache.kerby.kerberos.kerb.client;
 
-import org.apache.haox.config.Conf;
+import org.apache.kerby.config.Conf;
 import org.apache.kerby.kerberos.kerb.common.KrbConfHelper;
 import org.apache.kerby.kerberos.kerb.spec.common.EncryptionType;
 

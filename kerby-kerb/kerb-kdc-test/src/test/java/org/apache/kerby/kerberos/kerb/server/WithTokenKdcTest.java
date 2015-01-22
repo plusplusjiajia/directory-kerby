@@ -22,7 +22,7 @@ package org.apache.kerby.kerberos.kerb.server;
 import org.apache.kerby.kerberos.kerb.KrbException;
 import org.apache.kerby.kerberos.kerb.spec.ticket.ServiceTicket;
 import org.apache.kerby.kerberos.kerb.spec.ticket.TgtTicket;
-import org.haox.token.KerbToken;
+import org.apache.kerby.token.KerbToken;
 import org.junit.Assert;
 
 public class WithTokenKdcTest extends KdcTestBase {

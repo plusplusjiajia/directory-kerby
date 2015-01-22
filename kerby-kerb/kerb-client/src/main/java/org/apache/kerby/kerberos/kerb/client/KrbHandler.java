@@ -19,9 +19,9 @@
  */
 package org.apache.kerby.kerberos.kerb.client;
 
-import org.apache.haox.event.AbstractEventHandler;
-import org.apache.haox.event.Event;
-import org.apache.haox.event.EventType;
+import org.apache.kerby.event.AbstractEventHandler;
+import org.apache.kerby.event.Event;
+import org.apache.kerby.event.EventType;
 import org.apache.kerby.kerberos.kerb.client.event.KrbClientEvent;
 import org.apache.kerby.kerberos.kerb.client.event.KrbClientEventType;
 import org.apache.kerby.kerberos.kerb.client.preauth.PreauthHandler;
@@ -34,9 +34,9 @@ import org.apache.kerby.kerberos.kerb.spec.common.KrbMessage;
 import org.apache.kerby.kerberos.kerb.spec.common.KrbMessageType;
 import org.apache.kerby.kerberos.kerb.spec.kdc.KdcRep;
 import org.apache.kerby.kerberos.kerb.spec.kdc.KdcReq;
-import org.apache.haox.transport.Transport;
-import org.apache.haox.transport.event.MessageEvent;
-import org.apache.haox.transport.event.TransportEventType;
+import org.apache.kerby.transport.Transport;
+import org.apache.kerby.transport.event.MessageEvent;
+import org.apache.kerby.transport.event.TransportEventType;
 
 import java.nio.ByteBuffer;
 

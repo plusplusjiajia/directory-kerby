@@ -19,9 +19,9 @@
  */
 package org.apache.kerby.kerberos.kerb.client;
 
-import org.apache.haox.event.Event;
-import org.apache.haox.event.EventHub;
-import org.apache.haox.event.EventWaiter;
+import org.apache.kerby.event.Event;
+import org.apache.kerby.event.EventHub;
+import org.apache.kerby.event.EventWaiter;
 import org.apache.kerby.kerberos.kerb.KrbErrorCode;
 import org.apache.kerby.kerberos.kerb.client.event.KrbClientEvent;
 import org.apache.kerby.kerberos.kerb.client.event.KrbClientEventType;
@@ -34,12 +34,12 @@ import org.apache.kerby.kerberos.kerb.spec.common.KrbError;
 import org.apache.kerby.kerberos.kerb.spec.common.PrincipalName;
 import org.apache.kerby.kerberos.kerb.spec.ticket.ServiceTicket;
 import org.apache.kerby.kerberos.kerb.spec.ticket.TgtTicket;
-import org.haox.token.KerbToken;
-import org.apache.haox.transport.Connector;
-import org.apache.haox.transport.Transport;
-import org.apache.haox.transport.event.TransportEvent;
-import org.apache.haox.transport.event.TransportEventType;
-import org.apache.haox.transport.tcp.TcpConnector;
+import org.apache.kerby.token.KerbToken;
+import org.apache.kerby.transport.Connector;
+import org.apache.kerby.transport.Transport;
+import org.apache.kerby.transport.event.TransportEvent;
+import org.apache.kerby.transport.event.TransportEventType;
+import org.apache.kerby.transport.tcp.TcpConnector;
 
 import java.io.IOException;
 import java.security.PrivateKey;

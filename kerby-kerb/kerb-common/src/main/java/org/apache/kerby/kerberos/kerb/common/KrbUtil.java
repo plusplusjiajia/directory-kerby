@@ -21,7 +21,7 @@ package org.apache.kerby.kerberos.kerb.common;
 
 import org.apache.kerby.kerberos.kerb.codec.KrbCodec;
 import org.apache.kerby.kerberos.kerb.spec.common.KrbMessage;
-import org.apache.haox.transport.Transport;
+import org.apache.kerby.transport.Transport;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

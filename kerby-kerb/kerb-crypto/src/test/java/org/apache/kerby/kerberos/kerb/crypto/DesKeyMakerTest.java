@@ -1,7 +1,7 @@
 package org.apache.kerby.kerberos.kerb.crypto;
 
 import org.apache.kerby.kerberos.kerb.crypto.key.DesKeyMaker;
-import org.haox.util.HexUtil;
+import org.apache.kerby.util.HexUtil;
 import org.junit.Assert;
 
 /**

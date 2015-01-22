@@ -19,7 +19,7 @@
  */
 package org.apache.kerby.kerberos.kerb.server;
 
-import org.apache.haox.config.Conf;
+import org.apache.kerby.config.Conf;
 import org.junit.Assert;
 import org.junit.Test;
 

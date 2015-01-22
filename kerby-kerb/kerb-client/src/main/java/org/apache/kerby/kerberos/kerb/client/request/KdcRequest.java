@@ -33,7 +33,7 @@ import org.apache.kerby.kerberos.kerb.spec.kdc.KdcRep;
 import org.apache.kerby.kerberos.kerb.spec.kdc.KdcReq;
 import org.apache.kerby.kerberos.kerb.spec.kdc.KdcReqBody;
 import org.apache.kerby.kerberos.kerb.spec.pa.PaDataType;
-import org.apache.haox.transport.Transport;
+import org.apache.kerby.transport.Transport;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

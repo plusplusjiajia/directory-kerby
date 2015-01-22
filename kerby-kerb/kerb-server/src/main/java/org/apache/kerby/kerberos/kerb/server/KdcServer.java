@@ -19,10 +19,10 @@
  */
 package org.apache.kerby.kerberos.kerb.server;
 
-import org.apache.haox.event.EventHub;
+import org.apache.kerby.event.EventHub;
 import org.apache.kerby.kerberos.kerb.common.KrbStreamingDecoder;
 import org.apache.kerby.kerberos.kerb.identity.IdentityService;
-import org.apache.haox.transport.Network;
+import org.apache.kerby.transport.Network;
 
 import java.io.File;
 

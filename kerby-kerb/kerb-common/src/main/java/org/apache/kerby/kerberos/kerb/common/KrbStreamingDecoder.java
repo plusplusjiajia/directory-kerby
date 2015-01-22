@@ -19,8 +19,8 @@
  */
 package org.apache.kerby.kerberos.kerb.common;
 
-import org.apache.haox.transport.tcp.DecodingCallback;
-import org.apache.haox.transport.tcp.StreamingDecoder;
+import org.apache.kerby.transport.tcp.DecodingCallback;
+import org.apache.kerby.transport.tcp.StreamingDecoder;
 
 import java.nio.ByteBuffer;
 

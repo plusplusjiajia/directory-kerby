@@ -17,7 +17,7 @@
  *  under the License. 
  *  
  */
-package test.java.org.apache.kerby.kerberos.kdc.server;
+package org.apache.kerby.kerberos.kdc.server;
 
 import org.junit.After;
 import org.junit.Before;

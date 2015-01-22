@@ -19,7 +19,7 @@
  */
 package org.apache.kerby.kerberos.kerb.common;
 
-import org.apache.haox.config.ConfigKey;
+import org.apache.kerby.config.ConfigKey;
 
 /**
  * Config Keys with section name.

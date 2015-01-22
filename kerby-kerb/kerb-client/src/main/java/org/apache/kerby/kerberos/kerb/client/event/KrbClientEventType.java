@@ -19,7 +19,7 @@
  */
 package org.apache.kerby.kerberos.kerb.client.event;
 
-import org.apache.haox.event.EventType;
+import org.apache.kerby.event.EventType;
 
 public enum KrbClientEventType implements EventType {
     TGT_INTENT,

@@ -25,7 +25,7 @@ import org.apache.kerby.kerberos.kerb.crypto.key.CamelliaKeyMaker;
 import org.apache.kerby.kerberos.kerb.crypto.key.Des3KeyMaker;
 import org.apache.kerby.kerberos.kerb.crypto.key.DkKeyMaker;
 import org.apache.kerby.kerberos.kerb.spec.common.EncryptionType;
-import org.haox.util.HexUtil;
+import org.apache.kerby.util.HexUtil;
 import org.junit.Assert;
 import org.junit.Test;
 

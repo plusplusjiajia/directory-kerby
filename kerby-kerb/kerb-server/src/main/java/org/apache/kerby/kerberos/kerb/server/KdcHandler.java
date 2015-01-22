@@ -32,10 +32,10 @@ import org.apache.kerby.kerberos.kerb.spec.common.KrbMessageType;
 import org.apache.kerby.kerberos.kerb.spec.kdc.AsReq;
 import org.apache.kerby.kerberos.kerb.spec.kdc.KdcReq;
 import org.apache.kerby.kerberos.kerb.spec.kdc.TgsReq;
-import org.apache.haox.transport.MessageHandler;
-import org.apache.haox.transport.Transport;
-import org.apache.haox.transport.event.MessageEvent;
-import org.apache.haox.transport.tcp.TcpTransport;
+import org.apache.kerby.transport.MessageHandler;
+import org.apache.kerby.transport.Transport;
+import org.apache.kerby.transport.event.MessageEvent;
+import org.apache.kerby.transport.tcp.TcpTransport;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;

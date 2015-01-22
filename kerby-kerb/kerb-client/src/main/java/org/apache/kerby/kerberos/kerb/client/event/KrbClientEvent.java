@@ -19,7 +19,7 @@
  */
 package org.apache.kerby.kerberos.kerb.client.event;
 
-import org.apache.haox.event.Event;
+import org.apache.kerby.event.Event;
 import org.apache.kerby.kerberos.kerb.client.request.AsRequest;
 import org.apache.kerby.kerberos.kerb.client.request.TgsRequest;
 

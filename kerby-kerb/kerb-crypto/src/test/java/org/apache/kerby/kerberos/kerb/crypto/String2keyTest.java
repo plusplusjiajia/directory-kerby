@@ -21,7 +21,7 @@ package org.apache.kerby.kerberos.kerb.crypto;
 
 import org.apache.kerby.kerberos.kerb.spec.common.EncryptionKey;
 import org.apache.kerby.kerberos.kerb.spec.common.EncryptionType;
-import org.haox.util.HexUtil;
+import org.apache.kerby.util.HexUtil;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
