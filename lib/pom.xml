@@ -16,8 +16,8 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.haox</groupId>
-    <artifactId>haox-all</artifactId>
+    <groupId>org.apache.kerby</groupId>
+    <artifactId>kerby-all</artifactId>
     <version>1.0-SNAPSHOT</version>
   </parent>
 
@@ -27,11 +27,11 @@
   <packaging>pom</packaging>
 
   <modules>
-    <module>haox-config</module>
-    <module>haox-event</module>
-    <module>haox-pkix</module>
-    <module>haox-token</module>
-    <module>haox-util</module>
+    <module>kerby-config</module>
+    <module>kerby-event</module>
+    <module>kerby-pkix</module>
+    <module>kerby-token</module>
+    <module>kerby-util</module>
   </modules>
 
   <dependencies>
