@@ -68,6 +68,7 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <scope>test</scope>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcprov-ext-jdk15on</artifactId>
       <version>1.51</version>
