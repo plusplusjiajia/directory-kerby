@@ -19,29 +19,26 @@
  */
 package org.apache.kerby.kerberos.kerb.provider;
 
+import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
+
+import java.io.IOException;
+
 /**
- * Token provider for TokenPreauth mechanism. This is needed because JWT token
- * encoding and decoding require various facilities that can be provided by 3rd
- * libraries. We need them but would not allow them to invade into the core.
+ * An AuthToken decoder.
  */
-public interface TokenProvider extends KrbProvider {
+public interface TokenDecoder {
 
     /**
-     * Create a token encoder.
-     * @return token encoder
+     * Decode a token from a bytes array.
+     * @param content
+     * @return token
      */
-    public TokenEncoder createTokenEncoder();
+    public AuthToken decodeFromBytes(byte[] content) throws IOException;
 
     /**
-     * Create a token decoder.
-     * @return token decoder
+     * Decode a token from a string.
+     * @param content
+     * @return token
      */
-    public TokenDecoder createTokenDecoder();
-
-    /**
-     * Create a token factory that can be used to construct concrete token.
-     * @return token factory
-     */
-    public TokenFactory createTokenFactory();
-
+    public AuthToken decodeFromString(String content) throws IOException;
 }
