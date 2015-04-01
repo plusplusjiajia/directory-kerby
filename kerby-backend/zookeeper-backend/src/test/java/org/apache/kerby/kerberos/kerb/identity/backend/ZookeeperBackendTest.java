@@ -20,6 +20,7 @@
 package org.apache.kerby.kerberos.kerb.identity.backend;
 
 import org.apache.kerby.config.Conf;
+import org.apache.kerby.kerberos.kdc.identitybackend.KerbyZNode;
 import org.apache.kerby.kerberos.kdc.identitybackend.ZKConfKey;
 import org.apache.kerby.kerberos.kdc.identitybackend.ZookeeperIdentityBackend;
 import org.junit.AfterClass;
@@ -29,7 +30,7 @@ import org.junit.Test;
 import java.io.File;
 
 /**
- * Ldap backend test
+ * Zookeeper backend test
  */
 public class ZookeeperBackendTest extends BackendTest {
     private static IdentityBackend backend;
@@ -37,7 +38,6 @@ public class ZookeeperBackendTest extends BackendTest {
     @BeforeClass
     public static void setup() {
         Conf config = new Conf();
-
         File testdir = new File(System.getProperty("test.dir", "target"));
         File instanceDir = new File(testdir, "zookeeper");
         instanceDir.mkdirs();
@@ -53,9 +53,29 @@ public class ZookeeperBackendTest extends BackendTest {
         backend.start();
     }
 
-    //@Test
+    @Test
     public void testGet() {
         super.testGet(backend);
+    }
+
+    @Test
+    public void testStore() {
+        super.testStore(backend);
+    }
+
+    @Test
+    public void testUpdate() {
+        super.testUpdate(backend);
+    }
+
+    @Test
+    public void testDelete() {
+        super.testDelete(backend);
+    }
+
+    @Test
+    public void testGetIdentities() {
+        super.testGetIdentities(backend);
     }
 
     @AfterClass

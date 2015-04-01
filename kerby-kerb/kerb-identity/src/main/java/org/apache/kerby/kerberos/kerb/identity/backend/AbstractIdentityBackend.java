@@ -81,7 +81,7 @@ public abstract class AbstractIdentityBackend
 
         KrbIdentity identity = doGetIdentity(principalName);
         if (identity != null) {
-            idCache.put(principalName, identity);
+//            idCache.put(principalName, identity);
         }
 
         return identity;

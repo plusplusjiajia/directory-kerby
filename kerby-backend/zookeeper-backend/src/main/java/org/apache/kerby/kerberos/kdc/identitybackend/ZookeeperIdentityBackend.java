@@ -22,6 +22,8 @@ package org.apache.kerby.kerberos.kdc.identitybackend;
 import org.apache.kerby.config.Config;
 import org.apache.kerby.kerberos.kerb.identity.KrbIdentity;
 import org.apache.kerby.kerberos.kerb.identity.backend.AbstractIdentityBackend;
+import org.apache.kerby.kerberos.kerb.spec.base.PrincipalName;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
@@ -47,6 +49,9 @@ public class ZookeeperIdentityBackend extends AbstractIdentityBackend
     private int zkPort;
     private File dataDir;
     private File dataLogDir;
+    private ZooKeeper zooKeeper;
+    private ZooKeeperWatcher zkw;
+    private KerbyZNode kerbyZNode;
 
     /**
      * Constructing an instance using specified config that contains anything
@@ -58,6 +63,10 @@ public class ZookeeperIdentityBackend extends AbstractIdentityBackend
         init();
     }
 
+    public ZooKeeper getZooKeeper() {
+        return zooKeeper;
+    }
+
     private void init() {
         zkHost = config.getString(ZKConfKey.ZK_HOST);
         zkPort = config.getInt(ZKConfKey.ZK_PORT);
@@ -66,6 +75,11 @@ public class ZookeeperIdentityBackend extends AbstractIdentityBackend
 
         startEmbeddedZookeeper();
         connectZK();
+        try {
+            kerbyZNode = new KerbyZNode(zooKeeper);
+        } catch (KeeperException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -73,7 +87,7 @@ public class ZookeeperIdentityBackend extends AbstractIdentityBackend
      */
     private void connectZK() {
         try {
-            ZooKeeper zooKeeper = new ZooKeeper(zkHost, zkPort, null);
+            zooKeeper = new ZooKeeper(zkHost, zkPort, zkw);
         } catch (IOException e) {
             throw new RuntimeException("Failed to prepare Zookeeper connection");
         }
@@ -84,9 +98,10 @@ public class ZookeeperIdentityBackend extends AbstractIdentityBackend
      */
     public void load() throws IOException {
         // TODO: prepare zookeeper connection to the server.
-        ZooKeeper zooKeeper = null;
+//        ZooKeeper zooKeeper = null;
 
         // TODO: load the kdb file from zookeeper
+        connectZK();
     }
 
     private void startEmbeddedZookeeper() {
@@ -131,26 +146,84 @@ public class ZookeeperIdentityBackend extends AbstractIdentityBackend
 
     @Override
     protected KrbIdentity doGetIdentity(String principalName) {
-        return null;
+        KrbIdentity krb = new KrbIdentity(principalName);
+        try {
+            if(kerbyZNode.getPrincipalName(principalName) == null) {
+                return  null;
+            }
+            krb.setPrincipal(new PrincipalName(kerbyZNode.getPrincipalName(principalName)));
+            krb.setCreatedTime(kerbyZNode.getCreatedTime(principalName));
+            krb.setDisabled(kerbyZNode.getDisabled(principalName));
+            krb.setExpireTime(kerbyZNode.getExpireTime(principalName));
+            krb.setKdcFlags(kerbyZNode.getKdcFlags(principalName));
+            krb.addKeys(kerbyZNode.getKeys(principalName));
+            krb.setKeyVersion(kerbyZNode.getKeyVersion(principalName));
+            krb.setLocked(kerbyZNode.getLocked(principalName));
+        } catch (KeeperException e) {
+            e.printStackTrace();
+        }
+        return  krb;
     }
 
     @Override
     protected KrbIdentity doAddIdentity(KrbIdentity identity) {
+        try {
+            setIdentity(identity);
+        } catch (KeeperException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+//        return identity;
         return null;
     }
 
     @Override
     protected KrbIdentity doUpdateIdentity(KrbIdentity identity) {
+        try {
+            setIdentity(identity);
+        } catch (KeeperException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         return null;
+//        return identity;
     }
 
     @Override
     protected void doDeleteIdentity(String principalName) {
-
+        try {
+            kerbyZNode.deleteIdentity(principalName);
+        } catch (KeeperException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public List<String> getIdentities(int start, int limit) {
-        return null;
+        List<String> identityNames = null;
+        try {
+            identityNames = kerbyZNode.getIdentityNames(start, limit);
+        } catch (KeeperException e) {
+            e.printStackTrace();
+        }
+        return identityNames;
+//        return null;
+    }
+
+    private void setIdentity(KrbIdentity identity) throws KeeperException, InterruptedException {
+        kerbyZNode.setPrincipal(identity.getPrincipalName());
+        kerbyZNode.setPrincipalName(identity.getPrincipalName(), identity.getPrincipalName());
+        kerbyZNode.setCreatedTime(identity.getPrincipalName(), identity.getCreatedTime());
+        kerbyZNode.setDisabled(identity.getPrincipalName(), identity.isDisabled());
+        kerbyZNode.setExpireTime(identity.getPrincipalName(), identity.getExpireTime());
+        kerbyZNode.setKdcFlags(identity.getPrincipalName(), identity.getKdcFlags());
+        kerbyZNode.setKeys(identity.getPrincipalName(), identity.getKeys());
+        kerbyZNode.setKeyVersion(identity.getPrincipalName(), identity.getKeyVersion());
+        kerbyZNode.setLocked(identity.getPrincipalName(), identity.isLocked());
     }
 }

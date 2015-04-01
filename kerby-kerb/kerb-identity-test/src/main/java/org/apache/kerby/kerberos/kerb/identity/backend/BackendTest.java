@@ -25,9 +25,11 @@ import org.apache.kerby.kerberos.kerb.identity.KrbIdentity;
 import org.apache.kerby.kerberos.kerb.spec.KerberosTime;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionKey;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionType;
-
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,11 +46,24 @@ public abstract class BackendTest {
             EncryptionType.DES3_CBC_SHA1_KD
     };
 
+    List<EncryptionKey> expectedKeys;
+
     protected void testGet(IdentityBackend backend) {
         KrbIdentity kid = createOneIdentity(TEST_PRINCIPAL);
         backend.addIdentity(kid);
 
-        assertThat(backend.getIdentity(TEST_PRINCIPAL)).isNotNull();
+        KrbIdentity identity = backend.getIdentity(TEST_PRINCIPAL);
+        assertThat(identity).isNotNull();
+        assertThat(identity.getExpireTime()).isEqualTo(KerberosTime.NEVER);
+        assertThat(identity.isDisabled()).isEqualTo(false);
+        assertThat(identity.getKeyVersion()).isEqualTo(1);
+        for (EncryptionKey expectedKey : expectedKeys) {
+            EncryptionType actualType = EncryptionType.fromValue(expectedKey.getKeyType().getValue());
+            EncryptionKey actualKey = identity.getKey(actualType);
+            assertThat(actualKey.getKeyType().getValue()).isEqualTo(expectedKey.getKeyType().getValue());
+            assertThat(actualKey.getKeyData()).isEqualTo(expectedKey.getKeyData());
+            assertThat(actualKey.getKvno()).isEqualTo(expectedKey.getKvno());
+        }
 
         //tearDown
         backend.deleteIdentity(TEST_PRINCIPAL);
@@ -72,6 +87,7 @@ public abstract class BackendTest {
         kid.setDisabled(true);
         backend.updateIdentity(kid);
 
+        System.out.println("###"+backend.getIdentity(TEST_PRINCIPAL).isDisabled());
         assertThat(backend.getIdentity(TEST_PRINCIPAL)).isEqualTo(kid);
 
         //tearDown
@@ -123,7 +139,8 @@ public abstract class BackendTest {
         kid.setDisabled(false);
         kid.setKeyVersion(1);
         kid.setLocked(false);
-        kid.addKeys(generateKeys(kid.getPrincipalName()));
+        expectedKeys = generateKeys(kid.getPrincipalName());
+        kid.addKeys(expectedKeys);
 
         return kid;
     }
