@@ -30,6 +30,8 @@ import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.server.ServerConfig;
 import org.apache.zookeeper.server.ZooKeeperServerMain;
 import org.apache.zookeeper.server.quorum.QuorumPeerConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,6 +45,7 @@ import java.util.Properties;
  */
 public class ZookeeperIdentityBackend extends AbstractIdentityBackend
     implements Watcher {
+    private static final Logger LOG = LoggerFactory.getLogger(ZookeeperIdentityBackend.class);
     private Config config;
     private String zkHost;
     private int zkPort;
@@ -161,7 +164,7 @@ public class ZookeeperIdentityBackend extends AbstractIdentityBackend
             krb.setKeyVersion(kerbyZNode.getKeyVersion(principalName));
             krb.setLocked(kerbyZNode.getLocked(principalName));
         } catch (KeeperException e) {
-            e.printStackTrace();
+            LOG.error("Fail to get identity from zookeeper", e);
         }
         return krb;
     }
@@ -171,10 +174,9 @@ public class ZookeeperIdentityBackend extends AbstractIdentityBackend
         try {
             setIdentity(identity);
         } catch (KeeperException e) {
-            e.printStackTrace();
+            LOG.error("Fail to add identity in zookeeper", e);
         }
-//        return identity;
-        return null;
+        return identity;
     }
 
     @Override
@@ -182,10 +184,9 @@ public class ZookeeperIdentityBackend extends AbstractIdentityBackend
         try {
             setIdentity(identity);
         } catch (KeeperException e) {
-            e.printStackTrace();
+            LOG.error("Fail to update identity in zookeeper", e);
         }
-        return null;
-//        return identity;
+        return identity;
     }
 
     @Override
@@ -193,7 +194,7 @@ public class ZookeeperIdentityBackend extends AbstractIdentityBackend
         try {
             kerbyZNode.deleteIdentity(principalName);
         } catch (KeeperException e) {
-            e.printStackTrace();
+            LOG.error("Fail to delete identity in zookeeper", e);
         }
     }
 
@@ -201,12 +202,11 @@ public class ZookeeperIdentityBackend extends AbstractIdentityBackend
     public List<String> getIdentities(int start, int limit) {
         List<String> identityNames = null;
         try {
-            identityNames = kerbyZNode.getIdentityNames(start, limit);
+            identityNames = kerbyZNode.getIdentityNames();
         } catch (KeeperException e) {
-            e.printStackTrace();
+            LOG.error("Fail to get identities from zookeeper", e);
         }
         return identityNames;
-//        return null;
     }
 
     private void setIdentity(KrbIdentity identity) throws KeeperException {

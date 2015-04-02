@@ -75,7 +75,7 @@ public class ZookeeperBackendTest extends BackendTest {
 
     @Test
     public void testGetIdentities() {
-        super.testGetIdentities(backend);
+        super.testGetAllIdentities(backend);
     }
 
     @AfterClass

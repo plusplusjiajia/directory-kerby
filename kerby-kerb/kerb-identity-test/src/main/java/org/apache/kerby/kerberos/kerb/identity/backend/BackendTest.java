@@ -25,11 +25,9 @@ import org.apache.kerby.kerberos.kerb.identity.KrbIdentity;
 import org.apache.kerby.kerberos.kerb.spec.KerberosTime;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionKey;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionType;
+
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -52,6 +50,8 @@ public abstract class BackendTest {
         KrbIdentity kid = createOneIdentity(TEST_PRINCIPAL);
         backend.addIdentity(kid);
 
+        backend.release();
+
         KrbIdentity identity = backend.getIdentity(TEST_PRINCIPAL);
         assertThat(identity).isNotNull();
         assertThat(identity.getExpireTime()).isEqualTo(KerberosTime.NEVER);
@@ -72,6 +72,9 @@ public abstract class BackendTest {
     protected void testStore(IdentityBackend backend) {
         KrbIdentity kid = createOneIdentity(TEST_PRINCIPAL);
         backend.addIdentity(kid);
+
+        backend.release();
+
         KrbIdentity kid2 = backend.getIdentity(TEST_PRINCIPAL);
 
         assertThat(kid).isEqualTo(kid2);
@@ -87,6 +90,8 @@ public abstract class BackendTest {
         kid.setDisabled(true);
         backend.updateIdentity(kid);
 
+        backend.release();
+
         assertThat(backend.getIdentity(TEST_PRINCIPAL)).isEqualTo(kid);
 
         //tearDown
@@ -96,6 +101,9 @@ public abstract class BackendTest {
     protected void testDelete(IdentityBackend backend) {
         KrbIdentity kid = createOneIdentity(TEST_PRINCIPAL);
         backend.addIdentity(kid);
+
+        backend.release();
+
         assertThat(backend.getIdentity(TEST_PRINCIPAL)).isNotNull();
 
         backend.deleteIdentity(TEST_PRINCIPAL);
@@ -109,11 +117,37 @@ public abstract class BackendTest {
             backend.addIdentity(identity);
         }
 
+        backend.release();
+
         List<String> principals = backend.getIdentities(2, 5);
         assertThat(principals).hasSize(3)
                 .contains(identities[2].getPrincipalName())
                 .contains(identities[3].getPrincipalName())
                 .contains(identities[4].getPrincipalName());
+
+        //tearDown
+        for (KrbIdentity identity : identities) {
+            backend.deleteIdentity(identity.getPrincipalName());
+        }
+    }
+
+    protected void testGetAllIdentities(IdentityBackend backend) {
+        KrbIdentity[] identities = createManyIdentities();
+
+        for (KrbIdentity identity : identities) {
+            backend.addIdentity(identity);
+        }
+
+        backend.release();
+
+        List<String> principals = backend.getIdentities(0, 6);
+        assertThat(principals).hasSize(6)
+            .contains(identities[0].getPrincipalName())
+            .contains(identities[1].getPrincipalName())
+            .contains(identities[2].getPrincipalName())
+            .contains(identities[3].getPrincipalName())
+            .contains(identities[4].getPrincipalName())
+            .contains(identities[5].getPrincipalName());
 
         //tearDown
         for (KrbIdentity identity : identities) {

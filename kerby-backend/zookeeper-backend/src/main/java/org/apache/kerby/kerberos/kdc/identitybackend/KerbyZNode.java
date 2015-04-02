@@ -129,6 +129,11 @@ public class KerbyZNode {
         return principals;
     }
 
+    public List<String> getIdentityNames() throws KeeperException {
+        List<String> identityNames = ZKUtil.listChildrenNoWatch(this.zk, getIdentitiesZNode());
+        return identityNames;
+    }
+
     public String getPrincipalName(String principalName) throws KeeperException {
         String znode = getPrincipalNameZnode(principalName);
         if (ZKUtil.checkExists(this.zk, znode) == -1) {
