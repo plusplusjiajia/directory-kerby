@@ -87,7 +87,6 @@ public abstract class BackendTest {
         kid.setDisabled(true);
         backend.updateIdentity(kid);
 
-        System.out.println("###"+backend.getIdentity(TEST_PRINCIPAL).isDisabled());
         assertThat(backend.getIdentity(TEST_PRINCIPAL)).isEqualTo(kid);
 
         //tearDown

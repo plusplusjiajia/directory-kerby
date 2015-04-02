@@ -6,16 +6,16 @@
  *  to you under the Apache License, Version 2.0 (the
  *  "License"); you may not use this file except in compliance
  *  with the License.  You may obtain a copy of the License at
- *  
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- *  
+ *
  *  Unless required by applicable law or agreed to in writing,
  *  software distributed under the License is distributed on an
  *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  *  KIND, either express or implied.  See the License for the
  *  specific language governing permissions and limitations
  *  under the License. 
- *  
+ *
  */
 package org.apache.kerby.kerberos.kdc.identitybackend;
 
@@ -40,10 +40,9 @@ import java.util.Properties;
  * A Zookeeper based backend implementation. Currently it uses an embedded
  * Zookeeper. In follow up it will be enhanced to support standalone Zookeeper
  * cluster for replication and reliability.
- *
  */
 public class ZookeeperIdentityBackend extends AbstractIdentityBackend
-        implements Watcher {
+    implements Watcher {
     private Config config;
     private String zkHost;
     private int zkPort;
@@ -56,6 +55,7 @@ public class ZookeeperIdentityBackend extends AbstractIdentityBackend
     /**
      * Constructing an instance using specified config that contains anything
      * to be used to init the Zookeeper backend.
+     *
      * @param config
      */
     public ZookeeperIdentityBackend(Config config) {
@@ -114,7 +114,7 @@ public class ZookeeperIdentityBackend extends AbstractIdentityBackend
         QuorumPeerConfig quorumConfiguration = new QuorumPeerConfig();
         try {
             quorumConfiguration.parseProperties(startupProperties);
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
@@ -137,6 +137,7 @@ public class ZookeeperIdentityBackend extends AbstractIdentityBackend
 
     /**
      * This will watch all the kdb update event so that it's timely synced.
+     *
      * @param event
      */
     @Override
@@ -148,8 +149,8 @@ public class ZookeeperIdentityBackend extends AbstractIdentityBackend
     protected KrbIdentity doGetIdentity(String principalName) {
         KrbIdentity krb = new KrbIdentity(principalName);
         try {
-            if(kerbyZNode.getPrincipalName(principalName) == null) {
-                return  null;
+            if (kerbyZNode.getPrincipalName(principalName) == null) {
+                return null;
             }
             krb.setPrincipal(new PrincipalName(kerbyZNode.getPrincipalName(principalName)));
             krb.setCreatedTime(kerbyZNode.getCreatedTime(principalName));
@@ -162,7 +163,7 @@ public class ZookeeperIdentityBackend extends AbstractIdentityBackend
         } catch (KeeperException e) {
             e.printStackTrace();
         }
-        return  krb;
+        return krb;
     }
 
     @Override
@@ -170,8 +171,6 @@ public class ZookeeperIdentityBackend extends AbstractIdentityBackend
         try {
             setIdentity(identity);
         } catch (KeeperException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
             e.printStackTrace();
         }
 //        return identity;
@@ -184,10 +183,7 @@ public class ZookeeperIdentityBackend extends AbstractIdentityBackend
             setIdentity(identity);
         } catch (KeeperException e) {
             e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
-
         return null;
 //        return identity;
     }
@@ -197,8 +193,6 @@ public class ZookeeperIdentityBackend extends AbstractIdentityBackend
         try {
             kerbyZNode.deleteIdentity(principalName);
         } catch (KeeperException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
@@ -215,7 +209,7 @@ public class ZookeeperIdentityBackend extends AbstractIdentityBackend
 //        return null;
     }
 
-    private void setIdentity(KrbIdentity identity) throws KeeperException, InterruptedException {
+    private void setIdentity(KrbIdentity identity) throws KeeperException {
         kerbyZNode.setPrincipal(identity.getPrincipalName());
         kerbyZNode.setPrincipalName(identity.getPrincipalName(), identity.getPrincipalName());
         kerbyZNode.setCreatedTime(identity.getPrincipalName(), identity.getCreatedTime());
