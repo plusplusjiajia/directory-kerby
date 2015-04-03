@@ -53,7 +53,7 @@ public class ZKUtil {
     public static int checkExists(ZooKeeper zk, String node)
         throws KeeperException {
         try {
-            Stat s = zk.exists(node, null);
+            Stat s = zk.exists(node, true);
             return s != null ? s.getVersion() : -1;
         } catch (KeeperException e) {
             return -1;

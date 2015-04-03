@@ -23,35 +23,72 @@ import org.apache.kerby.config.Config;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.security.auth.login.Configuration;
 import java.io.IOException;
 
 public class ZooKeeperWatcher implements Watcher {
+    private static final Logger LOG = LoggerFactory.getLogger(ZooKeeperWatcher.class);
 
-    private ZooKeeper zk;
-    public Config config;
-    private String quorum;
-    private int port;
+    public ZooKeeperWatcher() {}
 
-    int timeout = 100;
+    /**
+     * This will watch all the kdb update event so that it's timely synced.
+     *
+     * @param event
+     */
+    @Override
+    public void process(WatchedEvent event) {
+        System.out.println("I got an event: " + event.getType());
+        if(event.getType() == Event.EventType.NodeChildrenChanged) {
 
-    public ZooKeeperWatcher(Config config) {
-        this.config = config;
-        this.quorum = ZKConfig.getZKQuorumServersString(config);
-        this.port = ZKConfig.getZkPort(config);
-        try {
-            this.zk = new ZooKeeper(this.quorum, this.port, null);
-        } catch (IOException e) {
-            e.printStackTrace();
         }
+        LOG.debug("Received ZooKeeper Event, " +
+            "type=" + event.getType() + ", " +
+            "state=" + event.getState() + ", " +
+            "path=" + event.getPath());
+
+        switch (event.getType()) {
+
+            // If event type is NONE, this is a connection status change
+//            case None: {
+//                connectionEvent(event);
+//                break;
+//            }
+//
+//            // Otherwise pass along to the listeners
+//
+//            case NodeCreated: {
+//                for (ZooKeeperListener listener : listeners) {
+//                    listener.nodeCreated(event.getPath());
+//                }
+//                break;
+//            }
+//
+//            case NodeDeleted: {
+//                for (ZooKeeperListener listener : listeners) {
+//                    listener.nodeDeleted(event.getPath());
+//                }
+//                break;
+//            }
+//
+//            case NodeDataChanged: {
+//                for (ZooKeeperListener listener : listeners) {
+//                    listener.nodeDataChanged(event.getPath());
+//                }
+//                break;
+//            }
+//
+//            case NodeChildrenChanged: {
+//                for (ZooKeeperListener listener : listeners) {
+//                    listener.nodeChildrenChanged(event.getPath());
+//                }
+//                break;
+//            }
+        }
+
     }
 
-    public ZooKeeper getZooKeeper() {
-        return this.zk;
-    }
-
-    public  static final ZooKeeperWatcher instance = new ZooKeeperWatcher();
-    private ZooKeeperWatcher() {}
-    public void process(WatchedEvent event) {}
 }

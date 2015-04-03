@@ -43,8 +43,7 @@ import java.util.Properties;
  * Zookeeper. In follow up it will be enhanced to support standalone Zookeeper
  * cluster for replication and reliability.
  */
-public class ZookeeperIdentityBackend extends AbstractIdentityBackend
-    implements Watcher {
+public class ZookeeperIdentityBackend extends AbstractIdentityBackend {
     private static final Logger LOG = LoggerFactory.getLogger(ZookeeperIdentityBackend.class);
     private Config config;
     private String zkHost;
@@ -90,6 +89,7 @@ public class ZookeeperIdentityBackend extends AbstractIdentityBackend
      */
     private void connectZK() {
         try {
+            zkw = new ZooKeeperWatcher();
             zooKeeper = new ZooKeeper(zkHost, zkPort, zkw);
         } catch (IOException e) {
             throw new RuntimeException("Failed to prepare Zookeeper connection");
@@ -136,16 +136,6 @@ public class ZookeeperIdentityBackend extends AbstractIdentityBackend
             }
         }.start();
 
-    }
-
-    /**
-     * This will watch all the kdb update event so that it's timely synced.
-     *
-     * @param event
-     */
-    @Override
-    public void process(WatchedEvent event) {
-        System.out.print("I got an event: " + event);
     }
 
     @Override
