@@ -21,7 +21,7 @@ package org.apache.kerby.kerberos.kerb.client;
 
 import org.apache.kerby.KOptions;
 import org.apache.kerby.kerberos.kerb.KrbException;
-import org.apache.kerby.kerberos.kerb.client.impl.blocking.BlockModeKrbClient;
+import org.apache.kerby.kerberos.kerb.client.impl.InternalKrbClientImpl;
 import org.apache.kerby.kerberos.kerb.client.impl.event.EventBasedKrbClient;
 import org.apache.kerby.kerberos.kerb.client.impl.InternalKrbClient;
 import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
@@ -45,7 +45,7 @@ public class KrbClient {
      * Default constructor.
      */
     public KrbClient() {
-        this(new KrbConfig());
+        commonOptions = new KOptions();
     }
 
     /**
@@ -128,9 +128,21 @@ public class KrbClient {
         if (commonOptions.contains(KrbOption.USE_EVENT_MODEL)) {
             innerClient = new EventBasedKrbClient();
         } else {
-            innerClient = new BlockModeKrbClient();
+            innerClient = new InternalKrbClientImpl();
         }
         innerClient.init(commonOptions);
+    }
+
+    /**
+     * Get krb client settings from options and configs.
+     * Note it must be called after init().
+     * @return setting
+     */
+    public KrbSetting getSetting() {
+        if (innerClient == null) {
+            throw new RuntimeException("Not init yet");
+        }
+        return innerClient.getSetting();
     }
 
     /**

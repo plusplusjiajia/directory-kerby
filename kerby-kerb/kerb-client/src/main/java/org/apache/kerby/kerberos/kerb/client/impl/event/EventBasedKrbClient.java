@@ -24,7 +24,6 @@ import org.apache.kerby.event.Event;
 import org.apache.kerby.event.EventHub;
 import org.apache.kerby.event.EventWaiter;
 import org.apache.kerby.kerberos.kerb.KrbException;
-import org.apache.kerby.kerberos.kerb.client.KrbConfig;
 import org.apache.kerby.kerberos.kerb.client.impl.AbstractInternalKrbClient;
 import org.apache.kerby.kerberos.kerb.client.request.AsRequest;
 import org.apache.kerby.kerberos.kerb.client.request.TgsRequest;
@@ -38,6 +37,7 @@ import org.apache.kerby.transport.event.TransportEvent;
 import org.apache.kerby.transport.event.TransportEventType;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -75,9 +75,11 @@ public class EventBasedKrbClient extends AbstractInternalKrbClient {
 
         eventHub.start();
 
-        network.tcpConnect(getKdcHost(), getKdcTcpPort());
-        if (allowUdp()) {
-            network.udpConnect(getKdcHost(), getKdcUdpPort());
+        network.tcpConnect(getSetting().getKdcHost(),
+                getSetting().getKdcTcpPort());
+        if (getSetting().allowUdp()) {
+            network.udpConnect(getSetting().getKdcHost(),
+                    getSetting().getKdcUdpPort());
         }
         final Event event = eventWaiter.waitEvent(TransportEventType.NEW_TRANSPORT);
         eventTransport = ((TransportEvent) event).getTransport();
@@ -94,6 +96,11 @@ public class EventBasedKrbClient extends AbstractInternalKrbClient {
             }
 
             @Override
+            public InetAddress getRemoteAddress() {
+                return eventTransport.getRemoteAddress().getAddress();
+            }
+
+            @Override
             public void setAttachment(Object attachment) {
                 eventTransport.setAttachment(attachment);
             }
@@ -101,6 +108,11 @@ public class EventBasedKrbClient extends AbstractInternalKrbClient {
             @Override
             public Object getAttachment() {
                 return eventTransport.getAttachment();
+            }
+
+            @Override
+            public void release() throws IOException {
+
             }
         };
     }
@@ -113,7 +125,7 @@ public class EventBasedKrbClient extends AbstractInternalKrbClient {
         Event resultEvent;
         try {
             resultEvent = eventWaiter.waitEvent(KrbClientEventType.TGT_RESULT,
-                    getTimeout(), TimeUnit.SECONDS);
+                    getSetting().getTimeout(), TimeUnit.SECONDS);
         } catch (TimeoutException e) {
             throw new KrbException("Network timeout", e);
         }
@@ -130,7 +142,7 @@ public class EventBasedKrbClient extends AbstractInternalKrbClient {
         Event resultEvent;
         try {
             resultEvent = eventWaiter.waitEvent(KrbClientEventType.TKT_RESULT,
-                    getTimeout(), TimeUnit.SECONDS);
+                    getSetting().getTimeout(), TimeUnit.SECONDS);
         } catch (TimeoutException e) {
             throw new KrbException("Network timeout", e);
         }

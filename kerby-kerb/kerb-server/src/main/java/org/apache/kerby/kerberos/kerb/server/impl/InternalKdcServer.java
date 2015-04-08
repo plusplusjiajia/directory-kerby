@@ -14,52 +14,46 @@
  *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  *  KIND, either express or implied.  See the License for the
  *  specific language governing permissions and limitations
- *  under the License.
+ *  under the License. 
  *
  */
-package org.apache.kerby.kerberos.kerb.transport;
+package org.apache.kerby.kerberos.kerb.server.impl;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.nio.ByteBuffer;
+import org.apache.kerby.KOptions;
+import org.apache.kerby.kerberos.kerb.identity.IdentityService;
+import org.apache.kerby.kerberos.kerb.server.KdcContext;
+import org.apache.kerby.kerberos.kerb.server.KdcSetting;
 
 /**
- * Krb transport.
+ * An internal KDC server interface.
  */
-public interface KrbTransport {
+public interface InternalKdcServer {
 
     /**
-     * Send out a Kerberos message to remote peer.
-     * @param message
+     * Initialize with KDC startup options.
+     * @param options
      */
-    public void sendMessage(ByteBuffer message) throws IOException;
+    public void init(KOptions options);
 
     /**
-     * Receive a Kerberos message from remote.
-     * @return
+     * Start the KDC server.
      */
-    public ByteBuffer receiveMessage() throws IOException;
+    public void start();
 
     /**
-     * Get address from remote side.
-     * @return address
+     * Stop the KDC server.
      */
-    public InetAddress getRemoteAddress();
+    public void stop();
 
     /**
-     * Set an attachment.
-     * @param attachment
+     * Get KDC setting.
+     * @return setting
      */
-    public void setAttachment(Object attachment);
+    public KdcSetting getSetting();
 
     /**
-     * Get the attachment set before.
-     * @return attachment
+     * Get identity service.
+     * @return IdentityService
      */
-    public Object getAttachment();
-
-    /**
-     * Release and close related resources like connection.
-     */
-    public void release() throws IOException;
+    public IdentityService getIdentityService();
 }

@@ -17,58 +17,48 @@
  *  under the License. 
  *  
  */
-package org.apache.kerby.kerberos.tool.kinit;
+package org.apache.kerby.kerberos.kerb.server;
 
 import org.apache.kerby.KOption;
 import org.apache.kerby.KOptionType;
 
-public enum KinitOption implements KOption {
+/**
+ * KDC server startup options
+ */
+public enum KdcServerOption implements KOption {
     NONE("NONE"),
-    CLIENT_PRINCIPAL("client-principal", "Client principal", KOptionType.STR),
-    LIFE_TIME("-l", "lifetime", KOptionType.INT),
-    START_TIME("-s", "start time", KOptionType.INT),
-    RENEWABLE_LIFE("-r", "renewable lifetime", KOptionType.INT),
-    FORWARDABLE("-f", "forwardable"),
-    NOT_FORWARDABLE("-F", "not forwardable"),
-    PROXIABLE("-p", "proxiable"),
-    NOT_PROXIABLE("-P", "not proxiable"),
-    ANONYMOUS("-n", "anonymous"),
-    INCLUDE_ADDRESSES("-a", "include addresses"),
-    NOT_INCLUDE_ADDRESSES("-A", "do not include addresses"),
-    VALIDATE("-v", "validate"),
-    RENEW("-R", "renew"),
-    CANONICALIZE("-C", "canonicalize"),
-    AS_ENTERPRISE_PN("-E", "client is enterprise principal name"),
-    USE_PASSWD("using password", "using password"),
-    USER_PASSWD("user-passwd", "User plain password"),
-    USE_KEYTAB("-k", "use keytab"),
-    USE_DFT_KEYTAB("-i", "use default client keytab (with -k)"),
-    USER_KEYTAB_FILE("-t", "filename of keytab to use", KOptionType.STR),
-    KRB5_CACHE("-c", "Kerberos 5 cache name", KOptionType.STR),
-    SERVICE("-S", "service", KOptionType.STR),
-    ARMOR_CACHE("-T", "armor credential cache", KOptionType.FILE),
-    XATTR("-X", "<attribute>[=<value>]", KOptionType.STR),
+    USE_EVENT_MODEL("use event model", KOptionType.NOV),
+    KDC_CONFIG("kdc config", KOptionType.OBJ),
+    BACKEND_CONFIG("backend config", KOptionType.OBJ),
+    CONF_DIR("conf dir", KOptionType.DIR),
+    KDC_REALM("kdc realm", KOptionType.STR),
+    KDC_HOST("kdc host", KOptionType.STR),
+    KDC_TCP_PORT("kdc tcp port", KOptionType.INT),
+    ALLOW_UDP("allow udp", KOptionType.BOOL),
+    KDC_UDP_PORT("kdc udp port", KOptionType.INT),
+    WORK_DIR("work dir", KOptionType.DIR),
+    ENABLE_DEBUG("enable debug", KOptionType.BOOL),
     ;
 
     private String name;
-    private KOptionType type = KOptionType.NONE;
+    private KOptionType type;
     private String description;
     private Object value;
 
-    KinitOption(String description) {
+    KdcServerOption(String description) {
         this(description, KOptionType.NOV); // As a flag by default
     }
 
-    KinitOption(String description, KOptionType type) {
+    KdcServerOption(String description, KOptionType type) {
         this.description = description;
         this.type = type;
     }
 
-    KinitOption(String name, String description) {
+    KdcServerOption(String name, String description) {
         this(name, description, KOptionType.NOV); // As a flag by default
     }
 
-    KinitOption(String name, String description, KOptionType type) {
+    KdcServerOption(String name, String description, KOptionType type) {
         this.name = name;
         this.description = description;
         this.type = type;
@@ -79,12 +69,10 @@ public enum KinitOption implements KOption {
         return name();
     }
 
-    @Override
     public void setType(KOptionType type) {
         this.type = type;
     }
 
-    @Override
     public KOptionType getType() {
         return this.type;
     }
@@ -122,15 +110,25 @@ public enum KinitOption implements KOption {
         return value;
     }
 
-    public static KinitOption fromName(String name) {
+    public static KdcServerOption fromName(String name) {
         if (name != null) {
-            for (KinitOption ko : values()) {
+            for (KdcServerOption ko : values()) {
                 if (ko.getName().equals(name)) {
-                    return (KinitOption) ko;
+                    return (KdcServerOption) ko;
+                }
+            }
+        }
+        return NONE;
+    }
+
+    public static KdcServerOption fromOptionName(String optionName) {
+        if (optionName != null) {
+            for (KdcServerOption ko : values()) {
+                if (ko.getOptionName().equals(optionName)) {
+                    return (KdcServerOption) ko;
                 }
             }
         }
         return NONE;
     }
 }
-

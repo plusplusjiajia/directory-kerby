@@ -77,11 +77,12 @@ public class KerbyKdcServer extends KdcServer {
     }
 
     /**
+     * TODO: THIS IS TO BE MOVED TO KDC-INIT !!
      * Verify whether tgt identity has been added.
      * If no, add it to identity backend.
      */
     private void createTgtPrincipal() {
-        String tgtPrincipal = "krbtgt";
+        String tgtPrincipal = fixPrincipal("krbtgt");
         KrbIdentity tgtIdentity = getIdentityService().getIdentity(tgtPrincipal);
         if (tgtIdentity == null) {
             createPrincipals(tgtPrincipal);
@@ -90,7 +91,7 @@ public class KerbyKdcServer extends KdcServer {
 
     private void createPrincipal(String principal, String password) {
         KrbIdentity identity = new KrbIdentity(fixPrincipal(principal));
-        List<EncryptionType> encTypes = getKdcConfig().getEncryptionTypes();
+        List<EncryptionType> encTypes = getSetting().getKdcConfig().getEncryptionTypes();
         List<EncryptionKey> encKeys = null;
         try {
             encKeys = EncryptionUtil.generateKeys(fixPrincipal(principal), password, encTypes);
@@ -111,7 +112,7 @@ public class KerbyKdcServer extends KdcServer {
 
     private String fixPrincipal(String principal) {
         if (! principal.contains("@")) {
-            principal += "@" + getKdcRealm();
+            principal += "@" + getSetting().getKdcRealm();
         }
         return principal;
     }
