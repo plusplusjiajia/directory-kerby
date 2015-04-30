@@ -19,8 +19,11 @@
  */
 package org.apache.kerby.kerberos.kerb.server.preauth.token;
 
+import org.apache.kerby.kerberos.kerb.KrbCodec;
 import org.apache.kerby.kerberos.kerb.KrbException;
 import org.apache.kerby.kerberos.kerb.KrbRuntime;
+import org.apache.kerby.kerberos.kerb.common.EncryptionUtil;
+import org.apache.kerby.kerberos.kerb.crypto.fast.FastUtil;
 import org.apache.kerby.kerberos.kerb.preauth.PluginRequestContext;
 import org.apache.kerby.kerberos.kerb.preauth.token.TokenPreauthMeta;
 import org.apache.kerby.kerberos.kerb.provider.TokenDecoder;
@@ -28,6 +31,9 @@ import org.apache.kerby.kerberos.kerb.server.preauth.AbstractPreauthPlugin;
 import org.apache.kerby.kerberos.kerb.server.request.AsRequest;
 import org.apache.kerby.kerberos.kerb.server.request.KdcRequest;
 import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
+import org.apache.kerby.kerberos.kerb.spec.base.EncryptedData;
+import org.apache.kerby.kerberos.kerb.spec.base.EncryptionKey;
+import org.apache.kerby.kerberos.kerb.spec.base.KeyUsage;
 import org.apache.kerby.kerberos.kerb.spec.base.KrbToken;
 import org.apache.kerby.kerberos.kerb.spec.pa.PaDataEntry;
 import org.apache.kerby.kerberos.kerb.spec.pa.token.PaTokenRequest;
@@ -44,12 +50,14 @@ public class TokenPreauth extends AbstractPreauthPlugin {
     public boolean verify(KdcRequest kdcRequest, PluginRequestContext requestContext,
                           PaDataEntry paData) throws KrbException {
 
-        PaTokenRequest paTokenRequest = new PaTokenRequest();
-        try {
-            paTokenRequest.decode(paData.getPaDataValue());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        EncryptedData encData = KrbCodec.decode(paData.getPaDataValue(), EncryptedData.class);
+
+        EncryptionKey clientKey = FastUtil.cf2(null, "subkeyarmor", null, "ticketarmor");
+        kdcRequest.setClientKey(clientKey);
+
+        PaTokenRequest paTokenRequest = EncryptionUtil.unseal(encData, clientKey,
+            KeyUsage.AS_REQ_PA_TOKEN, PaTokenRequest.class);
+
         KrbToken token = paTokenRequest.getToken();
 
         TokenDecoder tokenDecoder = KrbRuntime.getTokenProvider().createTokenDecoder();

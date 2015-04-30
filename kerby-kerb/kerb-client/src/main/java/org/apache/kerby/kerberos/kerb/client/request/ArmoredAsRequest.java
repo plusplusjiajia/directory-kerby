@@ -45,7 +45,6 @@ public abstract class ArmoredAsRequest extends AsRequest {
 
         KOptions krbOptions = getKrbOptions();
         results.add(krbOptions.getOption(KrbOption.ARMOR_CACHE));
-        results.add(krbOptions.getOption(KrbOption.KRB5_CACHE));
 
         return results;
     }
@@ -75,7 +74,7 @@ public abstract class ArmoredAsRequest extends AsRequest {
      */
     protected EncryptionKey getArmorCacheKey() throws KrbException {
         KOptions preauthOptions = getPreauthOptions();
-        String ccache = preauthOptions.getStringOption(KrbOption.KRB5_CACHE);
+        String ccache = preauthOptions.getStringOption(KrbOption.ARMOR_CACHE);
         File ccacheFile = new File(ccache);
         CredentialCache cc = null;
         try {

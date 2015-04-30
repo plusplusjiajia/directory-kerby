@@ -108,9 +108,10 @@ public class WithTokenKdcTest extends KdcTestBase {
         }
         assertThat(tgt).isNotNull();
         assertThat(tgt.getClientPrincipal()).isEqualTo(SUBJECT + "@" + kdcRealm);
+        assertThat(tgt.getRealm()).isEqualTo(kdcRealm);
         assertThat(tgt.getTicket()).isNotNull();
-        assertThat(tgt.getSessionKey()).isNotNull();
         assertThat(tgt.getEncKdcRepPart()).isNotNull();
+        assertThat(tgt.getSessionKey()).isNotNull();
 
         ServiceTicket tkt = krbClnt.requestServiceTicketWithTgt(tgt, serverPrincipal);
         assertThat(tkt).isNotNull();

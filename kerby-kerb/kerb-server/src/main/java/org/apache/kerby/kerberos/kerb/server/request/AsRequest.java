@@ -100,12 +100,10 @@ public class AsRequest extends KdcRequest {
         EncKdcRepPart encKdcRepPart = makeEncKdcRepPart();
         reply.setEncPart(encKdcRepPart);
 
-        if (getToken() == null) {
-            EncryptionKey clientKey = getClientKey();
-            EncryptedData encryptedData = EncryptionUtil.seal(encKdcRepPart,
-                clientKey, KeyUsage.AS_REP_ENCPART);
-            reply.setEncryptedEncPart(encryptedData);
-        }
+        EncryptionKey clientKey = getClientKey();
+        EncryptedData encryptedData = EncryptionUtil.seal(encKdcRepPart,
+            clientKey, KeyUsage.AS_REP_ENCPART);
+        reply.setEncryptedEncPart(encryptedData);
 
         setReply(reply);
     }

@@ -19,7 +19,10 @@
  */
 package org.apache.kerby.kerberos.kerb.crypto.fast;
 
+import org.apache.kerby.kerberos.kerb.KrbException;
+import org.apache.kerby.kerberos.kerb.crypto.EncryptionHandler;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionKey;
+import org.apache.kerby.kerberos.kerb.spec.base.EncryptionType;
 
 /**
  * Implementing FAST (RFC6113) armor key related algorithms.
@@ -40,7 +43,14 @@ public class FastUtil {
     public static EncryptionKey cf2(EncryptionKey key1, String pepper1,
                                     EncryptionKey key2, String pepper2) {
         // TODO
-        return null;
+//        return null;
+        EncryptionKey key = null;
+        try {
+            key = EncryptionHandler.string2Key("test-sub@TEST.COM", "123456", EncryptionType.AES128_CTS);
+        } catch (KrbException e) {
+            e.printStackTrace();
+        }
+        return key;
     }
 
     /**
