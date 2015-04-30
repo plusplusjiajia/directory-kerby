@@ -23,11 +23,12 @@ import org.apache.kerby.kerberos.kerb.KrbException;
 import org.apache.kerby.kerberos.kerb.KrbRuntime;
 import org.apache.kerby.kerberos.kerb.provider.TokenEncoder;
 import org.apache.kerby.kerberos.kerb.server.KdcTestBase;
+import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
 import org.apache.kerby.kerberos.kerb.spec.ticket.ServiceTicket;
 import org.apache.kerby.kerberos.kerb.spec.ticket.TgtTicket;
-import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
 import org.apache.kerby.kerberos.provider.token.JwtTokenProvider;
 import org.junit.Before;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -36,6 +37,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class WithTokenKdcTest extends KdcTestBase {
+
     static final String SUBJECT = "test-sub";
     static final String AUDIENCE = "krbtgt@EXAMPLE.COM";
     static final String ISSUER = "oauth2.com";
@@ -83,24 +85,27 @@ public class WithTokenKdcTest extends KdcTestBase {
     @Override
     protected void prepareKdcServer() throws Exception {
         super.prepareKdcServer();
-        kdcServer.createPrincipals(clientPrincipal);
     }
 
-    //@Test
+    @Test
     public void testKdc() throws Exception {
         kdcServer.start();
         krbClnt.init();
 
-        TgtTicket tgt;
+        TgtTicket tgt = null;
         try {
             tgt = krbClnt.requestTgtWithToken(authToken);
-        } catch (KrbException te) {
-            assertThat(te.getMessage().contains("timeout")).isTrue();
-            return;
+        } catch (KrbException e) {
+//            assertThat(te.getMessage().contains("timeout")).isTrue();
+//            return;
+            e.printStackTrace();
         }
-        assertThat(tgt).isNull();
+        assertThat(tgt).isNotNull();
+        assertThat(tgt.getClientPrincipal()).isEqualTo(SUBJECT + "@" + kdcRealm);
+//        assertThat(tgt.getEncKdcRepPart()).isNotNull();
+        System.out.println("###tgt: " + tgt);
 
         ServiceTicket tkt = krbClnt.requestServiceTicketWithTgt(tgt, serverPrincipal);
-        assertThat(tkt).isNull();
+        assertThat(tkt).isNotNull();
     }
 }

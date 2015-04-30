@@ -20,12 +20,21 @@
 package org.apache.kerby.kerberos.kerb.client.request;
 
 import org.apache.kerby.kerberos.kerb.KrbErrorCode;
+import org.apache.kerby.kerberos.kerb.KrbException;
 import org.apache.kerby.kerberos.kerb.ccache.CredentialCache;
 import org.apache.kerby.kerberos.kerb.client.KrbContext;
-import org.apache.kerby.kerberos.kerb.KrbException;
+import org.apache.kerby.kerberos.kerb.client.KrbOption;
 import org.apache.kerby.kerberos.kerb.common.KrbUtil;
-import org.apache.kerby.kerberos.kerb.spec.base.*;
-import org.apache.kerby.kerberos.kerb.spec.kdc.*;
+import org.apache.kerby.kerberos.kerb.spec.base.EncryptionKey;
+import org.apache.kerby.kerberos.kerb.spec.base.HostAddress;
+import org.apache.kerby.kerberos.kerb.spec.base.HostAddresses;
+import org.apache.kerby.kerberos.kerb.spec.base.KeyUsage;
+import org.apache.kerby.kerberos.kerb.spec.base.PrincipalName;
+import org.apache.kerby.kerberos.kerb.spec.kdc.AsReq;
+import org.apache.kerby.kerberos.kerb.spec.kdc.EncAsRepPart;
+import org.apache.kerby.kerberos.kerb.spec.kdc.EncKdcRepPart;
+import org.apache.kerby.kerberos.kerb.spec.kdc.KdcRep;
+import org.apache.kerby.kerberos.kerb.spec.kdc.KdcReqBody;
 import org.apache.kerby.kerberos.kerb.spec.ticket.TgtTicket;
 
 import java.io.File;
@@ -80,6 +89,9 @@ public class AsRequest extends KdcRequest {
         PrincipalName clientPrincipal = getKdcRep().getCname();
         String clientRealm = getKdcRep().getCrealm();
         clientPrincipal.setRealm(clientRealm);
+        if(getKrbOptions().contains(KrbOption.TOKEN_USER_ID_TOKEN)) {
+            return;
+        }
         if (! clientPrincipal.equals(getClientPrincipal())) {
             throw new KrbException(KrbErrorCode.KDC_ERR_CLIENT_NAME_MISMATCH);
         }

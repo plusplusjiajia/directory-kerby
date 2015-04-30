@@ -19,18 +19,21 @@
  */
 package org.apache.kerby.kerberos.kerb.client.request;
 
+import org.apache.kerby.kerberos.kerb.KrbException;
 import org.apache.kerby.kerberos.kerb.client.KrbContext;
 import org.apache.kerby.kerberos.kerb.common.EncryptionUtil;
-import org.apache.kerby.kerberos.kerb.KrbException;
 import org.apache.kerby.kerberos.kerb.spec.KerberosTime;
 import org.apache.kerby.kerberos.kerb.spec.ap.ApOptions;
 import org.apache.kerby.kerberos.kerb.spec.ap.ApReq;
 import org.apache.kerby.kerberos.kerb.spec.ap.Authenticator;
-import org.apache.kerby.kerberos.kerb.spec.base.EncryptedData;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionKey;
 import org.apache.kerby.kerberos.kerb.spec.base.KeyUsage;
 import org.apache.kerby.kerberos.kerb.spec.base.PrincipalName;
-import org.apache.kerby.kerberos.kerb.spec.kdc.*;
+import org.apache.kerby.kerberos.kerb.spec.kdc.EncTgsRepPart;
+import org.apache.kerby.kerberos.kerb.spec.kdc.KdcRep;
+import org.apache.kerby.kerberos.kerb.spec.kdc.KdcReqBody;
+import org.apache.kerby.kerberos.kerb.spec.kdc.TgsRep;
+import org.apache.kerby.kerberos.kerb.spec.kdc.TgsReq;
 import org.apache.kerby.kerberos.kerb.spec.pa.PaDataType;
 import org.apache.kerby.kerberos.kerb.spec.ticket.ServiceTicket;
 import org.apache.kerby.kerberos.kerb.spec.ticket.TgtTicket;
@@ -86,11 +89,12 @@ public class TgsRequest extends KdcRequest {
         ApReq apReq = new ApReq();
 
         Authenticator authenticator = makeAuthenticator();
-        EncryptionKey sessionKey = tgt.getSessionKey();
-        EncryptedData authnData = EncryptionUtil.seal(authenticator,
-                sessionKey, KeyUsage.TGS_REQ_AUTH);
-        apReq.setEncryptedAuthenticator(authnData);
+//        EncryptionKey sessionKey = tgt.getSessionKey();
+//        EncryptedData authnData = EncryptionUtil.seal(authenticator,
+//                sessionKey, KeyUsage.TGS_REQ_AUTH);
+//        apReq.setEncryptedAuthenticator(authnData);
 
+        apReq.setAuthenticator(authenticator);
         apReq.setTicket(tgt.getTicket());
         ApOptions apOptions = new ApOptions();
         apReq.setApOptions(apOptions);
@@ -106,8 +110,8 @@ public class TgsRequest extends KdcRequest {
         authenticator.setCtime(KerberosTime.now());
         authenticator.setCusec(0);
 
-        EncryptionKey sessionKey = tgt.getSessionKey();
-        authenticator.setSubKey(sessionKey);
+//        EncryptionKey sessionKey = tgt.getSessionKey();
+//        authenticator.setSubKey(sessionKey);
 
         return authenticator;
     }

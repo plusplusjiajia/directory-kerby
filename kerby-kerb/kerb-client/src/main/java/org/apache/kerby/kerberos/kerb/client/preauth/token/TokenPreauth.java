@@ -19,21 +19,24 @@
  */
 package org.apache.kerby.kerberos.kerb.client.preauth.token;
 
+import org.apache.kerby.KOption;
+import org.apache.kerby.KOptions;
+import org.apache.kerby.kerberos.kerb.KrbException;
+import org.apache.kerby.kerberos.kerb.KrbRuntime;
 import org.apache.kerby.kerberos.kerb.client.KrbContext;
 import org.apache.kerby.kerberos.kerb.client.KrbOption;
-import org.apache.kerby.KOptions;
 import org.apache.kerby.kerberos.kerb.client.preauth.AbstractPreauthPlugin;
-import org.apache.kerby.kerberos.kerb.preauth.PluginRequestContext;
 import org.apache.kerby.kerberos.kerb.client.request.KdcRequest;
 import org.apache.kerby.kerberos.kerb.preauth.PaFlag;
 import org.apache.kerby.kerberos.kerb.preauth.PaFlags;
+import org.apache.kerby.kerberos.kerb.preauth.PluginRequestContext;
 import org.apache.kerby.kerberos.kerb.preauth.token.TokenPreauthMeta;
-import org.apache.kerby.kerberos.kerb.KrbException;
+import org.apache.kerby.kerberos.kerb.provider.TokenEncoder;
+import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionType;
 import org.apache.kerby.kerberos.kerb.spec.pa.PaData;
 import org.apache.kerby.kerberos.kerb.spec.pa.PaDataEntry;
 import org.apache.kerby.kerberos.kerb.spec.pa.PaDataType;
-import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
 
 import java.util.Collections;
 import java.util.List;
@@ -93,16 +96,20 @@ public class TokenPreauth extends AbstractPreauthPlugin {
     public void tryFirst(KdcRequest kdcRequest,
                          PluginRequestContext requestContext,
                          PaData outPadata) throws KrbException {
-
+//        if (kdcRequest.getAsKey() == null) {
+//            kdcRequest.needAsKey();
+//        }
+        outPadata.addElement(makeEntry(kdcRequest));
     }
 
     @Override
     public boolean process(KdcRequest kdcRequest,
-                        PluginRequestContext requestContext,
-                        PaDataEntry inPadata,
-                        PaData outPadata) throws KrbException {
+                           PluginRequestContext requestContext,
+                           PaDataEntry inPadata,
+                           PaData outPadata) throws KrbException {
 
-        return false;
+        outPadata.addElement(makeEntry(kdcRequest));
+        return true;
     }
 
     @Override
@@ -120,5 +127,22 @@ public class TokenPreauth extends AbstractPreauthPlugin {
         paFlags.setFlag(PaFlag.PA_REAL);
 
         return paFlags;
+    }
+
+    private PaDataEntry makeEntry(KdcRequest kdcRequest) throws KrbException {
+//        PaTokenRequest pa = new PaTokenRequest();
+
+        KOptions options = kdcRequest.getPreauthOptions();
+
+        KOption option = options.getOption(KrbOption.TOKEN_USER_ID_TOKEN);
+        AuthToken authToken = (AuthToken)option.getValue();
+
+        TokenEncoder tokenEncoder = KrbRuntime.getTokenProvider().createTokenEncoder();
+
+        PaDataEntry paEntry = new PaDataEntry();
+        paEntry.setPaDataType(PaDataType.TOKEN_REQUEST);
+        paEntry.setPaDataValue(tokenEncoder.encodeAsBytes(authToken));
+
+        return paEntry;
     }
 }

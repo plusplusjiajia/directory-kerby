@@ -65,7 +65,7 @@ public abstract class TickertIssuer {
         EncryptionKey encryptionKey = getTicketEncryptionKey();
 
         EncryptedData encryptedData = EncryptionUtil.seal(encTicketPart,
-                encryptionKey, KeyUsage.KDC_REP_TICKET);
+            encryptionKey, KeyUsage.KDC_REP_TICKET);
         issuedTicket.setEncryptedEncPart(encryptedData);
         issuedTicket.setEncPart(encTicketPart);
 

@@ -72,7 +72,7 @@ public class KerberosTime extends Asn1GeneralizedTime {
     }
 
     public boolean lessThan(long time) {
-        return getValue().getTime() <= time * 1000;
+        return getValue().getTime() <= time;
     }
 
     public boolean greaterThan(KerberosTime ktime) {

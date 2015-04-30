@@ -19,7 +19,11 @@
  */
 package org.apache.kerby.kerberos.kerb.server.request;
 
-import org.apache.kerby.kerberos.kerb.*;
+import org.apache.kerby.kerberos.kerb.KrbCodec;
+import org.apache.kerby.kerberos.kerb.KrbConstant;
+import org.apache.kerby.kerberos.kerb.KrbErrorCode;
+import org.apache.kerby.kerberos.kerb.KrbErrorException;
+import org.apache.kerby.kerberos.kerb.KrbException;
 import org.apache.kerby.kerberos.kerb.common.EncryptionUtil;
 import org.apache.kerby.kerberos.kerb.common.KrbUtil;
 import org.apache.kerby.kerberos.kerb.identity.KrbIdentity;
@@ -27,7 +31,17 @@ import org.apache.kerby.kerberos.kerb.server.KdcContext;
 import org.apache.kerby.kerberos.kerb.server.preauth.KdcFastContext;
 import org.apache.kerby.kerberos.kerb.server.preauth.PreauthContext;
 import org.apache.kerby.kerberos.kerb.server.preauth.PreauthHandler;
-import org.apache.kerby.kerberos.kerb.spec.base.*;
+import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
+import org.apache.kerby.kerberos.kerb.spec.base.EncryptionKey;
+import org.apache.kerby.kerberos.kerb.spec.base.EncryptionType;
+import org.apache.kerby.kerberos.kerb.spec.base.EtypeInfo;
+import org.apache.kerby.kerberos.kerb.spec.base.EtypeInfo2;
+import org.apache.kerby.kerberos.kerb.spec.base.EtypeInfo2Entry;
+import org.apache.kerby.kerberos.kerb.spec.base.EtypeInfoEntry;
+import org.apache.kerby.kerberos.kerb.spec.base.KrbError;
+import org.apache.kerby.kerberos.kerb.spec.base.KrbMessage;
+import org.apache.kerby.kerberos.kerb.spec.base.MethodData;
+import org.apache.kerby.kerberos.kerb.spec.base.PrincipalName;
 import org.apache.kerby.kerberos.kerb.spec.kdc.KdcRep;
 import org.apache.kerby.kerberos.kerb.spec.kdc.KdcReq;
 import org.apache.kerby.kerberos.kerb.spec.pa.PaData;
@@ -59,6 +73,7 @@ public abstract class KdcRequest {
     private PreauthContext preauthContext;
     private KdcFastContext fastContext;
     private PrincipalName serverPrincipal;
+    private AuthToken token = null;
 
     public KdcRequest(KdcReq kdcReq, KdcContext kdcContext) {
         this.kdcReq = kdcReq;
@@ -83,12 +98,29 @@ public abstract class KdcRequest {
 
     public void process() throws KrbException {
         checkVersion();
-        checkClient();
-        checkServer();
-        preauth();
+        if(isToken()) {
+            preauth();
+            checkClient();
+            checkServer();
+        } else {
+            checkClient();
+            checkServer();
+            preauth();
+        }
         authenticate();
         issueTicket();
         makeReply();
+    }
+
+    protected boolean isToken() {
+        KdcReq request = getKdcReq();
+        PaData paData = request.getPaData();
+        for (PaDataEntry paEntry : paData.getElements()) {
+            if (paEntry.getPaDataType() == PaDataType.TOKEN_REQUEST) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public KrbIdentity getTgsEntry() {
@@ -209,7 +241,6 @@ public abstract class KdcRequest {
         if (entry.isLocked()) {
             throw new KrbException(KrbErrorCode.KDC_ERR_CLIENT_REVOKED);
         }
-
         if (entry.getExpireTime().lessThan(new Date().getTime())) {
             throw new KrbException(KrbErrorCode.KDC_ERR_CLIENT_REVOKED);
         }
@@ -344,10 +375,10 @@ public abstract class KdcRequest {
             throw new KrbException(krbErrorCode, e);
         }
 
+
         if (entry == null) {
             throw new KrbException(krbErrorCode);
         }
-
         return entry;
     }
 
@@ -361,5 +392,13 @@ public abstract class KdcRequest {
 
     public PrincipalName getServerPrincipal() {
         return serverPrincipal;
+    }
+
+    public void setToken(AuthToken authToken) {
+        this.token = authToken;
+    }
+
+    public AuthToken getToken() {
+        return token;
     }
 }
