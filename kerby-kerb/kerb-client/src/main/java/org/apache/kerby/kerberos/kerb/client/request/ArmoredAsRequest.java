@@ -45,8 +45,14 @@ public abstract class ArmoredAsRequest extends AsRequest {
 
         KOptions krbOptions = getKrbOptions();
         results.add(krbOptions.getOption(KrbOption.ARMOR_CACHE));
+        results.add(krbOptions.getOption(KrbOption.KRB5_CACHE));
 
         return results;
+    }
+
+    @Override
+    public EncryptionKey getClientKey() throws KrbException {
+        return makeArmorKey() ;
     }
 
     /**

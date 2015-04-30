@@ -211,13 +211,14 @@ public class KrbClient {
      * @return TGT
      * @throws KrbException
      */
-    public TgtTicket requestTgtWithToken(AuthToken token) throws KrbException {
+    public TgtTicket requestTgtWithToken(AuthToken token, String cc) throws KrbException {
         if (! token.isIdToken()) {
             throw new IllegalArgumentException("Identity token is expected");
         }
 
         KOptions requestOptions = new KOptions();
         requestOptions.add(KrbOption.TOKEN_USER_ID_TOKEN, token);
+        requestOptions.add(KrbOption.KRB5_CACHE, cc);
         return requestTgtWithOptions(requestOptions);
     }
 

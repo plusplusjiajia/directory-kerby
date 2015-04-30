@@ -30,6 +30,7 @@ import org.apache.kerby.kerberos.provider.token.JwtTokenProvider;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -92,9 +93,15 @@ public class WithTokenKdcTest extends KdcTestBase {
         kdcServer.start();
         krbClnt.init();
 
+        String basedir = System.getProperty("basedir");
+        if (basedir == null) {
+            basedir = new File(".").getCanonicalPath();
+        }
+        String ccDir = basedir + "/kerby-kdc-test/src/test/resources/test.cc";
+
         TgtTicket tgt = null;
         try {
-            tgt = krbClnt.requestTgtWithToken(authToken);
+            tgt = krbClnt.requestTgtWithToken(authToken, ccDir);
         } catch (KrbException e) {
             assertThat(e.getMessage().contains("timeout")).isTrue();
             return;

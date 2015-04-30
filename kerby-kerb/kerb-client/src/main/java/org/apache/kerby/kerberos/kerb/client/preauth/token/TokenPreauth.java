@@ -22,7 +22,6 @@ package org.apache.kerby.kerberos.kerb.client.preauth.token;
 import org.apache.kerby.KOption;
 import org.apache.kerby.KOptions;
 import org.apache.kerby.kerberos.kerb.KrbException;
-import org.apache.kerby.kerberos.kerb.KrbRuntime;
 import org.apache.kerby.kerberos.kerb.client.KrbContext;
 import org.apache.kerby.kerberos.kerb.client.KrbOption;
 import org.apache.kerby.kerberos.kerb.client.preauth.AbstractPreauthPlugin;
@@ -31,7 +30,6 @@ import org.apache.kerby.kerberos.kerb.preauth.PaFlag;
 import org.apache.kerby.kerberos.kerb.preauth.PaFlags;
 import org.apache.kerby.kerberos.kerb.preauth.PluginRequestContext;
 import org.apache.kerby.kerberos.kerb.preauth.token.TokenPreauthMeta;
-import org.apache.kerby.kerberos.kerb.provider.TokenEncoder;
 import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionType;
 import org.apache.kerby.kerberos.kerb.spec.base.KrbToken;
@@ -100,6 +98,9 @@ public class TokenPreauth extends AbstractPreauthPlugin {
     public void tryFirst(KdcRequest kdcRequest,
                          PluginRequestContext requestContext,
                          PaData outPadata) throws KrbException {
+        if (kdcRequest.getAsKey() == null) {
+            kdcRequest.needAsKey();
+        }
         outPadata.addElement(makeEntry(kdcRequest));
     }
 
