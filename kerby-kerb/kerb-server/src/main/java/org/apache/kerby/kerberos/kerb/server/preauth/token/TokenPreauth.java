@@ -28,7 +28,9 @@ import org.apache.kerby.kerberos.kerb.server.preauth.AbstractPreauthPlugin;
 import org.apache.kerby.kerberos.kerb.server.request.AsRequest;
 import org.apache.kerby.kerberos.kerb.server.request.KdcRequest;
 import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
+import org.apache.kerby.kerberos.kerb.spec.base.KrbToken;
 import org.apache.kerby.kerberos.kerb.spec.pa.PaDataEntry;
+import org.apache.kerby.kerberos.kerb.spec.pa.token.PaTokenRequest;
 
 import java.io.IOException;
 
@@ -42,10 +44,14 @@ public class TokenPreauth extends AbstractPreauthPlugin {
     public boolean verify(KdcRequest kdcRequest, PluginRequestContext requestContext,
                           PaDataEntry paData) throws KrbException {
 
+        PaTokenRequest paTokenRequest = (PaTokenRequest)paData.getValue();
+        KrbToken token = paTokenRequest.getToken();
+
         TokenDecoder tokenDecoder = KrbRuntime.getTokenProvider().createTokenDecoder();
         AuthToken authToken = null;
         try {
-            authToken = tokenDecoder.decodeFromBytes(paData.getPaDataValue());
+//            authToken = tokenDecoder.decodeFromBytes(paData.getPaDataValue());
+            authToken = tokenDecoder.decodeFromBytes(token.getTokenValue());
         } catch (IOException e) {
             e.printStackTrace();
         }

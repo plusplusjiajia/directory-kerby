@@ -96,16 +96,20 @@ public class WithTokenKdcTest extends KdcTestBase {
         try {
             tgt = krbClnt.requestTgtWithToken(authToken);
         } catch (KrbException e) {
-//            assertThat(te.getMessage().contains("timeout")).isTrue();
-//            return;
-            e.printStackTrace();
+            assertThat(e.getMessage().contains("timeout")).isTrue();
+            return;
         }
         assertThat(tgt).isNotNull();
         assertThat(tgt.getClientPrincipal()).isEqualTo(SUBJECT + "@" + kdcRealm);
-//        assertThat(tgt.getEncKdcRepPart()).isNotNull();
-        System.out.println("###tgt: " + tgt);
+        assertThat(tgt.getTicket()).isNotNull();
+        assertThat(tgt.getSessionKey()).isNotNull();
+        assertThat(tgt.getEncKdcRepPart()).isNotNull();
 
         ServiceTicket tkt = krbClnt.requestServiceTicketWithTgt(tgt, serverPrincipal);
         assertThat(tkt).isNotNull();
+        assertThat(tkt.getRealm()).isEqualTo(kdcRealm);
+        assertThat(tkt.getTicket()).isNotNull();
+        assertThat(tkt.getSessionKey()).isNotNull();
+        assertThat(tkt.getEncKdcRepPart()).isNotNull();
     }
 }

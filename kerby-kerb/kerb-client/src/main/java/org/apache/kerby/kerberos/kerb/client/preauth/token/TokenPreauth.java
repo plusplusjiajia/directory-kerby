@@ -34,9 +34,13 @@ import org.apache.kerby.kerberos.kerb.preauth.token.TokenPreauthMeta;
 import org.apache.kerby.kerberos.kerb.provider.TokenEncoder;
 import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionType;
+import org.apache.kerby.kerberos.kerb.spec.base.KrbToken;
+import org.apache.kerby.kerberos.kerb.spec.base.TokenFormat;
 import org.apache.kerby.kerberos.kerb.spec.pa.PaData;
 import org.apache.kerby.kerberos.kerb.spec.pa.PaDataEntry;
 import org.apache.kerby.kerberos.kerb.spec.pa.PaDataType;
+import org.apache.kerby.kerberos.kerb.spec.pa.token.PaTokenRequest;
+import org.apache.kerby.kerberos.kerb.spec.pa.token.TokenInfo;
 
 import java.util.Collections;
 import java.util.List;
@@ -96,9 +100,6 @@ public class TokenPreauth extends AbstractPreauthPlugin {
     public void tryFirst(KdcRequest kdcRequest,
                          PluginRequestContext requestContext,
                          PaData outPadata) throws KrbException {
-//        if (kdcRequest.getAsKey() == null) {
-//            kdcRequest.needAsKey();
-//        }
         outPadata.addElement(makeEntry(kdcRequest));
     }
 
@@ -130,7 +131,6 @@ public class TokenPreauth extends AbstractPreauthPlugin {
     }
 
     private PaDataEntry makeEntry(KdcRequest kdcRequest) throws KrbException {
-//        PaTokenRequest pa = new PaTokenRequest();
 
         KOptions options = kdcRequest.getPreauthOptions();
 
@@ -139,9 +139,18 @@ public class TokenPreauth extends AbstractPreauthPlugin {
 
         TokenEncoder tokenEncoder = KrbRuntime.getTokenProvider().createTokenEncoder();
 
+        KrbToken krbToken = new KrbToken();
+        krbToken.setTokenValue(tokenEncoder.encodeAsBytes(authToken));
+        krbToken.setTokenFormat(TokenFormat.JWT);
+        PaTokenRequest tokenPa = new PaTokenRequest();
+        tokenPa.setToken(krbToken);
+        TokenInfo info = new TokenInfo();
+        info.setTokenVendor("vendor");
+        tokenPa.setTokenInfo(info);
+
         PaDataEntry paEntry = new PaDataEntry();
         paEntry.setPaDataType(PaDataType.TOKEN_REQUEST);
-        paEntry.setPaDataValue(tokenEncoder.encodeAsBytes(authToken));
+        paEntry.setPaDataValue(tokenPa.encode());
 
         return paEntry;
     }

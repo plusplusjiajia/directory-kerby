@@ -192,6 +192,6 @@ public class KrbToken extends KrbSequenceType implements AuthToken {
 
     @Override
     public void addAttribute(String name, Object value) {
-
+        innerToken.addAttribute(name, value);
     }
 }
