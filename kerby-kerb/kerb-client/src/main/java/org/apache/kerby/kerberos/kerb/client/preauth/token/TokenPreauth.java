@@ -110,6 +110,9 @@ public class TokenPreauth extends AbstractPreauthPlugin {
                            PaDataEntry inPadata,
                            PaData outPadata) throws KrbException {
 
+        if (kdcRequest.getAsKey() == null) {
+            kdcRequest.needAsKey();
+        }
         outPadata.addElement(makeEntry(kdcRequest));
         return true;
     }
