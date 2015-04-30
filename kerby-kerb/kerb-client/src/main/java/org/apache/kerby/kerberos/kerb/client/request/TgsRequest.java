@@ -26,6 +26,7 @@ import org.apache.kerby.kerberos.kerb.spec.KerberosTime;
 import org.apache.kerby.kerberos.kerb.spec.ap.ApOptions;
 import org.apache.kerby.kerberos.kerb.spec.ap.ApReq;
 import org.apache.kerby.kerberos.kerb.spec.ap.Authenticator;
+import org.apache.kerby.kerberos.kerb.spec.base.EncryptedData;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionKey;
 import org.apache.kerby.kerberos.kerb.spec.base.KeyUsage;
 import org.apache.kerby.kerberos.kerb.spec.base.PrincipalName;
@@ -89,10 +90,10 @@ public class TgsRequest extends KdcRequest {
         ApReq apReq = new ApReq();
 
         Authenticator authenticator = makeAuthenticator();
-//        EncryptionKey sessionKey = tgt.getSessionKey();
-//        EncryptedData authnData = EncryptionUtil.seal(authenticator,
-//                sessionKey, KeyUsage.TGS_REQ_AUTH);
-//        apReq.setEncryptedAuthenticator(authnData);
+        EncryptionKey sessionKey = tgt.getSessionKey();
+        EncryptedData authnData = EncryptionUtil.seal(authenticator,
+                sessionKey, KeyUsage.TGS_REQ_AUTH);
+        apReq.setEncryptedAuthenticator(authnData);
 
         apReq.setAuthenticator(authenticator);
         apReq.setTicket(tgt.getTicket());
@@ -110,8 +111,8 @@ public class TgsRequest extends KdcRequest {
         authenticator.setCtime(KerberosTime.now());
         authenticator.setCusec(0);
 
-//        EncryptionKey sessionKey = tgt.getSessionKey();
-//        authenticator.setSubKey(sessionKey);
+        EncryptionKey sessionKey = tgt.getSessionKey();
+        authenticator.setSubKey(sessionKey);
 
         return authenticator;
     }
