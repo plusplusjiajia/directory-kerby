@@ -44,13 +44,17 @@ public class TokenPreauth extends AbstractPreauthPlugin {
     public boolean verify(KdcRequest kdcRequest, PluginRequestContext requestContext,
                           PaDataEntry paData) throws KrbException {
 
-        PaTokenRequest paTokenRequest = (PaTokenRequest)paData.getValue();
+        PaTokenRequest paTokenRequest = new PaTokenRequest();
+        try {
+            paTokenRequest.decode(paData.getPaDataValue());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         KrbToken token = paTokenRequest.getToken();
 
         TokenDecoder tokenDecoder = KrbRuntime.getTokenProvider().createTokenDecoder();
         AuthToken authToken = null;
         try {
-//            authToken = tokenDecoder.decodeFromBytes(paData.getPaDataValue());
             authToken = tokenDecoder.decodeFromBytes(token.getTokenValue());
         } catch (IOException e) {
             e.printStackTrace();

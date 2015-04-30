@@ -131,17 +131,12 @@ public class TokenPreauth extends AbstractPreauthPlugin {
     }
 
     private PaDataEntry makeEntry(KdcRequest kdcRequest) throws KrbException {
-
         KOptions options = kdcRequest.getPreauthOptions();
 
         KOption option = options.getOption(KrbOption.TOKEN_USER_ID_TOKEN);
         AuthToken authToken = (AuthToken)option.getValue();
 
-        TokenEncoder tokenEncoder = KrbRuntime.getTokenProvider().createTokenEncoder();
-
-        KrbToken krbToken = new KrbToken();
-        krbToken.setTokenValue(tokenEncoder.encodeAsBytes(authToken));
-        krbToken.setTokenFormat(TokenFormat.JWT);
+        KrbToken krbToken = new KrbToken(authToken, TokenFormat.JWT);
         PaTokenRequest tokenPa = new PaTokenRequest();
         tokenPa.setToken(krbToken);
         TokenInfo info = new TokenInfo();
