@@ -17,11 +17,8 @@
  *  under the License. 
  *  
  */
-package org.apache.kerby.kerberos.kerb.server;
+package org.apache.kerby.kerberos.kdc;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.Principal;
 import java.security.PrivilegedExceptionAction;
@@ -35,7 +32,6 @@ import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.auth.kerberos.KerberosTicket;
 import javax.security.auth.login.LoginContext;
 
-import org.apache.commons.io.IOUtils;
 import org.ietf.jgss.GSSContext;
 import org.ietf.jgss.GSSCredential;
 import org.ietf.jgss.GSSException;
@@ -43,19 +39,22 @@ import org.ietf.jgss.GSSManager;
 import org.ietf.jgss.GSSName;
 import org.ietf.jgss.Oid;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
+import org.apache.kerby.kerberos.kdc.impl.NettyKdcServerImpl;
+import org.apache.kerby.kerberos.kerb.server.KdcConfigKey;
+import org.apache.kerby.kerberos.kerb.server.TestKdcServer;
 
 /**
  * This is an interop test using the Java GSS APIs against the Kerby KDC
  */
-public class GSSInteropTest extends KdcTest {
+public abstract class GSSInteropTestBase extends KdcTest {
     
     @Override
     protected void setUpKdcServer() throws Exception {
         kdcServer = new TestKdcServer();
         prepareKdcServer();
         
+        kdcServer.setInnerKdcImpl(new NettyKdcServerImpl());
         kdcServer.init();
         
         // Must disable pre-auth
@@ -73,41 +72,6 @@ public class GSSInteropTest extends KdcTest {
         kdcServer.createPrincipal(clientPrincipal, TEST_PASSWORD);
     }
     
-    @Before
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
-        
-        String basedir = System.getProperty("basedir");
-        if (basedir == null) {
-            basedir = new File(".").getCanonicalPath();
-        }
-        
-        // System.setProperty("sun.security.krb5.debug", "true");
-        System.setProperty("java.security.auth.login.config", 
-                           basedir + "/src/test/resources/kerberos.jaas");
-        
-        // Read in krb5.conf and substitute in the correct port
-        File f = new File(basedir + "/src/test/resources/krb5.conf");
-
-        FileInputStream inputStream = new FileInputStream(f);
-        String content = IOUtils.toString(inputStream, "UTF-8");
-        inputStream.close();
-        content = content.replaceAll("port", "" + tcpPort);
-
-        File f2 = new File(basedir + "/target/test-classes/krb5.conf");
-        FileOutputStream outputStream = new FileOutputStream(f2);
-        IOUtils.write(content, outputStream, "UTF-8");
-        outputStream.close();
-
-        System.setProperty("java.security.krb5.conf", f2.getPath());
-    }
-
-    @Override
-    protected boolean allowUdp() {
-        return false;
-    }
-
     @Test
     public void testKdc() throws Exception {
         kdcServer.start();
