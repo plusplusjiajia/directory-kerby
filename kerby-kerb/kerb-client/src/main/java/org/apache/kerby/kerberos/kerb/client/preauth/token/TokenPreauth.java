@@ -26,12 +26,15 @@ import org.apache.kerby.kerberos.kerb.client.KrbContext;
 import org.apache.kerby.kerberos.kerb.client.KrbOption;
 import org.apache.kerby.kerberos.kerb.client.preauth.AbstractPreauthPlugin;
 import org.apache.kerby.kerberos.kerb.client.request.KdcRequest;
+import org.apache.kerby.kerberos.kerb.common.EncryptionUtil;
 import org.apache.kerby.kerberos.kerb.preauth.PaFlag;
 import org.apache.kerby.kerberos.kerb.preauth.PaFlags;
 import org.apache.kerby.kerberos.kerb.preauth.PluginRequestContext;
 import org.apache.kerby.kerberos.kerb.preauth.token.TokenPreauthMeta;
 import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
+import org.apache.kerby.kerberos.kerb.spec.base.EncryptedData;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionType;
+import org.apache.kerby.kerberos.kerb.spec.base.KeyUsage;
 import org.apache.kerby.kerberos.kerb.spec.base.KrbToken;
 import org.apache.kerby.kerberos.kerb.spec.base.TokenFormat;
 import org.apache.kerby.kerberos.kerb.spec.pa.PaData;
@@ -147,9 +150,12 @@ public class TokenPreauth extends AbstractPreauthPlugin {
         info.setTokenVendor("vendor");
         tokenPa.setTokenInfo(info);
 
+        EncryptedData paDataValue = EncryptionUtil.seal(tokenPa,
+            kdcRequest.getAsKey(), KeyUsage.AS_REQ_PA_TOKEN);
+
         PaDataEntry paEntry = new PaDataEntry();
         paEntry.setPaDataType(PaDataType.TOKEN_REQUEST);
-        paEntry.setPaDataValue(tokenPa.encode());
+        paEntry.setPaDataValue(paDataValue.encode());
 
         return paEntry;
     }
