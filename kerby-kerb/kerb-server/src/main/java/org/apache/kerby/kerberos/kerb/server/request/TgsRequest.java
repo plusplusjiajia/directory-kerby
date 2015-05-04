@@ -108,8 +108,6 @@ public class TgsRequest extends KdcRequest {
         EncTicketPart encPart = EncryptionUtil.unseal(tgtTicket.getEncryptedEncPart(),
                 tgsKey, KeyUsage.KDC_REP_TICKET, EncTicketPart.class);
         tgtTicket.setEncPart(encPart);
-        String a = encPart.getCrealm();
-        PrincipalName name = encPart.getCname();
 
         EncryptionKey encKey = null;
         //if (apReq.getApOptions().isFlagSet(ApOptions.USE_SESSION_KEY)) {

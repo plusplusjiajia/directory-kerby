@@ -374,6 +374,7 @@ public abstract class KdcRequest {
         if (entry == null) {
 //            throw new KrbException(krbErrorCode);
             // Maybe it is the token preauth, now we ignore check client entry.
+            return null;
         }
         return entry;
     }
