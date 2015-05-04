@@ -98,7 +98,7 @@ public abstract class KdcRequest {
 
     public void process() throws KrbException {
         checkVersion();
-        if(isToken()) {
+        if(PreauthHandler.isToken(getKdcReq().getPaData())) {
             preauth();
             checkClient();
             checkServer();
@@ -110,17 +110,6 @@ public abstract class KdcRequest {
         authenticate();
         issueTicket();
         makeReply();
-    }
-
-    protected boolean isToken() {
-        KdcReq request = getKdcReq();
-        PaData paData = request.getPaData();
-        for (PaDataEntry paEntry : paData.getElements()) {
-            if (paEntry.getPaDataType() == PaDataType.TOKEN_REQUEST) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public KrbIdentity getTgsEntry() {
@@ -234,15 +223,18 @@ public abstract class KdcRequest {
     protected void checkPolicy() throws KrbException {
         KrbIdentity entry = getClientEntry();
 
-        if (entry.isDisabled()) {
-            throw new KrbException(KrbErrorCode.KDC_ERR_CLIENT_REVOKED);
-        }
+        // if we can not get the client entry, maybe it is token preauth, ignore it.
+        if (entry != null) {
+            if (entry.isDisabled()) {
+                throw new KrbException(KrbErrorCode.KDC_ERR_CLIENT_REVOKED);
+            }
 
-        if (entry.isLocked()) {
-            throw new KrbException(KrbErrorCode.KDC_ERR_CLIENT_REVOKED);
-        }
-        if (entry.getExpireTime().lessThan(new Date().getTime())) {
-            throw new KrbException(KrbErrorCode.KDC_ERR_CLIENT_REVOKED);
+            if (entry.isLocked()) {
+                throw new KrbException(KrbErrorCode.KDC_ERR_CLIENT_REVOKED);
+            }
+            if (entry.getExpireTime().lessThan(new Date().getTime())) {
+                throw new KrbException(KrbErrorCode.KDC_ERR_CLIENT_REVOKED);
+            }
         }
     }
 
@@ -250,6 +242,10 @@ public abstract class KdcRequest {
 
     protected void preauth() throws KrbException {
         KdcReq request = getKdcReq();
+
+        if(!kdcContext.getConfig().isAllowableTokenPreauth()) {
+            return;
+        }
 
         PaData preAuthData = request.getPaData();
 
@@ -375,9 +371,9 @@ public abstract class KdcRequest {
             throw new KrbException(krbErrorCode, e);
         }
 
-
         if (entry == null) {
-            throw new KrbException(krbErrorCode);
+//            throw new KrbException(krbErrorCode);
+            // Maybe it is the token preauth, now we ignore check client entry.
         }
         return entry;
     }

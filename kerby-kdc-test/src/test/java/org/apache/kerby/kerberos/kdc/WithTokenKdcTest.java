@@ -88,6 +88,12 @@ public class WithTokenKdcTest extends KdcTestBase {
         super.prepareKdcServer();
     }
 
+    @Override
+    protected void createPrincipals() {
+        super.createPrincipals();
+        kdcServer.createPrincipal(clientPrincipal, TEST_PASSWORD);
+    }
+
     @Test
     public void testKdc() throws Exception {
         kdcServer.start();

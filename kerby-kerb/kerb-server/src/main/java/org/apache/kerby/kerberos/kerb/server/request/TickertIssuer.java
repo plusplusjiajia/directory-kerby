@@ -201,7 +201,11 @@ public abstract class TickertIssuer {
     }
 
     protected PrincipalName getclientPrincipal() {
-        return getKdcReq().getReqBody().getCname();
+        if (kdcRequest.getToken() != null) {
+            return new PrincipalName(kdcRequest.getToken().getSubject());
+        } else {
+            return getKdcReq().getReqBody().getCname();
+        }
     }
 
     protected PrincipalName getServerPrincipal() {
