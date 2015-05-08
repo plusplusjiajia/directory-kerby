@@ -42,6 +42,9 @@ import org.apache.kerby.kerberos.kerb.spec.base.KrbError;
 import org.apache.kerby.kerberos.kerb.spec.base.KrbMessage;
 import org.apache.kerby.kerberos.kerb.spec.base.MethodData;
 import org.apache.kerby.kerberos.kerb.spec.base.PrincipalName;
+import org.apache.kerby.kerberos.kerb.spec.fast.ArmorType;
+import org.apache.kerby.kerberos.kerb.spec.fast.KrbFastArmor;
+import org.apache.kerby.kerberos.kerb.spec.fast.KrbFastArmoredReq;
 import org.apache.kerby.kerberos.kerb.spec.kdc.KdcRep;
 import org.apache.kerby.kerberos.kerb.spec.kdc.KdcReq;
 import org.apache.kerby.kerberos.kerb.spec.pa.PaData;
@@ -111,6 +114,24 @@ public abstract class KdcRequest {
         issueTicket();
         makeReply();
     }
+
+    private void findFast() throws KrbException {
+        PaData paData = getKdcReq().getPaData();
+        for (PaDataEntry paEntry : paData.getElements()) {
+            if (paEntry.getPaDataType() == PaDataType.FX_FAST) {
+                KrbFastArmoredReq fastArmoredReq = KrbCodec.decode(paEntry.getPaDataValue(),
+                    KrbFastArmoredReq.class);
+                KrbFastArmor fastArmor = fastArmoredReq.getArmor();
+                if(fastArmor.getArmorType() == ArmorType.ARMOR_AP_REQUEST) {
+
+                }
+            }
+        }
+    }
+
+//    private void armorApRequest(KdcReqState state, KrbFastArmor armor) {
+//
+//    }
 
     public KrbIdentity getTgsEntry() {
         return tgsEntry;

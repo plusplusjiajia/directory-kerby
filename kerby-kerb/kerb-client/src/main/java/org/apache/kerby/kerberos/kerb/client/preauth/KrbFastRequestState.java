@@ -27,7 +27,7 @@ import org.apache.kerby.kerberos.kerb.spec.kdc.KdcReq;
 /**
  * Maintaining FAST processing state in client side per request.
  */
-public class KrbFastContext {
+public class KrbFastRequestState {
 
     private KdcReq fastOuterRequest;
     private EncryptionKey armorKey;

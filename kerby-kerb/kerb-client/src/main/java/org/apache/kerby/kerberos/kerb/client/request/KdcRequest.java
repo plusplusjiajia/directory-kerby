@@ -22,7 +22,8 @@ package org.apache.kerby.kerberos.kerb.client.request;
 import org.apache.kerby.KOptions;
 import org.apache.kerby.kerberos.kerb.KrbException;
 import org.apache.kerby.kerberos.kerb.client.KrbContext;
-import org.apache.kerby.kerberos.kerb.client.preauth.KrbFastContext;
+import org.apache.kerby.kerberos.kerb.client.preauth.KrbCredsContext;
+import org.apache.kerby.kerberos.kerb.client.preauth.KrbFastRequestState;
 import org.apache.kerby.kerberos.kerb.client.preauth.PreauthContext;
 import org.apache.kerby.kerberos.kerb.client.preauth.PreauthHandler;
 import org.apache.kerby.kerberos.kerb.common.EncryptionUtil;
@@ -60,7 +61,8 @@ public abstract class KdcRequest {
     private KdcRep kdcRep;
     protected Map<String, Object> credCache;
     private PreauthContext preauthContext;
-    private KrbFastContext fastContext;
+    private KrbFastRequestState fastRequestState;
+    private KrbCredsContext credsContext;
     private EncryptionKey asKey;
 
     private boolean isRetrying;
@@ -71,7 +73,24 @@ public abstract class KdcRequest {
         this.credCache = new HashMap<String, Object>();
         this.preauthContext = context.getPreauthHandler()
                 .preparePreauthContext(this);
-        this.fastContext = new KrbFastContext();
+        this.fastRequestState = new KrbFastRequestState();
+        this.credsContext = new KrbCredsContext();
+    }
+
+    public KrbFastRequestState getFastRequestState() {
+        return fastRequestState;
+    }
+
+    public void setFastRequestState(KrbFastRequestState state) {
+        this.fastRequestState = state;
+    }
+
+    public KrbCredsContext getCredsContext() {
+        return credsContext;
+    }
+
+    public void setCredsContext(KrbCredsContext ctx) {
+        this.credsContext = ctx;
     }
 
     public void setSessionData(Object sessionData) {
@@ -319,7 +338,7 @@ public abstract class KdcRequest {
      * Get a pointer to the FAST armor key, or NULL if the client is not using FAST.
      */
     public EncryptionKey getArmorKey() {
-        return fastContext.getArmorKey();
+        return fastRequestState.getArmorKey();
     }
 
     /**
