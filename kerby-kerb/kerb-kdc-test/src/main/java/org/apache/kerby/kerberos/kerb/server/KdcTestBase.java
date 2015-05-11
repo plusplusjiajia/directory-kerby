@@ -19,17 +19,25 @@
  */
 package org.apache.kerby.kerberos.kerb.server;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.kerby.kerberos.kerb.client.KrbClient;
 import org.apache.kerby.kerberos.kerb.client.KrbConfig;
 import org.apache.kerby.kerberos.kerb.client.KrbConfigKey;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 
 public abstract class KdcTestBase {
     protected static final String TEST_PASSWORD = "123456";
+    private static File TEST_DIR;
 
     protected String kdcRealm;
     protected String clientPrincipal;
@@ -64,9 +72,50 @@ public abstract class KdcTestBase {
         return true;
     }
 
+    protected boolean allowTcp() {
+        return true;
+    }
+
+    @BeforeClass
+    public static void createTestDir() throws IOException {
+        String basedir = System.getProperty("basedir");
+        if (basedir == null) {
+            basedir = new File(".").getCanonicalPath();
+        }
+        File targetdir= new File(basedir, "target");
+        TEST_DIR = new File(targetdir, "tmp");
+        TEST_DIR.mkdirs();
+    }
+
+    @AfterClass
+    public static void deleteTestDir() throws IOException {
+        FileUtils.deleteDirectory(TEST_DIR);
+    }
+
+    public String getFileContent(String path) throws IOException {
+        FileInputStream inputStream = new FileInputStream(path);
+        String content = IOUtils.toString(inputStream, "UTF-8");
+        inputStream.close();
+        return content;
+    }
+
+    public String writeToTestDir(String content, String fileName) throws IOException {
+        File file = new File(TEST_DIR, fileName);
+        if (file.exists()) {
+            file.delete();
+        }
+        FileOutputStream outputStream = new FileOutputStream(file);
+        IOUtils.write(content, outputStream, "UTF-8");
+        outputStream.close();
+        return file.getPath();
+    }
+
     @Before
     public void setUp() throws Exception {
-        tcpPort = getServerPort();
+
+        if (allowTcp()) {
+            tcpPort = getServerPort();
+        }
 
         if (allowUdp()) {
             udpPort = getServerPort();
@@ -94,6 +143,7 @@ public abstract class KdcTestBase {
      */
     protected void prepareKdcServer() throws Exception {
         kdcServer.setKdcHost(hostname);
+        kdcServer.setAllowTcp(allowTcp());
         if (tcpPort > 0) {
             kdcServer.setKdcTcpPort(tcpPort);
         }
@@ -135,6 +185,7 @@ public abstract class KdcTestBase {
         prepareKrbClient();
 
         krbClnt.setKdcHost(hostname);
+        krbClnt.setAllowTcp(allowTcp());
         if (tcpPort > 0) {
             krbClnt.setKdcTcpPort(tcpPort);
         }
