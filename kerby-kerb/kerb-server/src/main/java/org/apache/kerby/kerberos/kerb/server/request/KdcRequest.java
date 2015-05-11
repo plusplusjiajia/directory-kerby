@@ -24,13 +24,17 @@ import org.apache.kerby.kerberos.kerb.KrbConstant;
 import org.apache.kerby.kerberos.kerb.KrbErrorCode;
 import org.apache.kerby.kerberos.kerb.KrbErrorException;
 import org.apache.kerby.kerberos.kerb.KrbException;
+import org.apache.kerby.kerberos.kerb.auth.AuthContext;
 import org.apache.kerby.kerberos.kerb.common.EncryptionUtil;
 import org.apache.kerby.kerberos.kerb.common.KrbUtil;
+import org.apache.kerby.kerberos.kerb.crypto.fast.FastUtil;
 import org.apache.kerby.kerberos.kerb.identity.KrbIdentity;
 import org.apache.kerby.kerberos.kerb.server.KdcContext;
 import org.apache.kerby.kerberos.kerb.server.preauth.KdcFastContext;
 import org.apache.kerby.kerberos.kerb.server.preauth.PreauthContext;
 import org.apache.kerby.kerberos.kerb.server.preauth.PreauthHandler;
+import org.apache.kerby.kerberos.kerb.spec.ap.ApReq;
+import org.apache.kerby.kerberos.kerb.spec.ap.Authenticator;
 import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionKey;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionType;
@@ -38,6 +42,7 @@ import org.apache.kerby.kerberos.kerb.spec.base.EtypeInfo;
 import org.apache.kerby.kerberos.kerb.spec.base.EtypeInfo2;
 import org.apache.kerby.kerberos.kerb.spec.base.EtypeInfo2Entry;
 import org.apache.kerby.kerberos.kerb.spec.base.EtypeInfoEntry;
+import org.apache.kerby.kerberos.kerb.spec.base.KeyUsage;
 import org.apache.kerby.kerberos.kerb.spec.base.KrbError;
 import org.apache.kerby.kerberos.kerb.spec.base.KrbMessage;
 import org.apache.kerby.kerberos.kerb.spec.base.MethodData;
@@ -101,6 +106,7 @@ public abstract class KdcRequest {
 
     public void process() throws KrbException {
         checkVersion();
+        findFast();
         if(PreauthHandler.isToken(getKdcReq().getPaData())) {
             preauth();
             checkClient();
@@ -116,22 +122,37 @@ public abstract class KdcRequest {
     }
 
     private void findFast() throws KrbException {
+        AuthContext authContext = new AuthContext();
+
         PaData paData = getKdcReq().getPaData();
         for (PaDataEntry paEntry : paData.getElements()) {
             if (paEntry.getPaDataType() == PaDataType.FX_FAST) {
                 KrbFastArmoredReq fastArmoredReq = KrbCodec.decode(paEntry.getPaDataValue(),
                     KrbFastArmoredReq.class);
                 KrbFastArmor fastArmor = fastArmoredReq.getArmor();
-                if(fastArmor.getArmorType() == ArmorType.ARMOR_AP_REQUEST) {
-
-                }
+                KdcRequestState state = new KdcRequestState();
+                state.setRealmData(kdcContext.getKdcRealm());
+                armorApRequest(state, fastArmor);
             }
         }
     }
 
-//    private void armorApRequest(KdcReqState state, KrbFastArmor armor) {
-//
-//    }
+    private void armorApRequest(KdcRequestState state, KrbFastArmor fastArmor) throws KrbException {
+        if (fastArmor.getArmorType() == ArmorType.ARMOR_AP_REQUEST) {
+            ApReq apReq = KrbCodec.decode(fastArmor.getArmorValue(), ApReq.class);
+            AuthContext authContext = new AuthContext();
+
+            Ticket ticket = apReq.getTicket();
+            EncryptionKey key = ticket.getEncPart().getKey();
+
+            Authenticator authenticator = EncryptionUtil.unseal(apReq.getEncryptedAuthenticator(),
+                key, KeyUsage.AP_REQ_AUTH, Authenticator.class);
+
+            EncryptionKey armorKey = FastUtil.cf2(authenticator.getSubKey(), "subkeyarmor",
+                key, "ticketarmor");
+            setArmorKey(armorKey);
+        }
+    }
 
     public KrbIdentity getTgsEntry() {
         return tgsEntry;
@@ -406,6 +427,10 @@ public abstract class KdcRequest {
 
     public EncryptionKey getArmorKey() throws KrbException {
         return fastContext.getArmorKey();
+    }
+
+    public void setArmorKey(EncryptionKey armorKey) {
+        fastContext.setArmorKey(armorKey);
     }
 
     public PrincipalName getServerPrincipal() {

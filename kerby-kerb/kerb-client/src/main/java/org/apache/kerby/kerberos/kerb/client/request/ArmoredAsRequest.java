@@ -27,14 +27,17 @@ import org.apache.kerby.kerberos.kerb.client.KrbContext;
 import org.apache.kerby.kerberos.kerb.client.KrbOption;
 import org.apache.kerby.kerberos.kerb.client.preauth.KrbCredsContext;
 import org.apache.kerby.kerberos.kerb.client.preauth.KrbFastRequestState;
+import org.apache.kerby.kerberos.kerb.common.EncryptionUtil;
 import org.apache.kerby.kerberos.kerb.crypto.EncryptionHandler;
 import org.apache.kerby.kerberos.kerb.crypto.fast.FastUtil;
 import org.apache.kerby.kerberos.kerb.spec.KerberosTime;
 import org.apache.kerby.kerberos.kerb.spec.ap.ApOptions;
 import org.apache.kerby.kerberos.kerb.spec.ap.ApReq;
 import org.apache.kerby.kerberos.kerb.spec.ap.Authenticator;
+import org.apache.kerby.kerberos.kerb.spec.base.EncryptedData;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionKey;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionType;
+import org.apache.kerby.kerberos.kerb.spec.base.KeyUsage;
 import org.apache.kerby.kerberos.kerb.spec.fast.ArmorType;
 import org.apache.kerby.kerberos.kerb.spec.fast.KrbFastArmor;
 import org.apache.kerby.kerberos.kerb.spec.kdc.KdcReq;
@@ -116,9 +119,9 @@ public abstract class ArmoredAsRequest extends AsRequest {
         apReq.setTicket(ticket);
         Authenticator authenticator = makeAuthenticator(subKey);
         apReq.setAuthenticator(authenticator);
-//        EncryptedData authnData = EncryptionUtil.seal(authenticator,
-//            credential.getKey(), KeyUsage.AP_REQ_AUTH);
-//        apReq.setEncryptedAuthenticator(authnData);
+        EncryptedData authnData = EncryptionUtil.seal(authenticator,
+            credential.getKey(), KeyUsage.AP_REQ_AUTH);
+        apReq.setEncryptedAuthenticator(authnData);
         return apReq;
     }
 
@@ -126,10 +129,8 @@ public abstract class ArmoredAsRequest extends AsRequest {
         Authenticator authenticator = new Authenticator();
         authenticator.setCname(credential.getClientName());
         authenticator.setCrealm(credential.getClientRealm());
-
         authenticator.setCtime(KerberosTime.now());
         authenticator.setCusec(0);
-
         authenticator.setSubKey(subKey);
 
         return authenticator;

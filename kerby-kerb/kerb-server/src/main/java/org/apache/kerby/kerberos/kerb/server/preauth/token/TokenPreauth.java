@@ -23,14 +23,12 @@ import org.apache.kerby.kerberos.kerb.KrbCodec;
 import org.apache.kerby.kerberos.kerb.KrbException;
 import org.apache.kerby.kerberos.kerb.KrbRuntime;
 import org.apache.kerby.kerberos.kerb.common.EncryptionUtil;
-import org.apache.kerby.kerberos.kerb.crypto.fast.FastUtil;
 import org.apache.kerby.kerberos.kerb.preauth.PluginRequestContext;
 import org.apache.kerby.kerberos.kerb.preauth.token.TokenPreauthMeta;
 import org.apache.kerby.kerberos.kerb.provider.TokenDecoder;
 import org.apache.kerby.kerberos.kerb.server.preauth.AbstractPreauthPlugin;
 import org.apache.kerby.kerberos.kerb.server.request.AsRequest;
 import org.apache.kerby.kerberos.kerb.server.request.KdcRequest;
-import org.apache.kerby.kerberos.kerb.spec.ap.ApReq;
 import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptedData;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionKey;
@@ -52,14 +50,9 @@ public class TokenPreauth extends AbstractPreauthPlugin {
     public boolean verify(KdcRequest kdcRequest, PluginRequestContext requestContext,
                           PaDataEntry paData) throws KrbException {
 
-        if (paData.getPaDataType() == PaDataType.FX_FAST) {
-            ApReq apReq = KrbCodec.decode(paData.getPaDataValue(), ApReq.class);
-            EncryptionKey subKey = apReq.getAuthenticator().getSubKey();
-            return true;
-        } else if (paData.getPaDataType() == PaDataType.TOKEN_REQUEST) {
+        if (paData.getPaDataType() == PaDataType.TOKEN_REQUEST) {
             EncryptedData encData = KrbCodec.decode(paData.getPaDataValue(), EncryptedData.class);
-            EncryptionKey clientKey = FastUtil.cf2(null, "subkeyarmor", null, "ticketarmor");
-            kdcRequest.setClientKey(clientKey);
+            EncryptionKey clientKey = kdcRequest.getArmorKey();
 
             PaTokenRequest paTokenRequest = EncryptionUtil.unseal(encData, clientKey,
                 KeyUsage.AS_REQ_PA_TOKEN, PaTokenRequest.class);
