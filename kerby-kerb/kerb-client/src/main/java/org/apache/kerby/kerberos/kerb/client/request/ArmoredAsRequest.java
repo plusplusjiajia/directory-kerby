@@ -40,7 +40,6 @@ import org.apache.kerby.kerberos.kerb.spec.base.EncryptionType;
 import org.apache.kerby.kerberos.kerb.spec.base.KeyUsage;
 import org.apache.kerby.kerberos.kerb.spec.fast.ArmorType;
 import org.apache.kerby.kerberos.kerb.spec.fast.KrbFastArmor;
-import org.apache.kerby.kerberos.kerb.spec.kdc.KdcReq;
 import org.apache.kerby.kerberos.kerb.spec.ticket.Ticket;
 
 import java.io.File;
@@ -87,7 +86,7 @@ public abstract class ArmoredAsRequest extends AsRequest {
         KrbFastRequestState state = getFastRequestState();
         state.setArmorKey(armorKey);
         state.setFastArmor(fastArmorApRequest(subKey));
-        KdcReq fastOuterRequest = getKdcReq();
+//        KdcReq fastOuterRequest = getKdcReq();
 //        fastOuterRequest.setPaData(null);
         state.setFastOuterRequest(getKdcReq());
 //        ctx.setFastFlags();

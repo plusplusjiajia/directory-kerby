@@ -55,6 +55,7 @@ import org.apache.kerby.kerberos.kerb.spec.kdc.KdcReq;
 import org.apache.kerby.kerberos.kerb.spec.pa.PaData;
 import org.apache.kerby.kerberos.kerb.spec.pa.PaDataEntry;
 import org.apache.kerby.kerberos.kerb.spec.pa.PaDataType;
+import org.apache.kerby.kerberos.kerb.spec.ticket.EncTicketPart;
 import org.apache.kerby.kerberos.kerb.spec.ticket.Ticket;
 
 import java.net.InetAddress;
@@ -140,16 +141,26 @@ public abstract class KdcRequest {
     private void armorApRequest(KdcRequestState state, KrbFastArmor fastArmor) throws KrbException {
         if (fastArmor.getArmorType() == ArmorType.ARMOR_AP_REQUEST) {
             ApReq apReq = KrbCodec.decode(fastArmor.getArmorValue(), ApReq.class);
-            AuthContext authContext = new AuthContext();
+//            AuthContext authContext = new AuthContext();
 
             Ticket ticket = apReq.getTicket();
-            EncryptionKey key = ticket.getEncPart().getKey();
+            EncryptionType encType = ticket.getEncryptedEncPart().getEType();
+            EncryptionKey tgsKey = getTgsEntry().getKeys().get(encType);
+            if (ticket.getTktvno() != KrbConstant.KRB_V5) {
+                throw new KrbException(KrbErrorCode.KRB_AP_ERR_BADVERSION);
+            }
+
+            EncTicketPart encPart = EncryptionUtil.unseal(ticket.getEncryptedEncPart(),
+                tgsKey, KeyUsage.KDC_REP_TICKET, EncTicketPart.class);
+            ticket.setEncPart(encPart);
+
+            EncryptionKey encKey = ticket.getEncPart().getKey();
 
             Authenticator authenticator = EncryptionUtil.unseal(apReq.getEncryptedAuthenticator(),
-                key, KeyUsage.AP_REQ_AUTH, Authenticator.class);
+                encKey, KeyUsage.AP_REQ_AUTH, Authenticator.class);
 
             EncryptionKey armorKey = FastUtil.cf2(authenticator.getSubKey(), "subkeyarmor",
-                key, "ticketarmor");
+                encKey, "ticketarmor");
             setArmorKey(armorKey);
         }
     }
