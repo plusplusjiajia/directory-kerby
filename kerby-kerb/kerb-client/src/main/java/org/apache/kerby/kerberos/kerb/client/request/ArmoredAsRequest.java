@@ -135,7 +135,6 @@ public abstract class ArmoredAsRequest extends AsRequest {
         return authenticator;
     }
 
-
     protected EncryptionKey getSubKey(EncryptionType type) throws KrbException {
         return EncryptionHandler.random2Key(type);
     }
