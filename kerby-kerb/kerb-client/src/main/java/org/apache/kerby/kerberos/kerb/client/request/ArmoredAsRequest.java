@@ -45,7 +45,7 @@ public abstract class ArmoredAsRequest extends AsRequest {
 
         KOptions krbOptions = getKrbOptions();
         results.add(krbOptions.getOption(KrbOption.ARMOR_CACHE));
-
+//
         return results;
     }
 
