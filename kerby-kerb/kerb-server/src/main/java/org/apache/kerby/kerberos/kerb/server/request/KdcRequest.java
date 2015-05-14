@@ -135,9 +135,7 @@ public abstract class KdcRequest {
                 KrbFastArmoredReq fastArmoredReq = KrbCodec.decode(paEntry.getPaDataValue(),
                     KrbFastArmoredReq.class);
                 KrbFastArmor fastArmor = fastArmoredReq.getArmor();
-                KdcRequestState state = new KdcRequestState();
-                state.setRealmData(kdcContext.getKdcRealm());
-                armorApRequest(state, fastArmor);
+                armorApRequest(fastArmor);
 
                 EncryptedData encryptedData = fastArmoredReq.getEncryptedFastReq();
                 KrbFastReq fastReq = KrbCodec.decode(
@@ -148,12 +146,12 @@ public abstract class KdcRequest {
                 // TODO: get checksumed date in stream
                 CheckSum checkSum = fastArmoredReq.getReqChecksum();
                 CheckSumHandler.verifyWithKey(checkSum, getKdcReq().getReqBody().encode(),
-                    state.getArmorKey().getKeyData(), KeyUsage.FAST_REQ_CHKSUM);
+                    getArmorKey().getKeyData(), KeyUsage.FAST_REQ_CHKSUM);
             }
         }
     }
 
-    private void armorApRequest(KdcRequestState state, KrbFastArmor fastArmor) throws KrbException {
+    private void armorApRequest(KrbFastArmor fastArmor) throws KrbException {
         if (fastArmor.getArmorType() == ArmorType.ARMOR_AP_REQUEST) {
             ApReq apReq = KrbCodec.decode(fastArmor.getArmorValue(), ApReq.class);
 
@@ -468,5 +466,9 @@ public abstract class KdcRequest {
 
     public AuthToken getToken() {
         return token;
+    }
+
+    public byte[] getInnerBodyout() {
+        return innerBodyout;
     }
 }
