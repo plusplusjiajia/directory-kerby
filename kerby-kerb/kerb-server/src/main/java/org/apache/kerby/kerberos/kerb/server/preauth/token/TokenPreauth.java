@@ -64,7 +64,7 @@ public class TokenPreauth extends AbstractPreauthPlugin {
             try {
                 authToken = tokenDecoder.decodeFromBytes(token.getTokenValue());
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new KrbException("Decoding failed", e);
             }
 
             AsRequest asRequest = (AsRequest) kdcRequest;

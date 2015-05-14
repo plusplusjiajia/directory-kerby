@@ -25,22 +25,23 @@ import org.apache.kerby.kerberos.kerb.ccache.Credential;
 import org.apache.kerby.kerberos.kerb.ccache.CredentialCache;
 import org.apache.kerby.kerberos.kerb.client.KrbContext;
 import org.apache.kerby.kerberos.kerb.client.KrbOption;
-import org.apache.kerby.kerberos.kerb.client.preauth.KrbCredsContext;
 import org.apache.kerby.kerberos.kerb.client.preauth.KrbFastRequestState;
+import org.apache.kerby.kerberos.kerb.common.CheckSumUtil;
 import org.apache.kerby.kerberos.kerb.common.EncryptionUtil;
 import org.apache.kerby.kerberos.kerb.crypto.EncryptionHandler;
 import org.apache.kerby.kerberos.kerb.crypto.fast.FastUtil;
-import org.apache.kerby.kerberos.kerb.spec.KerberosTime;
-import org.apache.kerby.kerberos.kerb.spec.ap.ApOptions;
-import org.apache.kerby.kerberos.kerb.spec.ap.ApReq;
-import org.apache.kerby.kerberos.kerb.spec.ap.Authenticator;
-import org.apache.kerby.kerberos.kerb.spec.base.EncryptedData;
+import org.apache.kerby.kerberos.kerb.spec.base.CheckSum;
+import org.apache.kerby.kerberos.kerb.spec.base.CheckSumType;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionKey;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionType;
 import org.apache.kerby.kerberos.kerb.spec.base.KeyUsage;
-import org.apache.kerby.kerberos.kerb.spec.fast.ArmorType;
-import org.apache.kerby.kerberos.kerb.spec.fast.KrbFastArmor;
-import org.apache.kerby.kerberos.kerb.spec.ticket.Ticket;
+import org.apache.kerby.kerberos.kerb.spec.fast.KrbFastArmoredReq;
+import org.apache.kerby.kerberos.kerb.spec.fast.KrbFastReq;
+import org.apache.kerby.kerberos.kerb.spec.kdc.AsReq;
+import org.apache.kerby.kerberos.kerb.spec.kdc.KdcReq;
+import org.apache.kerby.kerberos.kerb.spec.pa.PaData;
+import org.apache.kerby.kerberos.kerb.spec.pa.PaDataEntry;
+import org.apache.kerby.kerberos.kerb.spec.pa.PaDataType;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,9 +52,35 @@ import java.io.IOException;
 public abstract class ArmoredAsRequest extends AsRequest {
 
     private Credential credential;
+    private EncryptionKey subKey;
 
-    public ArmoredAsRequest(KrbContext context) {
+    public ArmoredAsRequest(KrbContext context) throws KrbException {
         super(context);
+    }
+
+    @Override
+    protected void preauth() throws KrbException {
+        makeArmorKey();
+
+        super.preauth();
+
+        fastAsArmor();
+    }
+
+    @Override
+    public void process() throws KrbException {
+        super.process();
+
+        AsReq asReq = (AsReq) getKdcReq();
+        PaData outputPaData = getKdcReq().getPaData();
+        outputPaData.addElement(makeFastEntry());
+        asReq.setPaData(outputPaData);
+        setKdcReq(asReq);
+
+        KdcReq fastOuterRequest = getFastRequestState().getFastOuterRequest();
+        fastOuterRequest.setPaData(outputPaData);
+        getFastRequestState().setFastOuterRequest(fastOuterRequest);
+        setEncodedPreviousRequest(fastOuterRequest.encode());
     }
 
     @Override
@@ -68,7 +95,7 @@ public abstract class ArmoredAsRequest extends AsRequest {
 
     @Override
     public EncryptionKey getClientKey() throws KrbException {
-        return makeArmorKey() ;
+        return getFastRequestState().getArmorKey();
     }
 
     /**
@@ -80,59 +107,10 @@ public abstract class ArmoredAsRequest extends AsRequest {
         getCredential();
 
         EncryptionKey armorCacheKey = getArmorCacheKey();
-        EncryptionKey subKey = getSubKey(armorCacheKey.getKeyType());
+        subKey = getSubKey(armorCacheKey.getKeyType());
         EncryptionKey armorKey = FastUtil.cf2(subKey, "subkeyarmor", armorCacheKey, "ticketarmor");
-
-        KrbFastRequestState state = getFastRequestState();
-        state.setArmorKey(armorKey);
-        state.setFastArmor(fastArmorApRequest(subKey));
-//        KdcReq fastOuterRequest = getKdcReq();
-//        fastOuterRequest.setPaData(null);
-        state.setFastOuterRequest(getKdcReq());
-//        ctx.setFastFlags();
-//        ctx.setFastOptions();
-//        ctx.setNonce();
-        setFastRequestState(state);
-
-        KrbCredsContext ctx = getCredsContext();
-        ctx.setFastRequestState(state);
-//        ctx.setOuterRequestBody(fastOuterRequest.encode());
-        setCredsContext(ctx);
-
+        getFastRequestState().setArmorKey(armorKey);
         return armorKey;
-    }
-
-    public KrbFastArmor fastArmorApRequest(EncryptionKey subKey) throws KrbException {
-        KrbFastArmor fastArmor = new KrbFastArmor();
-        fastArmor.setArmorType(ArmorType.ARMOR_AP_REQUEST);
-        ApReq apReq = makeApReq(subKey);
-        fastArmor.setArmorValue(apReq.encode());
-        return fastArmor;
-    }
-
-    private ApReq makeApReq(EncryptionKey subKey) throws KrbException {
-        ApReq apReq = new ApReq();
-        ApOptions apOptions = new ApOptions();
-        apReq.setApOptions(apOptions);
-        Ticket ticket = credential.getTicket();
-        apReq.setTicket(ticket);
-        Authenticator authenticator = makeAuthenticator(subKey);
-        apReq.setAuthenticator(authenticator);
-        EncryptedData authnData = EncryptionUtil.seal(authenticator,
-            credential.getKey(), KeyUsage.AP_REQ_AUTH);
-        apReq.setEncryptedAuthenticator(authnData);
-        return apReq;
-    }
-
-    private Authenticator makeAuthenticator(EncryptionKey subKey) throws KrbException {
-        Authenticator authenticator = new Authenticator();
-        authenticator.setCname(credential.getClientName());
-        authenticator.setCrealm(credential.getClientRealm());
-        authenticator.setCtime(KerberosTime.now());
-        authenticator.setCusec(0);
-        authenticator.setSubKey(subKey);
-
-        return authenticator;
     }
 
     protected EncryptionKey getSubKey(EncryptionType type) throws KrbException {
@@ -160,10 +138,43 @@ public abstract class ArmoredAsRequest extends AsRequest {
         } catch (IOException e) {
             throw new KrbException("Failed to load armor cache file");
         }
-//        Iterator<Credential> iterator = cc.getCredentials().iterator();
-//        iterator.next();
-//        iterator.next();
-//        this.credential = iterator.next();
         this.credential = cc.getCredentials().iterator().next();
+    }
+
+    public void fastAsArmor() throws KrbException {
+        KrbFastRequestState state = getFastRequestState();
+        state.setArmorKey(getArmorKey());
+        state.setFastArmor(FastUtil.fastArmorApRequest(subKey, credential));
+        KdcReq fastOuterRequest = getKdcReq();
+        fastOuterRequest.setPaData(null);
+        state.setFastOuterRequest(fastOuterRequest);
+//        state.setFastFlags();
+//        state.setFastOptions();
+//        state.setNonce();
+        setFastRequestState(state);
+
+        setOuterRequestBody(fastOuterRequest.encode());
+    }
+
+    private PaDataEntry makeFastEntry() throws KrbException {
+        KrbFastRequestState state = getFastRequestState();
+
+        KrbFastReq fastReq = new KrbFastReq();
+        fastReq.setKdcReqBody(getKdcReq().getReqBody());
+        fastReq.setFastOptions(state.getFastOptions());
+
+        KrbFastArmoredReq armoredReq = new KrbFastArmoredReq();
+        armoredReq.setArmor(state.getFastArmor());
+        CheckSum reqCheckSum = CheckSumUtil.makeCheckSum(CheckSumType.NONE,
+            getOuterRequestBody(), state.getArmorKey(), KeyUsage.FAST_REQ_CHKSUM);
+        armoredReq.setReqChecksum(reqCheckSum);
+        armoredReq.setEncryptedFastReq(EncryptionUtil.seal(fastReq, state.getArmorKey(),
+            KeyUsage.FAST_ENC));
+
+        PaDataEntry paDataEntry = new PaDataEntry();
+        paDataEntry.setPaDataType(PaDataType.FX_FAST);
+        paDataEntry.setPaDataValue(armoredReq.encode());
+
+        return paDataEntry;
     }
 }

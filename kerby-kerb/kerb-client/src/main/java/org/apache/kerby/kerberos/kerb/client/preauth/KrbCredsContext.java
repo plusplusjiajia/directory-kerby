@@ -2,12 +2,12 @@ package org.apache.kerby.kerberos.kerb.client.preauth;
 
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionType;
 import org.apache.kerby.kerberos.kerb.spec.kdc.KdcRep;
-import org.apache.kerby.kerberos.kerb.spec.kdc.KdcReqBody;
+import org.apache.kerby.kerberos.kerb.spec.kdc.KdcReq;
 
 public class KrbCredsContext {
 
     private KrbFastRequestState fastRequestState;
-    private KdcReqBody request;
+    private KdcReq request;
     private KdcRep reply;
     private byte[] outerRequestBody;
     private byte[] innerRequestBody;
@@ -23,11 +23,11 @@ public class KrbCredsContext {
         this.fastRequestState = state;
     }
 
-    public KdcReqBody getRequest() {
+    public KdcReq getRequest() {
         return request;
     }
 
-    public void setRequest(KdcReqBody request) {
+    public void setRequest(KdcReq request) {
         this.request = request;
     }
 

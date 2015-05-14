@@ -22,14 +22,19 @@ package org.apache.kerby.kerberos.kerb.client.request;
 import org.apache.kerby.KOptions;
 import org.apache.kerby.kerberos.kerb.KrbException;
 import org.apache.kerby.kerberos.kerb.client.KrbContext;
-import org.apache.kerby.kerberos.kerb.client.preauth.KrbCredsContext;
 import org.apache.kerby.kerberos.kerb.client.preauth.KrbFastRequestState;
 import org.apache.kerby.kerberos.kerb.client.preauth.PreauthContext;
 import org.apache.kerby.kerberos.kerb.client.preauth.PreauthHandler;
 import org.apache.kerby.kerberos.kerb.common.EncryptionUtil;
 import org.apache.kerby.kerberos.kerb.crypto.EncryptionHandler;
 import org.apache.kerby.kerberos.kerb.spec.KerberosTime;
-import org.apache.kerby.kerberos.kerb.spec.base.*;
+import org.apache.kerby.kerberos.kerb.spec.base.EncryptedData;
+import org.apache.kerby.kerberos.kerb.spec.base.EncryptionKey;
+import org.apache.kerby.kerberos.kerb.spec.base.EncryptionType;
+import org.apache.kerby.kerberos.kerb.spec.base.HostAddress;
+import org.apache.kerby.kerberos.kerb.spec.base.HostAddresses;
+import org.apache.kerby.kerberos.kerb.spec.base.KeyUsage;
+import org.apache.kerby.kerberos.kerb.spec.base.PrincipalName;
 import org.apache.kerby.kerberos.kerb.spec.kdc.KdcOptions;
 import org.apache.kerby.kerberos.kerb.spec.kdc.KdcRep;
 import org.apache.kerby.kerberos.kerb.spec.kdc.KdcReq;
@@ -62,8 +67,9 @@ public abstract class KdcRequest {
     protected Map<String, Object> credCache;
     private PreauthContext preauthContext;
     private KrbFastRequestState fastRequestState;
-    private KrbCredsContext credsContext;
     private EncryptionKey asKey;
+    private byte[] outerRequestBody;
+    private byte[] encodedPreviousRequest;
 
     private boolean isRetrying;
 
@@ -74,7 +80,6 @@ public abstract class KdcRequest {
         this.preauthContext = context.getPreauthHandler()
                 .preparePreauthContext(this);
         this.fastRequestState = new KrbFastRequestState();
-        this.credsContext = new KrbCredsContext();
     }
 
     public KrbFastRequestState getFastRequestState() {
@@ -85,12 +90,20 @@ public abstract class KdcRequest {
         this.fastRequestState = state;
     }
 
-    public KrbCredsContext getCredsContext() {
-        return credsContext;
+    public byte[] getOuterRequestBody() {
+        return outerRequestBody;
     }
 
-    public void setCredsContext(KrbCredsContext ctx) {
-        this.credsContext = ctx;
+    public void setOuterRequestBody(byte[] outerRequestBody) {
+        this.outerRequestBody = outerRequestBody;
+    }
+
+    public byte[] getEncodedPreviousRequest(){
+        return encodedPreviousRequest;
+    }
+
+    public void setEncodedPreviousRequest(byte[] encodedPreviousRequest) {
+        this.encodedPreviousRequest = encodedPreviousRequest;
     }
 
     public void setSessionData(Object sessionData) {

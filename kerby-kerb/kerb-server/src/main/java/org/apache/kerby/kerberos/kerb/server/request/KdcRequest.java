@@ -24,9 +24,10 @@ import org.apache.kerby.kerberos.kerb.KrbConstant;
 import org.apache.kerby.kerberos.kerb.KrbErrorCode;
 import org.apache.kerby.kerberos.kerb.KrbErrorException;
 import org.apache.kerby.kerberos.kerb.KrbException;
-import org.apache.kerby.kerberos.kerb.auth.AuthContext;
 import org.apache.kerby.kerberos.kerb.common.EncryptionUtil;
 import org.apache.kerby.kerberos.kerb.common.KrbUtil;
+import org.apache.kerby.kerberos.kerb.crypto.CheckSumHandler;
+import org.apache.kerby.kerberos.kerb.crypto.EncryptionHandler;
 import org.apache.kerby.kerberos.kerb.crypto.fast.FastUtil;
 import org.apache.kerby.kerberos.kerb.identity.KrbIdentity;
 import org.apache.kerby.kerberos.kerb.server.KdcContext;
@@ -36,6 +37,8 @@ import org.apache.kerby.kerberos.kerb.server.preauth.PreauthHandler;
 import org.apache.kerby.kerberos.kerb.spec.ap.ApReq;
 import org.apache.kerby.kerberos.kerb.spec.ap.Authenticator;
 import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
+import org.apache.kerby.kerberos.kerb.spec.base.CheckSum;
+import org.apache.kerby.kerberos.kerb.spec.base.EncryptedData;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionKey;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionType;
 import org.apache.kerby.kerberos.kerb.spec.base.EtypeInfo;
@@ -50,6 +53,7 @@ import org.apache.kerby.kerberos.kerb.spec.base.PrincipalName;
 import org.apache.kerby.kerberos.kerb.spec.fast.ArmorType;
 import org.apache.kerby.kerberos.kerb.spec.fast.KrbFastArmor;
 import org.apache.kerby.kerberos.kerb.spec.fast.KrbFastArmoredReq;
+import org.apache.kerby.kerberos.kerb.spec.fast.KrbFastReq;
 import org.apache.kerby.kerberos.kerb.spec.kdc.KdcRep;
 import org.apache.kerby.kerberos.kerb.spec.kdc.KdcReq;
 import org.apache.kerby.kerberos.kerb.spec.pa.PaData;
@@ -83,6 +87,7 @@ public abstract class KdcRequest {
     private KdcFastContext fastContext;
     private PrincipalName serverPrincipal;
     private AuthToken token = null;
+    private byte[] innerBodyout;
 
     public KdcRequest(KdcReq kdcReq, KdcContext kdcContext) {
         this.kdcReq = kdcReq;
@@ -107,7 +112,7 @@ public abstract class KdcRequest {
 
     public void process() throws KrbException {
         checkVersion();
-        findFast();
+        kdcFindFast();
         if(PreauthHandler.isToken(getKdcReq().getPaData())) {
             preauth();
             checkClient();
@@ -122,8 +127,7 @@ public abstract class KdcRequest {
         makeReply();
     }
 
-    private void findFast() throws KrbException {
-        AuthContext authContext = new AuthContext();
+    private void kdcFindFast() throws KrbException {
 
         PaData paData = getKdcReq().getPaData();
         for (PaDataEntry paEntry : paData.getElements()) {
@@ -134,6 +138,17 @@ public abstract class KdcRequest {
                 KdcRequestState state = new KdcRequestState();
                 state.setRealmData(kdcContext.getKdcRealm());
                 armorApRequest(state, fastArmor);
+
+                EncryptedData encryptedData = fastArmoredReq.getEncryptedFastReq();
+                KrbFastReq fastReq = KrbCodec.decode(
+                    EncryptionHandler.decrypt(encryptedData, getArmorKey(), KeyUsage.FAST_ENC),
+                    KrbFastReq.class);
+                innerBodyout = fastReq.getKdcReqBody().encode();
+
+                // TODO: get checksumed date in stream
+                CheckSum checkSum = fastArmoredReq.getReqChecksum();
+                CheckSumHandler.verifyWithKey(checkSum, getKdcReq().getReqBody().encode(),
+                    state.getArmorKey().getKeyData(), KeyUsage.FAST_REQ_CHKSUM);
             }
         }
     }
@@ -141,7 +156,6 @@ public abstract class KdcRequest {
     private void armorApRequest(KdcRequestState state, KrbFastArmor fastArmor) throws KrbException {
         if (fastArmor.getArmorType() == ArmorType.ARMOR_AP_REQUEST) {
             ApReq apReq = KrbCodec.decode(fastArmor.getArmorValue(), ApReq.class);
-//            AuthContext authContext = new AuthContext();
 
             Ticket ticket = apReq.getTicket();
             EncryptionType encType = ticket.getEncryptedEncPart().getEType();

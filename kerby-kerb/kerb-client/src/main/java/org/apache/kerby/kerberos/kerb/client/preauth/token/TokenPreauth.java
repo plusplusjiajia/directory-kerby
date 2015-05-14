@@ -25,26 +25,18 @@ import org.apache.kerby.kerberos.kerb.KrbException;
 import org.apache.kerby.kerberos.kerb.client.KrbContext;
 import org.apache.kerby.kerberos.kerb.client.KrbOption;
 import org.apache.kerby.kerberos.kerb.client.preauth.AbstractPreauthPlugin;
-import org.apache.kerby.kerberos.kerb.client.preauth.KrbCredsContext;
-import org.apache.kerby.kerberos.kerb.client.preauth.KrbFastRequestState;
 import org.apache.kerby.kerberos.kerb.client.request.KdcRequest;
-import org.apache.kerby.kerberos.kerb.common.CheckSumUtil;
 import org.apache.kerby.kerberos.kerb.common.EncryptionUtil;
 import org.apache.kerby.kerberos.kerb.preauth.PaFlag;
 import org.apache.kerby.kerberos.kerb.preauth.PaFlags;
 import org.apache.kerby.kerberos.kerb.preauth.PluginRequestContext;
 import org.apache.kerby.kerberos.kerb.preauth.token.TokenPreauthMeta;
 import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
-import org.apache.kerby.kerberos.kerb.spec.base.CheckSum;
-import org.apache.kerby.kerberos.kerb.spec.base.CheckSumType;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptedData;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionType;
 import org.apache.kerby.kerberos.kerb.spec.base.KeyUsage;
 import org.apache.kerby.kerberos.kerb.spec.base.KrbToken;
 import org.apache.kerby.kerberos.kerb.spec.base.TokenFormat;
-import org.apache.kerby.kerberos.kerb.spec.fast.KrbFastArmoredReq;
-import org.apache.kerby.kerberos.kerb.spec.fast.KrbFastReq;
-import org.apache.kerby.kerberos.kerb.spec.kdc.KdcReq;
 import org.apache.kerby.kerberos.kerb.spec.pa.PaData;
 import org.apache.kerby.kerberos.kerb.spec.pa.PaDataEntry;
 import org.apache.kerby.kerberos.kerb.spec.pa.PaDataType;
@@ -113,12 +105,6 @@ public class TokenPreauth extends AbstractPreauthPlugin {
             kdcRequest.needAsKey();
         }
         outPadata.addElement(makeEntry(kdcRequest));
-        outPadata.addElement(makeFastEntry(kdcRequest));
-
-        KdcReq fastOuterRequest = kdcRequest.getFastRequestState().getFastOuterRequest();
-        fastOuterRequest.setPaData(outPadata);
-        kdcRequest.getFastRequestState().setFastOuterRequest(fastOuterRequest);
-        kdcRequest.getCredsContext().setEncodedPreviousRequest(fastOuterRequest.encode());
     }
 
     @Override
@@ -170,29 +156,6 @@ public class TokenPreauth extends AbstractPreauthPlugin {
         PaDataEntry paDataEntry = new PaDataEntry();
         paDataEntry.setPaDataType(PaDataType.TOKEN_REQUEST);
         paDataEntry.setPaDataValue(paDataValue.encode());
-
-        return paDataEntry;
-    }
-
-    private PaDataEntry makeFastEntry(KdcRequest kdcRequest) throws KrbException {
-        KrbCredsContext ctx = kdcRequest.getCredsContext();
-        KrbFastRequestState state = ctx.getKrbFastRequestState();
-
-        KrbFastReq fastReq = new KrbFastReq();
-        fastReq.setKdcReqBody(ctx.getRequest());
-        fastReq.setFastOptions(state.getFastOptions());
-
-        KrbFastArmoredReq armoredReq = new KrbFastArmoredReq();
-        armoredReq.setArmor(state.getFastArmor());
-        CheckSum reqCheckSum = CheckSumUtil.makeCheckSum(CheckSumType.NONE,
-            ctx.getOuterRequestBody(), state.getArmorKey(), KeyUsage.FAST_REQ_CHKSUM);
-        armoredReq.setReqChecksum(reqCheckSum);
-        armoredReq.setEncryptedFastReq(EncryptionUtil.seal(fastReq, state.getArmorKey(),
-            KeyUsage.FAST_ENC));
-
-        PaDataEntry paDataEntry = new PaDataEntry();
-        paDataEntry.setPaDataType(PaDataType.FX_FAST);
-        paDataEntry.setPaDataValue(armoredReq.encode());
 
         return paDataEntry;
     }
