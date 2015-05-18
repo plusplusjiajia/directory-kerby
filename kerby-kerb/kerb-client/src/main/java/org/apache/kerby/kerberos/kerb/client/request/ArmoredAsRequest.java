@@ -75,17 +75,7 @@ public abstract class ArmoredAsRequest extends AsRequest {
     public void process() throws KrbException {
         super.process();
         fastAsArmor();
-//        KdcReq asReq = getKdcReq();
-//        PaData outputPaData = getKdcReq().getPaData();
-//        outputPaData.addElement(makeFastEntry());
-//        asReq.setPaData(outputPaData);
-//        setKdcReq(asReq);
         getKdcReq().getPaData().addElement(makeFastEntry());
-
-//        KdcReq fastOuterRequest = getFastRequestState().getFastOuterRequest();
-//        fastOuterRequest.setPaData(outputPaData);
-//        getFastRequestState().setFastOuterRequest(fastOuterRequest);
-//        setEncodedPreviousRequest(fastOuterRequest.encode());
     }
 
     @Override
@@ -154,9 +144,6 @@ public abstract class ArmoredAsRequest extends AsRequest {
         fastOuterRequest.setReqBody(getKdcReq().getReqBody());
         fastOuterRequest.setPaData(null);
         state.setFastOuterRequest(fastOuterRequest);
-//        state.setFastFlags();
-//        state.setFastOptions();
-//        state.setNonce();
         setFastRequestState(state);
 
         setOuterRequestBody(state.getFastOuterRequest().encode());

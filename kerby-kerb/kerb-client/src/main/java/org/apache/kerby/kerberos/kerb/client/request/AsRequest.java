@@ -89,9 +89,9 @@ public class AsRequest extends KdcRequest {
         PrincipalName clientPrincipal = getKdcRep().getCname();
         String clientRealm = getKdcRep().getCrealm();
         clientPrincipal.setRealm(clientRealm);
-        if(!getKrbOptions().contains(KrbOption.TOKEN_USER_ID_TOKEN)
+        if (!getKrbOptions().contains(KrbOption.TOKEN_USER_ID_TOKEN)
             && !clientPrincipal.equals(getClientPrincipal())) {
-                throw new KrbException(KrbErrorCode.KDC_ERR_CLIENT_NAME_MISMATCH);
+            throw new KrbException(KrbErrorCode.KDC_ERR_CLIENT_NAME_MISMATCH);
         }
 
         byte[] decryptedData = decryptWithClientKey(getKdcRep().getEncryptedEncPart(),

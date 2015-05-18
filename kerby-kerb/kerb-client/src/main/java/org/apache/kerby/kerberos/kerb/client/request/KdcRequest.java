@@ -69,7 +69,6 @@ public abstract class KdcRequest {
     private KrbFastRequestState fastRequestState;
     private EncryptionKey asKey;
     private byte[] outerRequestBody;
-    private byte[] encodedPreviousRequest;
 
     private boolean isRetrying;
 
@@ -96,14 +95,6 @@ public abstract class KdcRequest {
 
     public void setOuterRequestBody(byte[] outerRequestBody) {
         this.outerRequestBody = outerRequestBody;
-    }
-
-    public byte[] getEncodedPreviousRequest(){
-        return encodedPreviousRequest;
-    }
-
-    public void setEncodedPreviousRequest(byte[] encodedPreviousRequest) {
-        this.encodedPreviousRequest = encodedPreviousRequest;
     }
 
     public void setSessionData(Object sessionData) {
