@@ -1,0 +1,46 @@
+{
+  "jiajia@TEST.COM": {
+    "principalName": "jiajia@TEST.COM",
+    "principal": "jiajia@TEST.COM",
+    "keyVersion": 1,
+    "kdcFlags": 0,
+    "disabled": false,
+    "locked": false,
+    "expireTime": "9223372036854775807",
+    "createdTime": "1431928669239",
+    "keys": {
+      "DES3_CBC_SHA1": {
+        "kvno": -1,
+        "keyType": "des3-cbc-sha1",
+        "keyData": "B0D375768A5B1F6480A10737D9A16E91A4FD0D760DD3D53B"
+      },
+      "AES128_CTS_HMAC_SHA1_96": {
+        "kvno": -1,
+        "keyType": "aes128-cts-hmac-sha1-96",
+        "keyData": "DE647623B0D6C30CF36AB846982DB8EF"
+      }
+    }
+  },
+  "krbtgt/TEST.COM@TEST.COM": {
+    "principalName": "krbtgt/TEST.COM@TEST.COM",
+    "principal": "krbtgt/TEST.COM@TEST.COM",
+    "keyVersion": 1,
+    "kdcFlags": 0,
+    "disabled": false,
+    "locked": false,
+    "expireTime": "9223372036854775807",
+    "createdTime": "1431928674887",
+    "keys": {
+      "AES128_CTS_HMAC_SHA1_96": {
+        "kvno": -1,
+        "keyType": "aes128-cts-hmac-sha1-96",
+        "keyData": "7A30A67829D3134AD3B334B1F8DE46D0"
+      },
+      "DES3_CBC_SHA1": {
+        "kvno": -1,
+        "keyType": "des3-cbc-sha1",
+        "keyData": "46B9E0344A8A683425A4CEA2080DCB5E377FF1FB8ADF7551"
+      }
+    }
+  }
+}

@@ -194,7 +194,7 @@ public abstract class KdcTestBase {
             krbClnt.setKdcUdpPort(udpPort);
         }
 
-        krbClnt.setTimeout(50);
+        krbClnt.setTimeout(5000);
         krbClnt.setKdcRealm(kdcServer.getKdcRealm());
     }
 

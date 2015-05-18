@@ -19,10 +19,15 @@
  */
 package org.apache.kerby.kerberos.kdc;
 
+import org.apache.kerby.kerberos.kdc.identitybackend.JsonIdentityBackend;
 import org.apache.kerby.kerberos.kerb.KrbException;
 import org.apache.kerby.kerberos.kerb.KrbRuntime;
+import org.apache.kerby.kerberos.kerb.identity.backend.IdentityBackend;
 import org.apache.kerby.kerberos.kerb.provider.TokenEncoder;
+import org.apache.kerby.kerberos.kerb.server.BackendConfig;
+import org.apache.kerby.kerberos.kerb.server.KdcConfigKey;
 import org.apache.kerby.kerberos.kerb.server.KdcTestBase;
+import org.apache.kerby.kerberos.kerb.server.TestKdcServer;
 import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
 import org.apache.kerby.kerberos.kerb.spec.ticket.ServiceTicket;
 import org.apache.kerby.kerberos.kerb.spec.ticket.TgtTicket;
@@ -38,6 +43,8 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class WithTokenKdcTest extends KdcTestBase {
+
+    private static IdentityBackend backend;
 
     static final String SUBJECT = "test-sub";
     static final String AUDIENCE = "krbtgt@EXAMPLE.COM";
@@ -56,6 +63,24 @@ public class WithTokenKdcTest extends KdcTestBase {
         prepareToken();
 
         super.setUp();
+    }
+
+    protected void setUpKdcServer() throws Exception {
+        kdcServer = new TestKdcServer();
+        prepareKdcServer();
+
+        URL url = this.getClass().getResource("/testfastjsonbackend");
+        BackendConfig backendConfig = new BackendConfig();
+        backendConfig.setString(JsonIdentityBackend.JSON_IDENTITY_BACKEND_FILE, url.getFile());
+        backendConfig.setString(KdcConfigKey.KDC_IDENTITY_BACKEND,
+            "org.apache.kerby.kerberos.kdc.identitybackend.JsonIdentityBackend");
+        kdcServer.setBackendConfig(backendConfig);
+
+        kdcServer.init();
+
+        kdcRealm = kdcServer.getKdcRealm();
+        clientPrincipal = "drankye@" + kdcRealm;
+        serverPrincipal = "test-service/localhost@" + kdcRealm;
     }
 
     private void prepareToken() {
@@ -90,8 +115,12 @@ public class WithTokenKdcTest extends KdcTestBase {
 
     @Override
     protected void createPrincipals() {
-        super.createPrincipals();
-        kdcServer.createPrincipal(clientPrincipal, TEST_PASSWORD);
+        kdcServer.createPrincipals(serverPrincipal);
+    }
+
+    @Override
+    protected void deletePrincipals() {
+        kdcServer.deletePrincipals(serverPrincipal);
     }
 
     @Test
@@ -99,7 +128,7 @@ public class WithTokenKdcTest extends KdcTestBase {
         kdcServer.start();
         krbClnt.init();
 
-        URL url = this.getClass().getResource("/test.cc");
+        URL url = this.getClass().getResource("/testfast.cc");
 
         TgtTicket tgt = null;
         try {

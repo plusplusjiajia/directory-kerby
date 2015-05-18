@@ -46,7 +46,6 @@ import org.apache.kerby.kerberos.kerb.spec.fast.KrbFastArmoredReq;
 import org.apache.kerby.kerberos.kerb.spec.fast.KrbFastReq;
 import org.apache.kerby.kerberos.kerb.spec.kdc.AsReq;
 import org.apache.kerby.kerberos.kerb.spec.kdc.KdcReq;
-import org.apache.kerby.kerberos.kerb.spec.pa.PaData;
 import org.apache.kerby.kerberos.kerb.spec.pa.PaDataEntry;
 import org.apache.kerby.kerberos.kerb.spec.pa.PaDataType;
 import org.apache.kerby.kerberos.kerb.spec.ticket.Ticket;
@@ -69,26 +68,24 @@ public abstract class ArmoredAsRequest extends AsRequest {
     @Override
     protected void preauth() throws KrbException {
         makeArmorKey();
-
         super.preauth();
-
-        fastAsArmor();
     }
 
     @Override
     public void process() throws KrbException {
         super.process();
+        fastAsArmor();
+//        KdcReq asReq = getKdcReq();
+//        PaData outputPaData = getKdcReq().getPaData();
+//        outputPaData.addElement(makeFastEntry());
+//        asReq.setPaData(outputPaData);
+//        setKdcReq(asReq);
+        getKdcReq().getPaData().addElement(makeFastEntry());
 
-        AsReq asReq = (AsReq) getKdcReq();
-        PaData outputPaData = getKdcReq().getPaData();
-        outputPaData.addElement(makeFastEntry());
-        asReq.setPaData(outputPaData);
-        setKdcReq(asReq);
-
-        KdcReq fastOuterRequest = getFastRequestState().getFastOuterRequest();
-        fastOuterRequest.setPaData(outputPaData);
-        getFastRequestState().setFastOuterRequest(fastOuterRequest);
-        setEncodedPreviousRequest(fastOuterRequest.encode());
+//        KdcReq fastOuterRequest = getFastRequestState().getFastOuterRequest();
+//        fastOuterRequest.setPaData(outputPaData);
+//        getFastRequestState().setFastOuterRequest(fastOuterRequest);
+//        setEncodedPreviousRequest(fastOuterRequest.encode());
     }
 
     @Override
@@ -153,7 +150,8 @@ public abstract class ArmoredAsRequest extends AsRequest {
         KrbFastRequestState state = getFastRequestState();
         state.setArmorKey(getArmorKey());
         state.setFastArmor(fastArmorApRequest(subKey, credential));
-        KdcReq fastOuterRequest = getKdcReq();
+        KdcReq fastOuterRequest = new AsReq();
+        fastOuterRequest.setReqBody(getKdcReq().getReqBody());
         fastOuterRequest.setPaData(null);
         state.setFastOuterRequest(fastOuterRequest);
 //        state.setFastFlags();
@@ -161,7 +159,7 @@ public abstract class ArmoredAsRequest extends AsRequest {
 //        state.setNonce();
         setFastRequestState(state);
 
-        setOuterRequestBody(fastOuterRequest.encode());
+        setOuterRequestBody(state.getFastOuterRequest().encode());
     }
 
     private PaDataEntry makeFastEntry() throws KrbException {

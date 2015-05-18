@@ -64,6 +64,10 @@ public class TestKdcServer extends KdcServer {
         createPrincipals(getTgsPrincipal());
     }
 
+    public void createTgsPrincipalWithPwd(String pwd) {
+        createPrincipal(getTgsPrincipal(), pwd);
+    }
+
     public void deleteTgsPrincipal() {
         deletePrincipals(getTgsPrincipal());
     }

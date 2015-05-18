@@ -112,6 +112,7 @@ public abstract class KdcRequest {
 
     public void process() throws KrbException {
         checkVersion();
+        checkTgsEntry();
         kdcFindFast();
         if(PreauthHandler.isToken(getKdcReq().getPaData())) {
             preauth();
@@ -125,6 +126,11 @@ public abstract class KdcRequest {
         authenticate();
         issueTicket();
         makeReply();
+    }
+
+    private void checkTgsEntry() throws KrbException {
+        KrbIdentity tgsEntry = getEntry(getTgsPrincipal().getName());
+        setTgsEntry(tgsEntry);
     }
 
     private void kdcFindFast() throws KrbException {
@@ -360,9 +366,6 @@ public abstract class KdcRequest {
 
     private void checkServer() throws KrbException {
         KdcReq request = getKdcReq();
-
-        KrbIdentity tgsEntry = getEntry(getTgsPrincipal().getName());
-        setTgsEntry(tgsEntry);
 
         PrincipalName principal = request.getReqBody().getSname();
         String serverRealm = request.getReqBody().getRealm();
