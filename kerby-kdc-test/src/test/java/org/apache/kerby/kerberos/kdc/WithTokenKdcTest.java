@@ -69,9 +69,9 @@ public class WithTokenKdcTest extends KdcTestBase {
         kdcServer = new TestKdcServer();
         prepareKdcServer();
 
-        URL url = this.getClass().getResource("/testfastjsonbackend");
+        String backendFile = this.getClass().getResource("/testfastjsonbackend").getFile();
         BackendConfig backendConfig = new BackendConfig();
-        backendConfig.setString(JsonIdentityBackend.JSON_IDENTITY_BACKEND_FILE, url.getFile());
+        backendConfig.setString(JsonIdentityBackend.JSON_IDENTITY_BACKEND_FILE, backendFile);
         backendConfig.setString(KdcConfigKey.KDC_IDENTITY_BACKEND,
             "org.apache.kerby.kerberos.kdc.identitybackend.JsonIdentityBackend");
         kdcServer.setBackendConfig(backendConfig);
