@@ -84,6 +84,10 @@ public abstract class KdcTestBase {
         FileUtils.deleteDirectory(TEST_DIR);
     }
 
+    public File getTestDir() {
+        return TEST_DIR;
+    }
+
     protected boolean allowUdp() {
         return true;
     }
