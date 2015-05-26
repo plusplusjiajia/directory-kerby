@@ -28,6 +28,7 @@ import org.apache.kerby.kerberos.kerb.client.preauth.PreauthHandler;
 import org.apache.kerby.kerberos.kerb.common.EncryptionUtil;
 import org.apache.kerby.kerberos.kerb.crypto.EncryptionHandler;
 import org.apache.kerby.kerberos.kerb.spec.KerberosTime;
+import org.apache.kerby.kerberos.kerb.spec.ap.Authenticator;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptedData;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionKey;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionType;
@@ -375,5 +376,16 @@ public abstract class KdcRequest {
      */
     public void cacheValue(String key, Object value) {
         credCache.put(key, value);
+    }
+
+    protected static Authenticator makeAuthenticator(PrincipalName clientName, String clientRealm, EncryptionKey subKey)
+        throws KrbException {
+        Authenticator authenticator = new Authenticator();
+        authenticator.setCname(clientName);
+        authenticator.setCrealm(clientRealm);
+        authenticator.setCtime(KerberosTime.now());
+        authenticator.setCusec(0);
+        authenticator.setSubKey(subKey);
+        return authenticator;
     }
 }

@@ -11,8 +11,14 @@ import org.apache.kerby.kerberos.kerb.spec.base.KeyUsage;
 
 public class CheckSumUtil {
 
-    public static CheckSum makeCheckSum(CheckSumType checkSumType, byte[] input, EncryptionKey key,
-                                        KeyUsage usage) throws KrbException {
+    public static CheckSum makeCheckSum(CheckSumType checkSumType, byte[] input)
+        throws KrbException {
+        return CheckSumHandler.checksum(checkSumType, input);
+    }
+
+    public static CheckSum makeCheckSumWithKey(CheckSumType checkSumType, byte[] input,
+                                               EncryptionKey key, KeyUsage usage)
+        throws KrbException {
         if (checkSumType == CheckSumType.NONE) {
             EncTypeHandler handler = EncryptionHandler.getEncHandler(key.getKeyType());
             checkSumType = handler.checksumType();

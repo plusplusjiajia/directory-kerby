@@ -40,6 +40,7 @@ import org.apache.kerby.kerberos.kerb.spec.base.EncryptedData;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionKey;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionType;
 import org.apache.kerby.kerberos.kerb.spec.base.KeyUsage;
+import org.apache.kerby.kerberos.kerb.spec.base.PrincipalName;
 import org.apache.kerby.kerberos.kerb.spec.fast.ArmorType;
 import org.apache.kerby.kerberos.kerb.spec.fast.KrbFastArmor;
 import org.apache.kerby.kerberos.kerb.spec.fast.KrbFastArmoredReq;
@@ -103,7 +104,8 @@ public abstract class ArmoredAsRequest extends AsRequest {
 
         EncryptionKey armorCacheKey = getArmorCacheKey();
         subKey = getSubKey(armorCacheKey.getKeyType());
-        EncryptionKey armorKey = FastUtil.cf2(subKey, "subkeyarmor", armorCacheKey, "ticketarmor");
+        EncryptionKey armorKey = FastUtil.cf2(subKey, "subkeyarmor",
+            armorCacheKey, "ticketarmor");
         getFastRequestState().setArmorKey(armorKey);
         return armorKey;
     }
@@ -133,6 +135,7 @@ public abstract class ArmoredAsRequest extends AsRequest {
         } catch (IOException e) {
             throw new KrbException("Failed to load armor cache file");
         }
+        // TODO: get the right credential.
         this.credential = cc.getCredentials().iterator().next();
     }
 
@@ -158,7 +161,7 @@ public abstract class ArmoredAsRequest extends AsRequest {
 
         KrbFastArmoredReq armoredReq = new KrbFastArmoredReq();
         armoredReq.setArmor(state.getFastArmor());
-        CheckSum reqCheckSum = CheckSumUtil.makeCheckSum(CheckSumType.NONE,
+        CheckSum reqCheckSum = CheckSumUtil.makeCheckSumWithKey(CheckSumType.NONE,
             getOuterRequestBody(), state.getArmorKey(), KeyUsage.FAST_REQ_CHKSUM);
         armoredReq.setReqChecksum(reqCheckSum);
         armoredReq.setEncryptedFastReq(EncryptionUtil.seal(fastReq, state.getArmorKey(),
@@ -180,27 +183,19 @@ public abstract class ArmoredAsRequest extends AsRequest {
         return fastArmor;
     }
 
-    private static ApReq makeApReq(EncryptionKey subKey, Credential credential) throws KrbException {
+    private static ApReq makeApReq(EncryptionKey subKey, Credential credential)
+        throws KrbException {
         ApReq apReq = new ApReq();
         ApOptions apOptions = new ApOptions();
         apReq.setApOptions(apOptions);
         Ticket ticket = credential.getTicket();
         apReq.setTicket(ticket);
-        Authenticator authenticator = makeAuthenticator(subKey, credential);
+        Authenticator authenticator = makeAuthenticator(credential.getClientName(),
+            credential.getClientRealm(), subKey);
         apReq.setAuthenticator(authenticator);
         EncryptedData authnData = EncryptionUtil.seal(authenticator,
             credential.getKey(), KeyUsage.AP_REQ_AUTH);
         apReq.setEncryptedAuthenticator(authnData);
         return apReq;
-    }
-
-    private static Authenticator makeAuthenticator(EncryptionKey subKey, Credential credential) throws KrbException {
-        Authenticator authenticator = new Authenticator();
-        authenticator.setCname(credential.getClientName());
-        authenticator.setCrealm(credential.getClientRealm());
-        authenticator.setCtime(KerberosTime.now());
-        authenticator.setCusec(0);
-        authenticator.setSubKey(subKey);
-        return authenticator;
     }
 }
