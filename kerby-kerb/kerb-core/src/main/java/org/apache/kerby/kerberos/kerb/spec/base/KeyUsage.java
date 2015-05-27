@@ -100,8 +100,8 @@ public enum KeyUsage implements KrbEnum
     ENC_CHALLENGE_CLIENT(54),
     ENC_CHALLENGE_KDC(55),
     AS_REQ(56),
-    //AS-REQ PA-TOKEN padata,encrypted with the client key
-    AS_REQ_PA_TOKEN(57);
+    //PA-TOKEN padata,encrypted with the client key
+    PA_TOKEN(57);
 
     private int value;
 

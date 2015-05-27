@@ -51,7 +51,7 @@ public class AsRequest extends KdcRequest {
 
         KdcReq request = getKdcReq();
         PrincipalName clientPrincipal;
-        if (getToken() != null) {
+        if (isToken()) {
             clientPrincipal = new PrincipalName(getToken().getSubject());
         } else {
             clientPrincipal = request.getReqBody().getCname();
@@ -62,7 +62,7 @@ public class AsRequest extends KdcRequest {
         }
         clientPrincipal.setRealm(clientRealm);
         KrbIdentity clientEntry;
-        if (getToken() != null) {
+        if (isToken()) {
             clientEntry = new KrbIdentity(clientPrincipal.getName());
             clientEntry.setExpireTime(new KerberosTime(getToken().getExpiredTime().getTime()));
         } else {

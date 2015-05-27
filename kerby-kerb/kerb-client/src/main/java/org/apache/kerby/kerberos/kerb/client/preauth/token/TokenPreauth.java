@@ -151,7 +151,7 @@ public class TokenPreauth extends AbstractPreauthPlugin {
         tokenPa.setTokenInfo(info);
 
         EncryptedData paDataValue = EncryptionUtil.seal(tokenPa,
-            kdcRequest.getAsKey(), KeyUsage.AS_REQ_PA_TOKEN);
+            kdcRequest.getAsKey(), KeyUsage.PA_TOKEN);
 
         PaDataEntry paDataEntry = new PaDataEntry();
         paDataEntry.setPaDataType(PaDataType.TOKEN_REQUEST);

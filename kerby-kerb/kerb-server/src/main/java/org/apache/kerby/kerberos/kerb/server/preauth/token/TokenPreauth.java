@@ -56,7 +56,7 @@ public class TokenPreauth extends AbstractPreauthPlugin {
             kdcRequest.setClientKey(clientKey);
 
             PaTokenRequest paTokenRequest = EncryptionUtil.unseal(encData, clientKey,
-                KeyUsage.AS_REQ_PA_TOKEN, PaTokenRequest.class);
+                KeyUsage.PA_TOKEN, PaTokenRequest.class);
 
             KrbToken token = paTokenRequest.getToken();
 

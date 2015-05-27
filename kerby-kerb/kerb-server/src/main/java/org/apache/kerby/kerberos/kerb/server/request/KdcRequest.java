@@ -87,7 +87,8 @@ public abstract class KdcRequest {
     private KdcFastContext fastContext;
     private PrincipalName serverPrincipal;
     private byte[] innerBodyout;
-    private AuthToken token = null;
+    private AuthToken token;
+    private Boolean isToken = false;
 
     public KdcRequest(KdcReq kdcReq, KdcContext kdcContext) {
         this.kdcReq = kdcReq;
@@ -115,6 +116,7 @@ public abstract class KdcRequest {
         checkTgsEntry();
         kdcFindFast();
         if (PreauthHandler.isToken(getKdcReq().getPaData())) {
+            isToken = true;
             preauth();
             checkClient();
             checkServer();
@@ -314,7 +316,7 @@ public abstract class KdcRequest {
     protected void preauth() throws KrbException {
         KdcReq request = getKdcReq();
 
-        if (!kdcContext.getConfig().isAllowableTokenPreauth()) {
+        if (!kdcContext.getConfig().isAllowTokenPreauth()) {
             return;
         }
 
@@ -440,7 +442,6 @@ public abstract class KdcRequest {
         }
 
         if (entry == null) {
-//            throw new KrbException(krbErrorCode);
             // Maybe it is the token preauth, now we ignore check client entry.
             return null;
         }
@@ -465,6 +466,10 @@ public abstract class KdcRequest {
 
     public byte[] getInnerBodyout() {
         return innerBodyout;
+    }
+
+    public boolean isToken() {
+        return isToken;
     }
 
     public void setToken(AuthToken authToken) {
