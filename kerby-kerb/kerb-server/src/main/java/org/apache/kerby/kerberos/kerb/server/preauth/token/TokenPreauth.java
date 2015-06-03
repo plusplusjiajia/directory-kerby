@@ -29,6 +29,7 @@ import org.apache.kerby.kerberos.kerb.provider.TokenDecoder;
 import org.apache.kerby.kerberos.kerb.server.preauth.AbstractPreauthPlugin;
 import org.apache.kerby.kerberos.kerb.server.request.AsRequest;
 import org.apache.kerby.kerberos.kerb.server.request.KdcRequest;
+import org.apache.kerby.kerberos.kerb.server.request.TgsRequest;
 import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptedData;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionKey;
@@ -68,8 +69,13 @@ public class TokenPreauth extends AbstractPreauthPlugin {
                 throw new KrbException("Decoding failed", e);
             }
 
-            AsRequest asRequest = (AsRequest) kdcRequest;
-            asRequest.setToken(authToken);
+            if (kdcRequest instanceof AsRequest) {
+                AsRequest asRequest = (AsRequest) kdcRequest;
+                asRequest.setToken(authToken);
+            } else if (kdcRequest instanceof TgsRequest) {
+                TgsRequest tgsRequest = (TgsRequest) kdcRequest;
+                tgsRequest.setToken(authToken);
+            }
 
             return true;
         } else {

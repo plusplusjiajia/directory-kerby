@@ -21,9 +21,19 @@ package org.apache.kerby.kerberos.kerb.client.impl;
 
 import org.apache.kerby.KOptions;
 import org.apache.kerby.kerberos.kerb.KrbException;
-import org.apache.kerby.kerberos.kerb.client.*;
-import org.apache.kerby.kerberos.kerb.client.request.*;
-import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
+import org.apache.kerby.kerberos.kerb.client.InternalKrbClient;
+import org.apache.kerby.kerberos.kerb.client.KrbConfig;
+import org.apache.kerby.kerberos.kerb.client.KrbContext;
+import org.apache.kerby.kerberos.kerb.client.KrbOption;
+import org.apache.kerby.kerberos.kerb.client.KrbSetting;
+import org.apache.kerby.kerberos.kerb.client.request.AsRequest;
+import org.apache.kerby.kerberos.kerb.client.request.AsRequestWithCert;
+import org.apache.kerby.kerberos.kerb.client.request.AsRequestWithKeytab;
+import org.apache.kerby.kerberos.kerb.client.request.AsRequestWithPasswd;
+import org.apache.kerby.kerberos.kerb.client.request.AsRequestWithToken;
+import org.apache.kerby.kerberos.kerb.client.request.TgsRequest;
+import org.apache.kerby.kerberos.kerb.client.request.TgsRequestWithTgt;
+import org.apache.kerby.kerberos.kerb.client.request.TgsRequestWithToken;
 import org.apache.kerby.kerberos.kerb.spec.base.PrincipalName;
 import org.apache.kerby.kerberos.kerb.spec.ticket.ServiceTicket;
 import org.apache.kerby.kerberos.kerb.spec.ticket.TgtTicket;
@@ -138,15 +148,18 @@ public abstract class AbstractInternalKrbClient implements InternalKrbClient {
     public ServiceTicket requestServiceTicketWithTgt(
             TgtTicket tgt, String serverPrincipal) throws KrbException {
 
-        TgsRequest ticketReq = new TgsRequest(context, tgt);
+        TgsRequest ticketReq = new TgsRequestWithTgt(context, tgt);
         ticketReq.setServerPrincipal(new PrincipalName(serverPrincipal));
         return doRequestServiceTicket(ticketReq);
     }
 
     @Override
-    public ServiceTicket requestServiceTicketWithAccessToken(
-            AuthToken token, String serverPrincipal) throws KrbException {
+    public ServiceTicket requestServiceTicketWithAccessToken(String serverPrincipal,
+                                                             KOptions requestOptions) throws KrbException {
         TgsRequest tgsRequest = new TgsRequestWithToken(context);
+        tgsRequest.setServerPrincipal(new PrincipalName(serverPrincipal));
+        tgsRequest.setKrbOptions(requestOptions);
+
         return doRequestServiceTicket(tgsRequest);
     }
 

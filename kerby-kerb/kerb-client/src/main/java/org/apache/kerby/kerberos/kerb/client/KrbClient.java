@@ -261,11 +261,14 @@ public class KrbClient {
      * @throws KrbException
      */
     public ServiceTicket requestServiceTicketWithAccessToken(
-            AuthToken token, String serverPrincipal) throws KrbException {
+            AuthToken token, String serverPrincipal, String armorCache) throws KrbException {
         if (! token.isAcToken()) {
             throw new IllegalArgumentException("Access token is expected");
         }
-        return innerClient.requestServiceTicketWithAccessToken(token, serverPrincipal);
+        KOptions requestOptions = new KOptions();
+        requestOptions.add(KrbOption.TOKEN_USER_AC_TOKEN, token);
+        requestOptions.add(KrbOption.ARMOR_CACHE, armorCache);
+        return innerClient.requestServiceTicketWithAccessToken(serverPrincipal, requestOptions);
     }
 
 }

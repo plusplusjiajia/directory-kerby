@@ -147,8 +147,18 @@ public class KrbToken extends KrbSequenceType implements AuthToken {
     }
 
     @Override
+    public void setIsIdToken(boolean isIdToken) {
+        innerToken.setIsIdToken(isIdToken);
+    }
+
+    @Override
     public boolean isAcToken() {
         return innerToken.isAcToken();
+    }
+
+    @Override
+    public void setIsAcToken(boolean isAcToken) {
+        innerToken.setIsAcToken(isAcToken);
     }
 
     @Override

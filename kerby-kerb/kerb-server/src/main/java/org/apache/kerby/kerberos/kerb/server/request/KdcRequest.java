@@ -89,6 +89,15 @@ public abstract class KdcRequest {
     private byte[] innerBodyout;
     private AuthToken token;
     private Boolean isToken = false;
+    private EncryptionKey sessionKey;
+
+    public EncryptionKey getSessionKey() {
+        return sessionKey;
+    }
+
+    public void setSessionKey(EncryptionKey sessionKey) {
+        this.sessionKey = sessionKey;
+    }
 
     public KdcRequest(KdcReq kdcReq, KdcContext kdcContext) {
         this.kdcReq = kdcReq;
@@ -175,6 +184,7 @@ public abstract class KdcRequest {
             ticket.setEncPart(encPart);
 
             EncryptionKey encKey = ticket.getEncPart().getKey();
+            setSessionKey(encKey);
 
             Authenticator authenticator = EncryptionUtil.unseal(apReq.getEncryptedAuthenticator(),
                 encKey, KeyUsage.AP_REQ_AUTH, Authenticator.class);

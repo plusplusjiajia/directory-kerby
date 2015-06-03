@@ -140,8 +140,16 @@ public class TokenPreauth extends AbstractPreauthPlugin {
     private PaDataEntry makeEntry(KdcRequest kdcRequest) throws KrbException {
         KOptions options = kdcRequest.getPreauthOptions();
 
-        KOption option = options.getOption(KrbOption.TOKEN_USER_ID_TOKEN);
-        AuthToken authToken = (AuthToken)option.getValue();
+        KOption idToken = options.getOption(KrbOption.TOKEN_USER_ID_TOKEN);
+        KOption acToken = options.getOption(KrbOption.TOKEN_USER_AC_TOKEN);
+        AuthToken authToken;
+        if (idToken != null) {
+            authToken = (AuthToken) idToken.getValue();
+        } else if(acToken != null) {
+            authToken = (AuthToken) acToken.getValue();
+        } else {
+            throw new KrbException("missing token.");
+        }
 
         KrbToken krbToken = new KrbToken(authToken, TokenFormat.JWT);
         PaTokenRequest tokenPa = new PaTokenRequest();
