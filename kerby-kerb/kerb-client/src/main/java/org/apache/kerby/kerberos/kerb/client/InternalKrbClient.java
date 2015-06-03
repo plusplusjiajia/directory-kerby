@@ -50,18 +50,10 @@ public interface InternalKrbClient {
     TgtTicket requestTgtTicket(KOptions requestOptions) throws KrbException;
 
     /**
-     * Request a service ticket using a TGT.
+     * Request a service ticket.
+     * @param requestOptions
      * @return service ticket
      * @throws KrbException
      */
-    ServiceTicket requestServiceTicketWithTgt(TgtTicket tgt,
-                                              String serverPrincipal) throws KrbException;
-
-    /**
-     * Request a service ticket using an Access Token.
-     * @return service ticket
-     * @throws KrbException
-     */
-    ServiceTicket requestServiceTicketWithAccessToken(String serverPrincipal,
-                                                      KOptions requestOptions) throws KrbException;
+    ServiceTicket requestServiceTicket(KOptions requestOptions) throws KrbException;
 }

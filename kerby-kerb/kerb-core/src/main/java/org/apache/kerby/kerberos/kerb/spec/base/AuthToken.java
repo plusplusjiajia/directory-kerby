@@ -70,7 +70,7 @@ public interface AuthToken {
      */
     boolean isIdToken();
 
-    void setIsIdToken(boolean isIdToken);
+    void isIdToken(boolean isIdToken);
 
     /**
      * Is an Access Token ?
@@ -78,7 +78,7 @@ public interface AuthToken {
      */
     boolean isAcToken();
 
-    void setIsAcToken(boolean isAcToken);
+    void isAcToken(boolean isAcToken);
 
     /**
      * Is a Bearer Token ?

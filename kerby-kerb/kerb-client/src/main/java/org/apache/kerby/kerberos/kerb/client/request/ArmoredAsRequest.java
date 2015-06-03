@@ -28,10 +28,11 @@ import org.apache.kerby.kerberos.kerb.spec.base.EncryptionKey;
  * This initiates an armor protected AS-REQ using FAST/Pre-auth.
  */
 public abstract class ArmoredAsRequest extends AsRequest {
-    private ArmoredRequest armoredRequest = new ArmoredRequest(this);
+    private final ArmoredRequest armoredRequest;
 
     public ArmoredAsRequest(KrbContext context) {
         super(context);
+        armoredRequest = new ArmoredRequest(this);
     }
 
     @Override

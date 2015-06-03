@@ -24,12 +24,13 @@ import org.apache.kerby.kerberos.kerb.KrbException;
 import org.apache.kerby.kerberos.kerb.client.KrbContext;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionKey;
 
-public class ArmoredTgsRequest extends TgsRequest{
+public class ArmoredTgsRequest extends TgsRequest {
 
-    private ArmoredRequest armoredRequest = new ArmoredRequest(this);
+    private final ArmoredRequest armoredRequest;
 
     public ArmoredTgsRequest(KrbContext context) {
         super(context);
+        armoredRequest = new ArmoredRequest(this);
     }
 
     @Override

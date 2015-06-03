@@ -37,10 +37,9 @@ public class TgsRequestWithTgt extends TgsRequest{
     private TgtTicket tgt;
     private ApReq apReq;
 
-     public TgsRequestWithTgt(KrbContext context, TgtTicket tgtTicket) {
+     public TgsRequestWithTgt(KrbContext context, TgtTicket tgt) {
         super(context);
-        this.tgt = tgtTicket;
-
+        this.tgt = tgt;
         setAllowedPreauth(PaDataType.TGS_REQ);
     }
 

@@ -20,56 +20,36 @@
 package org.apache.kerby.kerberos.kdc;
 
 import org.apache.kerby.kerberos.kerb.KrbException;
-import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
 import org.apache.kerby.kerberos.kerb.spec.ticket.ServiceTicket;
 import org.apache.kerby.kerberos.kerb.spec.ticket.TgtTicket;
 import org.junit.Test;
 
-import java.io.File;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class WithIdTokenKdcTest extends WithTokenKdcTestBase {
-
-    private File cCacheFile;
-    private AuthToken authToken;
-
-    private String clientPrincipal;
-    private String serverPrincipal;
+public class WithIdentityTokenKdcTest extends WithTokenKdcTestBase {
 
     @Override
     protected void createPrincipals() {
         super.createPrincipals();
-        clientPrincipal = getClientPrincipal();
-        kdcServer.createPrincipal(clientPrincipal, TEST_PASSWORD);
+        kdcServer.createPrincipal(getClientPrincipal(), TEST_PASSWORD);
     }
 
     @Test
     public void testKdc() throws Exception {
 
-        authToken = prepareToken(false);
-        cCacheFile = createCredentialCache(clientPrincipal, TEST_PASSWORD);
+        prepareToken(null);
+        createCredentialCache(getClientPrincipal(), TEST_PASSWORD);
 
         TgtTicket tgt = null;
         try {
-            tgt = krbClnt.requestTgtWithToken(authToken, cCacheFile.getPath());
+            tgt = krbClnt.requestTgtWithToken(getKrbToken(), getcCacheFile().getPath());
         } catch (KrbException e) {
             assertThat(e.getMessage().contains("timeout")).isTrue();
             return;
         }
-        assertThat(tgt).isNotNull();
-        assertThat(tgt.getClientPrincipal()).isEqualTo(SUBJECT + "@" + kdcRealm);
-        assertThat(tgt.getRealm()).isEqualTo(kdcRealm);
-        assertThat(tgt.getTicket()).isNotNull();
-        assertThat(tgt.getEncKdcRepPart()).isNotNull();
-        assertThat(tgt.getSessionKey()).isNotNull();
+        verifyTicket(tgt);
 
-        serverPrincipal = getServerPrincipal();
-        ServiceTicket tkt = krbClnt.requestServiceTicketWithTgt(tgt, serverPrincipal);
-        assertThat(tkt).isNotNull();
-        assertThat(tkt.getRealm()).isEqualTo(kdcRealm);
-        assertThat(tkt.getTicket()).isNotNull();
-        assertThat(tkt.getSessionKey()).isNotNull();
-        assertThat(tkt.getEncKdcRepPart()).isNotNull();
+        ServiceTicket tkt = krbClnt.requestServiceTicketWithTgt(tgt, getServerPrincipal());
+        verifyTicket(tkt);
     }
 }

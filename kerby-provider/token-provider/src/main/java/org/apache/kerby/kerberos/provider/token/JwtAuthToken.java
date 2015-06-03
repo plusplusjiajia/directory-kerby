@@ -100,7 +100,7 @@ public class JwtAuthToken implements AuthToken {
     }
 
     @Override
-    public void setIsIdToken(boolean isIdToken) {
+    public void isIdToken(boolean isIdToken) {
         this.isIdToken = isIdToken;
     }
 
@@ -110,7 +110,7 @@ public class JwtAuthToken implements AuthToken {
     }
 
     @Override
-    public void setIsAcToken(boolean isAcToken) {
+    public void isAcToken(boolean isAcToken) {
         this.isAcToken = isAcToken;
     }
 

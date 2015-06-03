@@ -21,6 +21,7 @@ package org.apache.kerby.kerberos.kerb.client.request;
 
 import org.apache.kerby.kerberos.kerb.KrbException;
 import org.apache.kerby.kerberos.kerb.client.KrbContext;
+import org.apache.kerby.kerberos.kerb.client.KrbOption;
 import org.apache.kerby.kerberos.kerb.common.EncryptionUtil;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionKey;
 import org.apache.kerby.kerberos.kerb.spec.base.KeyUsage;
@@ -54,6 +55,8 @@ public class TgsRequest extends KdcRequest {
 
     @Override
     public void process() throws KrbException {
+        String serverPrincipal = getKrbOptions().getStringOption(KrbOption.SERVER_PRINCIPAL);
+        setServerPrincipal(new PrincipalName(serverPrincipal));
         super.process();
 
         TgsReq tgsReq = new TgsReq();

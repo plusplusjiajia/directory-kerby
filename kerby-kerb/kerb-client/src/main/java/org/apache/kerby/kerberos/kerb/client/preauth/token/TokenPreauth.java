@@ -36,7 +36,6 @@ import org.apache.kerby.kerberos.kerb.spec.base.EncryptedData;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionType;
 import org.apache.kerby.kerberos.kerb.spec.base.KeyUsage;
 import org.apache.kerby.kerberos.kerb.spec.base.KrbToken;
-import org.apache.kerby.kerberos.kerb.spec.base.TokenFormat;
 import org.apache.kerby.kerberos.kerb.spec.pa.PaData;
 import org.apache.kerby.kerberos.kerb.spec.pa.PaDataEntry;
 import org.apache.kerby.kerberos.kerb.spec.pa.PaDataType;
@@ -151,9 +150,8 @@ public class TokenPreauth extends AbstractPreauthPlugin {
             throw new KrbException("missing token.");
         }
 
-        KrbToken krbToken = new KrbToken(authToken, TokenFormat.JWT);
         PaTokenRequest tokenPa = new PaTokenRequest();
-        tokenPa.setToken(krbToken);
+        tokenPa.setToken((KrbToken)authToken);
         TokenInfo info = new TokenInfo();
         info.setTokenVendor("vendor");
         tokenPa.setTokenInfo(info);

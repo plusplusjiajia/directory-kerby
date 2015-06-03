@@ -24,6 +24,9 @@ import org.apache.kerby.kerberos.kerb.ccache.Credential;
 import org.apache.kerby.kerberos.kerb.ccache.CredentialCache;
 import org.apache.kerby.kerberos.kerb.server.KdcTestBase;
 import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
+import org.apache.kerby.kerberos.kerb.spec.base.KrbToken;
+import org.apache.kerby.kerberos.kerb.spec.base.TokenFormat;
+import org.apache.kerby.kerberos.kerb.spec.ticket.AbstractServiceTicket;
 import org.apache.kerby.kerberos.kerb.spec.ticket.TgtTicket;
 import org.apache.kerby.kerberos.provider.token.JwtTokenProvider;
 import org.junit.Before;
@@ -34,15 +37,16 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 public class WithTokenKdcTestBase extends KdcTestBase {
-    static final String SUBJECT = "drankye";
+    static final String SUBJECT = "test-sub";
     static final String AUDIENCE = "krbtgt@EXAMPLE.COM";
     static final String ISSUER = "oauth2.com";
     static final String GROUP = "sales-group";
     static final String ROLE = "ADMIN";
     private File cCacheFile;
-
-    private AuthToken authToken;
+    private AuthToken krbToken;
 
     private String clientPrincipal;
     private String serverPrincipal;
@@ -58,13 +62,16 @@ public class WithTokenKdcTestBase extends KdcTestBase {
         krbClnt.init();
     }
 
-    protected AuthToken prepareToken(boolean isAcToken) {
-        authToken = KrbRuntime.getTokenProvider().createTokenFactory().createToken();
+    protected AuthToken getKrbToken() {
+        return krbToken;
+    }
 
-        if (isAcToken) {
-            authToken.setIsAcToken(true);
-        }
+    protected File getcCacheFile() {
+        return cCacheFile;
+    }
 
+    protected AuthToken prepareToken(String servicePrincipal) {
+        AuthToken authToken = KrbRuntime.getTokenProvider().createTokenFactory().createToken();
         authToken.setIssuer(ISSUER);
         authToken.setSubject(SUBJECT);
 
@@ -72,6 +79,9 @@ public class WithTokenKdcTestBase extends KdcTestBase {
         authToken.addAttribute("role", ROLE);
 
         List<String> aud = new ArrayList<String>();
+        if(servicePrincipal != null) {
+            aud.add(servicePrincipal);
+        }
         aud.add(AUDIENCE);
         authToken.setAudiences(aud);
 
@@ -85,7 +95,9 @@ public class WithTokenKdcTestBase extends KdcTestBase {
 
         Date iat = NOW;
         authToken.setIssueTime(iat);
-        return authToken;
+        authToken.addAttribute("servicePrincipal", servicePrincipal);
+        krbToken = new KrbToken(authToken, TokenFormat.JWT);
+        return krbToken;
     }
 
     @Override
@@ -137,5 +149,13 @@ public class WithTokenKdcTestBase extends KdcTestBase {
     protected void deletePrincipals() {
         super.deletePrincipals();
         kdcServer.deletePrincipals(clientPrincipal, servicePrincipal);
+    }
+
+    protected void verifyTicket(AbstractServiceTicket ticket) {
+        assertThat(ticket).isNotNull();
+        assertThat(ticket.getRealm()).isEqualTo(kdcRealm);
+        assertThat(ticket.getTicket()).isNotNull();
+        assertThat(ticket.getSessionKey()).isNotNull();
+        assertThat(ticket.getEncKdcRepPart()).isNotNull();
     }
 }

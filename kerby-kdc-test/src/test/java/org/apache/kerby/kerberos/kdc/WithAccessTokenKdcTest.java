@@ -19,20 +19,11 @@
  */
 package org.apache.kerby.kerberos.kdc;
 
-import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
 import org.apache.kerby.kerberos.kerb.spec.ticket.ServiceTicket;
 import org.junit.Test;
 
-import java.io.File;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 public class WithAccessTokenKdcTest extends WithTokenKdcTestBase {
-    private File cCacheFile;
-    private AuthToken authToken;
 
-    private String clientPrincipal;
-    private String serverPrincipal;
     private String servicePrincipal;
 
     @Override
@@ -44,23 +35,18 @@ public class WithAccessTokenKdcTest extends WithTokenKdcTestBase {
     @Override
     protected void createPrincipals() {
         super.createPrincipals();
-        clientPrincipal = getClientPrincipal();
-        kdcServer.createPrincipal(clientPrincipal, TEST_PASSWORD);
+        kdcServer.createPrincipal(getClientPrincipal(), TEST_PASSWORD);
         kdcServer.createPrincipal(servicePrincipal, TEST_PASSWORD);
     }
 
     @Test
     public void testRequestServiceTicketWithAccessToken() throws Exception {
-        authToken = prepareToken(true);
-        cCacheFile = createCredentialCache(clientPrincipal, TEST_PASSWORD);
-        serverPrincipal = getServerPrincipal();
+        prepareToken(servicePrincipal);
+        createCredentialCache(getClientPrincipal(), TEST_PASSWORD);
+
         ServiceTicket serviceTicket = krbClnt.requestServiceTicketWithAccessToken(
-            authToken, serverPrincipal, cCacheFile.getPath());
-        assertThat(serviceTicket).isNotNull();
-        assertThat(serviceTicket.getRealm()).isEqualTo(kdcRealm);
-        assertThat(serviceTicket.getTicket()).isNotNull();
-        assertThat(serviceTicket.getSessionKey()).isNotNull();
-        assertThat(serviceTicket.getEncKdcRepPart()).isNotNull();
+            getKrbToken(), getServerPrincipal(), getcCacheFile().getPath());
+        verifyTicket(serviceTicket);
 
         deleteCcacheFile();
     }

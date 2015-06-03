@@ -38,13 +38,11 @@ import org.apache.kerby.kerberos.kerb.spec.base.EncryptedData;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionKey;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionType;
 import org.apache.kerby.kerberos.kerb.spec.base.KeyUsage;
-import org.apache.kerby.kerberos.kerb.spec.base.PrincipalName;
 import org.apache.kerby.kerberos.kerb.spec.fast.ArmorType;
 import org.apache.kerby.kerberos.kerb.spec.fast.KrbFastArmor;
 import org.apache.kerby.kerberos.kerb.spec.fast.KrbFastArmoredReq;
 import org.apache.kerby.kerberos.kerb.spec.fast.KrbFastReq;
 import org.apache.kerby.kerberos.kerb.spec.kdc.AsReq;
-import org.apache.kerby.kerberos.kerb.spec.kdc.KdcRep;
 import org.apache.kerby.kerberos.kerb.spec.kdc.KdcReq;
 import org.apache.kerby.kerberos.kerb.spec.pa.PaDataEntry;
 import org.apache.kerby.kerberos.kerb.spec.pa.PaDataType;
@@ -53,7 +51,7 @@ import org.apache.kerby.kerberos.kerb.spec.ticket.Ticket;
 import java.io.File;
 import java.io.IOException;
 
-public class ArmoredRequest extends KdcRequest{
+public class ArmoredRequest {
 
     private Credential credential;
     private EncryptionKey subKey;
@@ -61,14 +59,12 @@ public class ArmoredRequest extends KdcRequest{
     private KdcRequest kdcRequest;
 
     public ArmoredRequest(KdcRequest kdcRequest) {
-        super(kdcRequest.getContext());
         this.kdcRequest = kdcRequest;
     }
 
-    @Override
     public void process() throws KrbException {
         KdcReq kdcReq = kdcRequest.getKdcReq();
-        KrbFastRequestState state = getFastRequestState();
+        KrbFastRequestState state = kdcRequest.getFastRequestState();
         fastAsArmor(state, kdcRequest.getArmorKey(), subKey, credential, kdcReq);
         kdcRequest.setFastRequestState(state);
         kdcRequest.setOuterRequestBody(state.getFastOuterRequest().encode());
@@ -76,7 +72,6 @@ public class ArmoredRequest extends KdcRequest{
             kdcRequest.getOuterRequestBody()));
     }
 
-    @Override
     protected void preauth() throws KrbException {
         KOptions preauthOptions = getPreauthOptions();
         String ccache = preauthOptions.getStringOption(KrbOption.ARMOR_CACHE);
@@ -88,7 +83,6 @@ public class ArmoredRequest extends KdcRequest{
         kdcRequest.getFastRequestState().setArmorKey(armorKey);
     }
 
-    @Override
     public KOptions getPreauthOptions() {
         KOptions results = new KOptions();
 
@@ -98,23 +92,12 @@ public class ArmoredRequest extends KdcRequest{
         return results;
     }
 
-    @Override
     public EncryptionKey getClientKey() throws KrbException {
         return kdcRequest.getFastRequestState().getArmorKey();
     }
 
     public EncryptionKey getArmorCacheKey() {
         return armorCacheKey;
-    }
-
-    @Override
-    public void processResponse(KdcRep kdcRep) throws KrbException {
-
-    }
-
-    @Override
-    public PrincipalName getClientPrincipal() {
-        return null;
     }
 
     private Credential getCredential(String ccache) throws KrbException {
