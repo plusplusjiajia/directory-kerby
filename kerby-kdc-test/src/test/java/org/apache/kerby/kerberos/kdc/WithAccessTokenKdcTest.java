@@ -24,13 +24,6 @@ import org.junit.Test;
 
 public class WithAccessTokenKdcTest extends WithTokenKdcTestBase {
 
-    @Override
-    protected void createPrincipals() {
-        super.createPrincipals();
-        kdcServer.createPrincipal(getClientPrincipal(), TEST_PASSWORD);
-        kdcServer.createPrincipal(getServerPrincipal(), TEST_PASSWORD);
-    }
-
     @Test
     public void testRequestServiceTicketWithAccessToken() throws Exception {
         prepareToken(getServerPrincipal());
