@@ -28,12 +28,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class WithIdentityTokenKdcTest extends WithTokenKdcTestBase {
 
-    @Override
-    protected void createPrincipals() {
-        super.createPrincipals();
-        kdcServer.createPrincipal(getClientPrincipal(), TEST_PASSWORD);
-    }
-
     @Test
     public void testKdc() throws Exception {
 

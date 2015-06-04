@@ -32,7 +32,7 @@ import org.apache.kerby.kerberos.kerb.spec.base.PrincipalName;
 import org.apache.kerby.kerberos.kerb.spec.pa.PaDataType;
 import org.apache.kerby.kerberos.kerb.spec.ticket.TgtTicket;
 
-public class TgsRequestWithTgt extends TgsRequest{
+public class TgsRequestWithTgt extends TgsRequest {
 
     private TgtTicket tgt;
     private ApReq apReq;

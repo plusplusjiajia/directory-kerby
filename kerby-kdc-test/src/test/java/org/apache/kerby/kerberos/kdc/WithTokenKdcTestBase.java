@@ -48,10 +48,6 @@ public class WithTokenKdcTestBase extends KdcTestBase {
     private File cCacheFile;
     private AuthToken krbToken;
 
-    private String clientPrincipal;
-    private String serverPrincipal;
-    private String servicePrincipal;
-
     @Before
     public void setUp() throws Exception {
         KrbRuntime.setTokenProvider(new JwtTokenProvider());
@@ -60,6 +56,18 @@ public class WithTokenKdcTestBase extends KdcTestBase {
 
         kdcServer.start();
         krbClnt.init();
+    }
+
+    @Override
+    protected void createPrincipals() {
+        super.createPrincipals();
+        kdcServer.createPrincipal(getClientPrincipal(), TEST_PASSWORD);
+    }
+
+    @Override
+    protected void deletePrincipals() {
+        super.deletePrincipals();
+        kdcServer.deletePrincipal(getClientPrincipal());
     }
 
     protected AuthToken getKrbToken() {
@@ -95,7 +103,6 @@ public class WithTokenKdcTestBase extends KdcTestBase {
 
         Date iat = NOW;
         authToken.setIssueTime(iat);
-        authToken.addAttribute("servicePrincipal", servicePrincipal);
         krbToken = new KrbToken(authToken, TokenFormat.JWT);
         return krbToken;
     }
@@ -103,20 +110,6 @@ public class WithTokenKdcTestBase extends KdcTestBase {
     @Override
     protected void prepareKdcServer() throws Exception {
         super.prepareKdcServer();
-    }
-
-    @Override
-    protected void setUpKdcServer() throws Exception {
-        super.setUpKdcServer();
-        servicePrincipal = "hdfs@" + kdcRealm;
-    }
-
-    @Override
-    protected void createPrincipals() {
-        super.createPrincipals();
-        clientPrincipal = getClientPrincipal();
-        kdcServer.createPrincipal(clientPrincipal, TEST_PASSWORD);
-        kdcServer.createPrincipal(servicePrincipal, TEST_PASSWORD);
     }
 
     protected File createCredentialCache(String principal,
@@ -143,12 +136,6 @@ public class WithTokenKdcTestBase extends KdcTestBase {
 
     protected void deleteCcacheFile() {
         cCacheFile.delete();
-    }
-
-    @Override
-    protected void deletePrincipals() {
-        super.deletePrincipals();
-        kdcServer.deletePrincipals(clientPrincipal, servicePrincipal);
     }
 
     protected void verifyTicket(AbstractServiceTicket ticket) {

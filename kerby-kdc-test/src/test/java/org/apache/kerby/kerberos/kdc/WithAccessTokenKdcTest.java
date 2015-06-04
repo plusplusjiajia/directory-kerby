@@ -50,4 +50,10 @@ public class WithAccessTokenKdcTest extends WithTokenKdcTestBase {
 
         deleteCcacheFile();
     }
+
+    @Override
+    protected void deletePrincipals() {
+        super.deletePrincipals();
+        kdcServer.deletePrincipal(servicePrincipal);
+    }
 }
