@@ -391,7 +391,6 @@ public abstract class KdcRequest {
 
         KrbIdentity serverEntry = getEntry(principal.getName());
         setServerEntry(serverEntry);
-
         for (EncryptionType encType : request.getReqBody().getEtypes()) {
             if (serverEntry.getKeys().containsKey(encType)) {
                 EncryptionKey serverKey = serverEntry.getKeys().get(encType);
@@ -475,6 +474,10 @@ public abstract class KdcRequest {
 
     public PrincipalName getServerPrincipal() {
         return serverPrincipal;
+    }
+
+    public void setServerPrincipal(PrincipalName serverPrincipal) {
+        this.serverPrincipal = serverPrincipal;
     }
 
     public byte[] getInnerBodyout() {

@@ -159,6 +159,8 @@ public abstract class AbstractInternalKrbClient implements InternalKrbClient {
             throw new IllegalArgumentException(
                     "No valid krb client request option found");
         }
+        tgsRequest.setServerPrincipal(new PrincipalName(requestOptions.
+            getStringOption(KrbOption.SERVER_PRINCIPAL)));
         tgsRequest.setKrbOptions(requestOptions);
 
         return doRequestServiceTicket(tgsRequest);

@@ -183,7 +183,8 @@ public class ArmoredRequest {
      * @return
      * @throws KrbException
      */
-    private EncryptionKey makeArmorKey(EncryptionKey subKey, EncryptionKey armorCacheKey) throws KrbException {
+    private EncryptionKey makeArmorKey(EncryptionKey subKey, EncryptionKey armorCacheKey)
+        throws KrbException {
         EncryptionKey armorKey = FastUtil.cf2(subKey, "subkeyarmor",
             armorCacheKey, "ticketarmor");
         return armorKey;

@@ -24,24 +24,16 @@ import org.junit.Test;
 
 public class WithAccessTokenKdcTest extends WithTokenKdcTestBase {
 
-    private String servicePrincipal;
-
-    @Override
-    protected void setUpKdcServer() throws Exception {
-        super.setUpKdcServer();
-        servicePrincipal = "hdfs@" + kdcRealm;
-    }
-
     @Override
     protected void createPrincipals() {
         super.createPrincipals();
         kdcServer.createPrincipal(getClientPrincipal(), TEST_PASSWORD);
-        kdcServer.createPrincipal(servicePrincipal, TEST_PASSWORD);
+        kdcServer.createPrincipal(getServerPrincipal(), TEST_PASSWORD);
     }
 
     @Test
     public void testRequestServiceTicketWithAccessToken() throws Exception {
-        prepareToken(servicePrincipal);
+        prepareToken(getServerPrincipal());
         createCredentialCache(getClientPrincipal(), TEST_PASSWORD);
 
         ServiceTicket serviceTicket = krbClnt.requestServiceTicketWithAccessToken(
@@ -49,11 +41,5 @@ public class WithAccessTokenKdcTest extends WithTokenKdcTestBase {
         verifyTicket(serviceTicket);
 
         deleteCcacheFile();
-    }
-
-    @Override
-    protected void deletePrincipals() {
-        super.deletePrincipals();
-        kdcServer.deletePrincipal(servicePrincipal);
     }
 }
