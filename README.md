@@ -55,6 +55,21 @@ Independent of Kerberos code in JRE, but rely on JCE
 - The core part is ensured to only depend on the JRE and SLF4J. Every external dependency is taken carefully and maintained separately.
 - [Nimbus JOSE + JWT](http://connect2id.com/products/nimbus-jose-jwt), needed by token-provider and TokenPreauth mechanism.
 
+### Identity Backend
+- MemoryIdentityBackend
+- JsonIdentityBackend
+- ZookeeperIdentityBackend
+- LdapIdentityBackend
+
+### Network Support
+- Default KDC server implementation
+- Netty based KDC server implementation
+
+### Tools
+- Kadmin
+- Kinit
+- Klist
+
 ### License
 Apache License V2.0
 
