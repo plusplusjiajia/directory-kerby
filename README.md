@@ -58,18 +58,18 @@ Independent of Kerberos code in JRE, but rely on JCE
 ### Identity Backend
 A standalone KDC server that can integrate various identity back ends including:
 - MemoryIdentityBackend.
-  Default Identity Backend.
+  - Default Identity Backend.
 - JsonIdentityBackend.
-  Gson is used to convert Java Objects into their JSON representation and convert a JSON string to an equivalent Java object.
+  - Gson is used to convert Java Objects into their JSON representation and convert a JSON string to an equivalent Java object.
 - ZookeeperIdentityBackend.
-  Currently it uses an embedded Zookeeper. In follow up it will be enhanced to support standalone Zookeeper cluster for
+  - Currently it uses an embedded Zookeeper. In follow up it will be enhanced to support standalone Zookeeper cluster for
   replication and reliability.
 - LdapIdentityBackend.
-  Support LDAP standalone server.
+  - Support LDAP standalone server.
 
 ### Network Support(UDP and TCP transport)
 - Default KDC server implementation.
-  The Networking Classes in the JDK is used.
+  - The Networking Classes in the JDK is used.
 - Netty based KDC server implementation.
   - Better throughput, lower latency
   - Less resource consumption
@@ -77,11 +77,11 @@ A standalone KDC server that can integrate various identity back ends including:
 
 ### Tools
 - Kadmin: 
-  Command-line interfaces to the Kerby administration system.
+  - Command-line interfaces to the Kerby administration system.
 - Kinit: 
-  Obtains and caches an initial ticket-granting ticket for principal.
+  - Obtains and caches an initial ticket-granting ticket for principal.
 - Klist: 
-  Lists the Kerby principal and tickets held in a credentials cache, or the keys held in a keytab file.
+  - Lists the Kerby principal and tickets held in a credentials cache, or the keys held in a keytab file.
 
 ### License
 Apache License V2.0
