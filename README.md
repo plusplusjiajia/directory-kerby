@@ -49,17 +49,15 @@ Independent of Kerberos code in JRE, but rely on JCE
 
 #### Kerby Lib Projects
 - kerby-asn1. A model driven ASN-1 encoding and decoding framework
-- kerby-event. A pure event driven application framework aiming to construct applications of asynchronous and concurrent handlers. It includes UDP and TCP transports based on pure Java NIO and concurrency pattern.
 - kerby-config. A unified configuration API that aims to support various configuration file formats, like XML, INI, even Java Map and Properties.
 
 ### Dependency
 - The core part is ensured to only depend on the JRE and SLF4J. Every external dependency is taken carefully and maintained separately.
-- [Not-Yet-Commons-SSL](http://juliusdavies.ca/not-yet-commons-ssl-0.3.9/), required by pki-provider and PKINIT mechanism.
 - [Nimbus JOSE + JWT](http://connect2id.com/products/nimbus-jose-jwt), needed by token-provider and TokenPreauth mechanism.
 
 ### License
 Apache License V2.0
 
 ### How to contribute
-- Git repo in Apache: [Source codes](https://git-wip-us.apache.org/repos/asf/directory-kerby.git)
+- Git repo in Apache: https://git-wip-us.apache.org/repos/asf/directory-kerby.git
 - Umbrella JIRA: it's tracked in the master JIRA [DIRKRB-102](https://issues.apache.org/jira/browse/DIRKRB-102), and find tasks there.
