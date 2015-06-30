@@ -56,19 +56,32 @@ Independent of Kerberos code in JRE, but rely on JCE
 - [Nimbus JOSE + JWT](http://connect2id.com/products/nimbus-jose-jwt), needed by token-provider and TokenPreauth mechanism.
 
 ### Identity Backend
+A standalone KDC server that can integrate various identity back ends including:
 - MemoryIdentityBackend
+  Default Backend.
 - JsonIdentityBackend
+  Gson is used to convert Java Objects into their JSON representation and convert a JSON string to an equivalent Java object.
 - ZookeeperIdentityBackend
+  Currently it uses an embedded Zookeeper. In follow up it will be enhanced to support standalone Zookeeper cluster for
+  replication and reliability.
 - LdapIdentityBackend
+  Support LDAP standalone server.
 
-### Network Support
+### Network Support(UDP and TCP transport)
 - Default KDC server implementation
+  The Networking Classes in the JDK is used.
 - Netty based KDC server implementation
+  Better throughput, lower latency
+  Less resource consumption
+  Minimized unnecessary memory copy
 
 ### Tools
 - Kadmin
+  Command-line interfaces to the Kerby administration system.
 - Kinit
+  Obtains and caches an initial ticket-granting ticket for principal.
 - Klist
+  Lists the Kerby principal and tickets held in a credentials cache, or the keys held in a keytab file.
 
 ### License
 Apache License V2.0
