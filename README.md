@@ -72,8 +72,8 @@ A standalone KDC server that can integrate various identity back ends including:
   The Networking Classes in the JDK is used.
 - Netty based KDC server implementation.
   - Better throughput, lower latency
-  -Less resource consumption
-  -Minimized unnecessary memory copy
+  - Less resource consumption
+  - Minimized unnecessary memory copy
 
 ### Tools
 - Kadmin: 
