@@ -70,9 +70,6 @@ Independent of Kerberos code in JRE, but rely on JCE
 | rc4 |	The RC4 family: arcfour-hmac |
 | camellia | The Camellia family: camellia256-cts-cmac and camellia128-cts-cmac |
 
-### How to play with the standalone KDC
- [Kerby KDC](kerby-dist/README.md)
-
 #### Kerby Lib Projects
 - kerby-asn1. A model driven ASN-1 encoding and decoding framework
 - kerby-config. A unified configuration API that aims to support various configuration file formats, like XML, INI, even Java Map and Properties.
@@ -108,6 +105,9 @@ A standalone KDC server that can integrate various identity back ends including:
   - Obtains and caches an initial ticket-granting ticket for principal.
 - Klist: 
   - Lists the Kerby principal and tickets held in a credentials cache, or the keys held in a keytab file.
+
+### How to play with the standalone KDC
+ [Kerby KDC](kerby-dist/README.md)
 
 ### License
 Apache License V2.0
