@@ -18,30 +18,6 @@ Apache Kerby is a Java Kerberos binding. It provides a rich, intuitive and inter
 + Minimal dependencies, the core part is ensured to depend only on JRE and SLF4J, for easy use and maintenance.
 
 ### KrbClient APIs
-* Initiate a KrbClient with prepared KrbConfig.
-<pre>
-KrbClient krbClient = new KrbClient(krbConfig);
-</pre>
-* Initiate a KrbClient with with conf dir.
-<pre>
-KrbClient krbClient = new KrbClient(confDir);
-</pre>
-* Request a TGT with user plain password credential
-<pre>
-krbClient.requestTgtWithPassword(principal, password);
-</pre>
-* Request a TGT with user token credential
-<pre>
-krbClient.requestTgtWithToken(token, armorCache);
-</pre>
-* Request a service ticket with user TGT credential for a server
-<pre>
-krbClient.requestServiceTicketWithTgt(tgt, serverPrincipal);
-</pre>
-* Request a service ticket with user AccessToken credential for a server
-<pre>
-krbClient.requestServiceTicketWithAccessToken(accessToken, serverPrincipal, armorCache);
-</pre>
 
 ### ASN-1 support
 Please look at [kerby-asn1](kerby-asn1/) for details.
