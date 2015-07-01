@@ -109,6 +109,9 @@ A standalone KDC server that can integrate various identity back ends including:
 ### How to play with the standalone KDC
  [Kerby KDC](kerby-dist/README.md)
 
+### SimpleKdcServer
+A simplified Kdc server. It can be imported by other project to work as a kdc server.
+
 ### License
 Apache License V2.0
 
