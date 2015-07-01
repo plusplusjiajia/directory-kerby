@@ -70,14 +70,6 @@ Independent of Kerberos code in JRE, but rely on JCE
 | rc4 |	The RC4 family: arcfour-hmac |
 | camellia | The Camellia family: camellia256-cts-cmac and camellia128-cts-cmac |
 
-#### Kerby Lib Projects
-- kerby-asn1. A model driven ASN-1 encoding and decoding framework
-- kerby-config. A unified configuration API that aims to support various configuration file formats, like XML, INI, even Java Map and Properties.
-
-### Dependency
-- The core part is ensured to only depend on the JRE and SLF4J. Every external dependency is taken carefully and maintained separately.
-- [Nimbus JOSE + JWT](http://connect2id.com/products/nimbus-jose-jwt), needed by token-provider and TokenPreauth mechanism.
-
 ### Identity Backend
 A standalone KDC server that can integrate various identity back ends including:
 - MemoryIdentityBackend.
@@ -90,20 +82,20 @@ A standalone KDC server that can integrate various identity back ends including:
 - LdapIdentityBackend.
   - Support LDAP standalone server.
 
-### Network Support(UDP and TCP transport)
+### Network Support
+- Include UDP and TCP transport
 - Default KDC server implementation.
   - The Networking Classes in the JDK is used.
 - Netty based KDC server implementation.
-  - Better throughput, lower latency
-  - Less resource consumption
-  - Minimized unnecessary memory copy
+  - Netty is an asynchronous event-driven network application framework for rapid development of maintainable high    performance protocol servers & clients.
+  - With better throughput, lower latency.
 
 ### Tools
-- Kadmin: 
+- kadmin: 
   - Command-line interfaces to the Kerby administration system.
-- Kinit: 
+- kinit: 
   - Obtains and caches an initial ticket-granting ticket for principal.
-- Klist: 
+- klist: 
   - Lists the Kerby principal and tickets held in a credentials cache, or the keys held in a keytab file.
 
 ### How to play with the standalone KDC
@@ -111,6 +103,15 @@ A standalone KDC server that can integrate various identity back ends including:
 
 ### SimpleKdcServer
 A simplified Kdc server. It can be imported by other project to work as a kdc server.
+
+#### Kerby Lib Projects
+- kerby-asn1. A model driven ASN-1 encoding and decoding framework
+- kerby-config. A unified configuration API that aims to support various configuration file formats, like XML, INI, even Java Map and Properties.
+
+### Dependency
+- The core part is ensured to only depend on the JRE and SLF4J. Every external dependency is taken carefully and maintained separately.
+- [Nimbus JOSE + JWT](http://connect2id.com/products/nimbus-jose-jwt), needed by token-provider and TokenPreauth mechanism.
+- [Netty](http://netty.io/), needed by netty based KDC server.
 
 ### License
 Apache License V2.0
