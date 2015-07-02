@@ -61,14 +61,14 @@ Independent of Kerberos code in JRE, but rely on JCE
 ### Identity Backend
 A standalone KDC server that can integrate various identity back ends including:
 - MemoryIdentityBackend.
-  - Default Identity Backend.
+  - It is default Identity Backend, and no cofiguration is needed. So the MemoryIdentityBackend is often used in test.
 - JsonIdentityBackend.
-  - Gson is used to convert Java Objects into their JSON representation and convert a JSON string to an equivalent Java object.
+  - It implemented by Gson which is used to convert Java Objects into their JSON representation and convert a JSON string to an equivalent Java object. A json file will be created in "backend.json.file". This backend target for small, easy, development and test environment.
 - ZookeeperIdentityBackend.
   - Currently it uses an embedded Zookeeper. In follow up it will be enhanced to support standalone Zookeeper cluster for
-  replication and reliability.
+  replication and reliability. Zookeeper backend would be a good choice in high reliability, high performance and high scalability requirement and scenarios. 
 - LdapIdentityBackend.
-  - Support LDAP standalone server.
+  - The Ldap server can be standalone or embedded using ApacheDS server as the backend avoiding network traffic.
 
 ### Network Support
 - Include UDP and TCP transport
@@ -97,6 +97,7 @@ A standalone KDC server that can integrate various identity back ends including:
 - The core part is ensured to only depend on the JRE and SLF4J. Every external dependency is taken carefully and maintained separately.
 - [Nimbus JOSE + JWT](http://connect2id.com/products/nimbus-jose-jwt), needed by token-provider and TokenPreauth mechanism.
 - [Netty](http://netty.io/), needed by netty based KDC server.
+- [Zookeeper](https://zookeeper.apache.org/), needed by zookeeper identity backend.
 
 ### License
 Apache License V2.0
