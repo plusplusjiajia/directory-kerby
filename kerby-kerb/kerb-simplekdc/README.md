@@ -1,34 +1,63 @@
 kerb-simplekdc
 ============
 
+</pre>
+* Start simple kdc server.
+<pre>
+start();
+</pre>
+* Set KDC realm for ticket request
+<pre>
+setKdcRealm(realm);
+</pre>
+* Set KDC host.
+<pre>
+setKdcHost(kdcHost);
+</pre>
+* Set KDC tcp port.
+<pre>
+setKdcTcpPort(kdcTcpPort);
+</pre>
+* Set KDC udp port. Only makes sense when allowUdp is set.
+<pre>
+setKdcUdpPort(kdcUdpPort);
+</pre>
+* Set to allow TCP or not.
+<pre>
+setAllowTcp(allowTcp);
+</pre>
+* Set to allow UDP or not.
+<pre>
+setAllowUdp(allowUdp);
+</pre>
 * Create principle with principal name.
 <pre>
-simpleKdcServer.createPrincipal(principal);
+createPrincipal(principal);
 </pre>
 * Add principle with principal name and password.
 <pre>
-simpleKdcServer.createPrincipal(principal, password);
+createPrincipal(principal, password);
 </pre>
 * Create principles with principal names.
 <pre>
-simpleKdcServer.createPrincipals(principals);
+createPrincipals(principals);
 </pre>
 * Creates principals and export their keys to the specified keytab file.
 <pre>
-simpleKdcServer.createAndExportPrincipals(keytabFile principals);
+createAndExportPrincipals(keytabFile principals);
 </pre>
 * Delete principle with principal name.
 <pre>
-simpleKdcServer.deletePrincipal(principal);
+deletePrincipal(principal);
 </pre>
 </pre>
 * Delete principles with principal names.
 <pre>
-simpleKdcServer.deletePrincipals(principals);
+deletePrincipals(principals);
 </pre>
 </pre>
 * Export principles to keytab file.
 <pre>
-simpleKdcServer.exportPrincipals(keytabFile);
+exportPrincipals(keytabFile);
 </pre>
 
