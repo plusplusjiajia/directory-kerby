@@ -1,6 +1,7 @@
 kerb-simplekdc
 ============
 
+### Kdc server
 </pre>
 * Start simple kdc server.
 <pre>
@@ -29,6 +30,8 @@ setAllowTcp(allowTcp);
 * Set to allow UDP or not.
 <pre>
 setAllowUdp(allowUdp);
+
+### Kadmin
 </pre>
 * Create principle with principal name.
 <pre>
