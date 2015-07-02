@@ -20,6 +20,7 @@
 package org.apache.kerby.kerberos.kerb.client;
 
 import org.apache.kerby.KOptions;
+import org.apache.kerby.kerberos.kerb.KrbException;
 
 /**
  * Krb client setting that combines common options and client config.
@@ -30,6 +31,11 @@ public class KrbSetting {
 
     public KrbSetting(KOptions commonOptions, KrbConfig config) {
         this.commonOptions = commonOptions;
+        this.krbConfig = config;
+    }
+
+    public KrbSetting(KrbConfig config) {
+        this.commonOptions = new KOptions();
         this.krbConfig = config;
     }
 
@@ -51,6 +57,38 @@ public class KrbSetting {
             return krbConfig.getKdcHost();
         }
         return kdcHost;
+    }
+
+    /**
+     * Check kdc tcp setting and see if any bad.
+     * @return valid tcp port or -1 if not allowTcp
+     * @throws KrbException
+     */
+    public int checkGetKdcTcpPort() throws KrbException {
+        if (allowTcp()) {
+            int kdcPort = getKdcTcpPort();
+            if (kdcPort < 1) {
+                throw new KrbException("KDC tcp port isn't set or configured");
+            }
+            return kdcPort;
+        }
+        return -1;
+    }
+
+    /**
+     * Check kdc udp setting and see if any bad.
+     * @return valid udp port or -1 if not allowUdp
+     * @throws KrbException
+     */
+    public int checkGetKdcUdpPort() throws KrbException {
+        if (allowUdp()) {
+            int kdcPort = getKdcUdpPort();
+            if (kdcPort < 1) {
+                throw new KrbException("KDC udp port isn't set or configured");
+            }
+            return kdcPort;
+        }
+        return -1;
     }
 
     public int getKdcTcpPort() {

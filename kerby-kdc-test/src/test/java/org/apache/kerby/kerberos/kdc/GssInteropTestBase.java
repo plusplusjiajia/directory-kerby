@@ -20,9 +20,11 @@
 package org.apache.kerby.kerberos.kdc;
 
 import org.apache.kerby.kerberos.kerb.KrbException;
+import org.apache.kerby.kerberos.kerb.client.JaasKrbUtil;
 import org.apache.kerby.kerberos.kerb.server.KdcTestBase;
 import org.ietf.jgss.*;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import javax.security.auth.Subject;
@@ -32,6 +34,7 @@ import javax.security.auth.callback.PasswordCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.auth.kerberos.KerberosTicket;
 import javax.security.auth.login.LoginContext;
+import java.io.File;
 import java.io.IOException;
 import java.security.Principal;
 import java.security.PrivilegedExceptionAction;
@@ -41,11 +44,10 @@ import java.util.Set;
  * This is an interop test using the Java GSS APIs against the Kerby KDC
  */
 public abstract class GssInteropTestBase extends KdcTestBase {
-
     @Override
     protected void createPrincipals() throws KrbException {
-        kdcServer.createPrincipal(getClientPrincipal(), getClientPassword());
-        kdcServer.createPrincipal(getServerPrincipal(), getServerPassword());
+        getKdcServer().createPrincipal(getClientPrincipal(), getClientPassword());
+        getKdcServer().createPrincipal(getServerPrincipal(), getServerPassword());
     }
 
     private String getServerPassword() {
@@ -54,11 +56,9 @@ public abstract class GssInteropTestBase extends KdcTestBase {
 
     @Test
     public void testKdc() throws Exception {
-        LoginContext loginContext = new LoginContext(getClientPrincipalName(),
-                new KerberosCallbackHandler());
-        loginContext.login();
-        
-        Subject clientSubject = loginContext.getSubject();
+        Subject clientSubject = JaasKrbUtil.loginUsingPassword(
+            getClientPrincipal(), getClientPassword());
+
         Set<Principal> clientPrincipals = clientSubject.getPrincipals();
         Assert.assertFalse(clientPrincipals.isEmpty());
 
@@ -77,20 +77,13 @@ public abstract class GssInteropTestBase extends KdcTestBase {
         byte[] kerberosToken = (byte[]) Subject.doAs(clientSubject, action);
         Assert.assertNotNull(kerberosToken);
         
-        loginContext.logout();
-        
         validateServiceTicket(kerberosToken);
-        
-        kdcServer.stop();
     }
     
     private void validateServiceTicket(byte[] ticket) throws Exception {
-        // Get the TGT for the service
-        LoginContext loginContext = new LoginContext(getServerPrincipalName(),
-                new KerberosCallbackHandler());
-        loginContext.login();
-        
-        Subject serviceSubject = loginContext.getSubject();
+        Subject serviceSubject = JaasKrbUtil.loginUsingPassword(
+            getServerPrincipal(), getClientPassword());
+
         Set<Principal> servicePrincipals = serviceSubject.getPrincipals();
         Assert.assertFalse(servicePrincipals.isEmpty());
 
@@ -121,17 +114,19 @@ public abstract class GssInteropTestBase extends KdcTestBase {
     }
     
     /**
-     * This class represents a PrivilegedExceptionAction implementation to obtain a service ticket from a Kerberos
-     * Key Distribution Center.
+     * This class represents a PrivilegedExceptionAction implementation to
+     * obtain a service ticket from a Kerberos Key Distribution Center.
      */
-    private static class KerberosClientExceptionAction implements PrivilegedExceptionAction<byte[]> {
+    private static class KerberosClientExceptionAction
+            implements PrivilegedExceptionAction<byte[]> {
 
         private static final String JGSS_KERBEROS_TICKET_OID = "1.2.840.113554.1.2.2";
         
         private Principal clientPrincipal;
         private String serviceName;
 
-        public KerberosClientExceptionAction(Principal clientPrincipal, String serviceName) { 
+        public KerberosClientExceptionAction(Principal clientPrincipal,
+                                             String serviceName) {
             this.clientPrincipal = clientPrincipal;
             this.serviceName = serviceName;
         }
@@ -139,12 +134,15 @@ public abstract class GssInteropTestBase extends KdcTestBase {
         public byte[] run() throws GSSException {
             GSSManager gssManager = GSSManager.getInstance();
 
-            GSSName gssService = gssManager.createName(serviceName, GSSName.NT_USER_NAME);
+            GSSName gssService = gssManager.createName(serviceName,
+                    GSSName.NT_USER_NAME);
             Oid oid = new Oid(JGSS_KERBEROS_TICKET_OID);
-            GSSName gssClient = gssManager.createName(clientPrincipal.getName(), GSSName.NT_USER_NAME);
+            GSSName gssClient = gssManager.createName(clientPrincipal.getName(),
+                    GSSName.NT_USER_NAME);
             GSSCredential credentials = 
                 gssManager.createCredential(
-                    gssClient, GSSCredential.DEFAULT_LIFETIME, oid, GSSCredential.INITIATE_ONLY
+                    gssClient, GSSCredential.DEFAULT_LIFETIME, oid,
+                        GSSCredential.INITIATE_ONLY
                 );
 
             GSSContext secContext =
@@ -166,7 +164,8 @@ public abstract class GssInteropTestBase extends KdcTestBase {
         }
     }
     
-    private static class KerberosServiceExceptionAction implements PrivilegedExceptionAction<byte[]> {
+    private static class KerberosServiceExceptionAction
+            implements PrivilegedExceptionAction<byte[]> {
 
         private static final String JGSS_KERBEROS_TICKET_OID = "1.2.840.113554.1.2.2";
 
@@ -179,16 +178,16 @@ public abstract class GssInteropTestBase extends KdcTestBase {
         }
 
         public byte[] run() throws GSSException {
-
             GSSManager gssManager = GSSManager.getInstance();
-
-            GSSContext secContext = null;
-            GSSName gssService = gssManager.createName(serviceName, GSSName.NT_USER_NAME);
+            GSSContext secContext;
+            GSSName gssService = gssManager.createName(serviceName,
+                    GSSName.NT_USER_NAME);
               
             Oid oid = new Oid(JGSS_KERBEROS_TICKET_OID);
             GSSCredential credentials = 
                 gssManager.createCredential(
-                    gssService, GSSCredential.DEFAULT_LIFETIME, oid, GSSCredential.ACCEPT_ONLY
+                    gssService, GSSCredential.DEFAULT_LIFETIME, oid,
+                        GSSCredential.ACCEPT_ONLY
                 );
             secContext = gssManager.createContext(credentials);
 

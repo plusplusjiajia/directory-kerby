@@ -20,9 +20,11 @@
 package org.apache.kerby.kerberos.kerb.client;
 
 import org.apache.kerby.kerberos.kerb.KrbException;
+import org.apache.kerby.kerberos.kerb.transport.TransportPair;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.Map;
 
 public final class ClientUtil {
@@ -46,7 +48,8 @@ public final class ClientUtil {
                 krbConfig.addIniConfig(confFile);
                 return krbConfig;
             } catch (IOException e) {
-                throw new KrbException("Failed to load krb config " + confFile.getAbsolutePath());
+                throw new KrbException("Failed to load krb config " +
+                        confFile.getAbsolutePath());
             }
         }
 
@@ -70,7 +73,8 @@ public final class ClientUtil {
         if (tmpEnv != null) {
             confFile = new File(tmpEnv);
             if (!confFile.exists()) {
-                throw new KrbException("krb5 conf not found. Invalid env " + krb5EnvName);
+                throw new KrbException("krb5 conf not found. Invalid env "
+                        + krb5EnvName);
             }
         } else {
             confDir = new File("/etc/"); // for Linux. TODO: fix for Win etc.
@@ -79,16 +83,40 @@ public final class ClientUtil {
             }
         }
 
+        KrbConfig krbConfig = new KrbConfig();
         if (confFile != null && confFile.exists()) {
-            KrbConfig krbConfig = new KrbConfig();
             try {
                 krbConfig.addIniConfig(confFile);
-                return krbConfig;
             } catch (IOException e) {
-                throw new KrbException("Failed to load krb config " + confFile.getAbsolutePath());
+                throw new KrbException("Failed to load krb config " +
+                        confFile.getAbsolutePath());
             }
         }
 
-        return null;
+        return krbConfig;
+    }
+
+    /**
+     * Get KDC network transport addresses according to krb client setting.
+     * @param setting
+     * @return UDP and TCP addresses pair
+     * @throws KrbException
+     */
+    public static TransportPair getTransportPair(
+            KrbSetting setting) throws KrbException {
+        TransportPair result = new TransportPair();
+
+        int tcpPort = setting.checkGetKdcTcpPort();
+        if (tcpPort > 0) {
+            result.tcpAddress = new InetSocketAddress(
+                    setting.getKdcHost(), tcpPort);
+        }
+        int udpPort = setting.checkGetKdcUdpPort();
+        if (udpPort > 0) {
+            result.udpAddress = new InetSocketAddress(
+                    setting.getKdcHost(), udpPort);
+        }
+
+        return result;
     }
 }

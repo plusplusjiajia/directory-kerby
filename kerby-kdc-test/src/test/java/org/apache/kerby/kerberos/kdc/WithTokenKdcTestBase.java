@@ -27,7 +27,7 @@ import org.apache.kerby.kerberos.kerb.server.KdcTestBase;
 import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
 import org.apache.kerby.kerberos.kerb.spec.base.KrbToken;
 import org.apache.kerby.kerberos.kerb.spec.base.TokenFormat;
-import org.apache.kerby.kerberos.kerb.spec.ticket.AbstractServiceTicket;
+import org.apache.kerby.kerberos.kerb.spec.ticket.KrbTicket;
 import org.apache.kerby.kerberos.kerb.spec.ticket.TgtTicket;
 import org.apache.kerby.kerberos.provider.token.JwtTokenProvider;
 import org.junit.Before;
@@ -58,13 +58,13 @@ public class WithTokenKdcTestBase extends KdcTestBase {
     @Override
     protected void createPrincipals() throws KrbException {
         super.createPrincipals();
-        kdcServer.createPrincipal(getClientPrincipal(), clientPassword);
+        getKdcServer().createPrincipal(getClientPrincipal(), getClientPassword());
     }
 
     @Override
     protected void deletePrincipals() throws KrbException {
         super.deletePrincipals();
-        kdcServer.deletePrincipal(getClientPrincipal());
+        getKdcServer().deletePrincipal(getClientPrincipal());
     }
 
     protected AuthToken getKrbToken() {
@@ -104,14 +104,9 @@ public class WithTokenKdcTestBase extends KdcTestBase {
         return krbToken;
     }
 
-    @Override
-    protected void prepareKdcServer() throws Exception {
-        super.prepareKdcServer();
-    }
-
     protected File createCredentialCache(String principal,
                                        String password) throws Exception {
-        TgtTicket tgt = krbClnt.requestTgtWithPassword(principal, password);
+        TgtTicket tgt = getKrbClient().requestTgtWithPassword(principal, password);
         writeTgtToCache(tgt, principal);
         return cCacheFile;
     }
@@ -135,9 +130,9 @@ public class WithTokenKdcTestBase extends KdcTestBase {
         cCacheFile.delete();
     }
 
-    protected void verifyTicket(AbstractServiceTicket ticket) {
+    protected void verifyTicket(KrbTicket ticket) {
         assertThat(ticket).isNotNull();
-        assertThat(ticket.getRealm()).isEqualTo(kdcServer.getKdcRealm());
+        assertThat(ticket.getRealm()).isEqualTo(getKdcServer().getKdcSetting().getKdcRealm());
         assertThat(ticket.getTicket()).isNotNull();
         assertThat(ticket.getSessionKey()).isNotNull();
         assertThat(ticket.getEncKdcRepPart()).isNotNull();
