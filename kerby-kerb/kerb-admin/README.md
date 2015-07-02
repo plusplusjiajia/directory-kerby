@@ -1,6 +1,7 @@
 kerb-admin
 ============
 
+### Initiate a Kadmin
 * Initiate a Kadmin with confDir.
 <pre>
 Kadmin kadmin = new Kadmin(confDir);
@@ -9,6 +10,8 @@ Kadmin kadmin = new Kadmin(confDir);
 <pre>
 Kadmin kadmin = new Kadmin(kdcSetting, backend);
 </pre>
+
+### Principal operating 
 * Add principle with principal name.
 <pre>
 addPrincipal(principal);
