@@ -1,6 +1,7 @@
 kerb-client
 ============
 
+### Initiate a KrbClient
 * Initiate a KrbClient with prepared KrbConfig.
 <pre>
 KrbClient krbClient = new KrbClient(krbConfig);
@@ -9,6 +10,7 @@ KrbClient krbClient = new KrbClient(krbConfig);
 <pre>
 KrbClient krbClient = new KrbClient(confDir);
 </pre>
+### Request a TGT
 * Request a TGT with user plain password credential
 <pre>
 requestTgtWithPassword(principal, password);
@@ -17,6 +19,7 @@ requestTgtWithPassword(principal, password);
 <pre>
 requestTgtWithToken(token, armorCache);
 </pre>
+### Request a service ticket 
 * Request a service ticket with user TGT credential for a server
 <pre>
 requestServiceTicketWithTgt(tgt, serverPrincipal);
