@@ -1,10 +1,13 @@
 kerb-server
 ============
 
+### Initiate kdc server
 * Initiate a kdc server with prepared confDir.
 <pre>
 KdcServer server = new KdcServer(confDir);
 </pre>
+
+### Start and set kdc server
 * Start kdc server.
 <pre>
 start();
@@ -40,4 +43,10 @@ enableDebug();
 * Allow to hook customized kdc implementation.
 <pre>
 setInnerKdcImpl(innerKdcImpl);
+</pre>
+
+### Stop kdc server
+* Start kdc server.
+<pre>
+stop();
 </pre>
