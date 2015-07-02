@@ -18,6 +18,18 @@ Apache Kerby is a Java Kerberos binding. It provides a rich, intuitive and inter
 + Minimal dependencies, the core part is ensured to depend only on JRE and SLF4J, for easy use and maintenance.
 
 ### KrbClient APIs
+Please look at [kerb-client](kerby-kerb/kerb-client/README.md) for details.
+
+### Kadmin
+Please look at [kerb-admin](kerby-kerb/kerb-admin/README.md) for details.
+
+### KdcServer
+Kerberos Server API.
+Please look at [kerb-server](kerby-kerb/kerb-server/README.md) for details.
+
+### SimpleKdcServer
+A simplified Kdc server. It can be imported by other project to work as a kdc server.
+Please look at [kerb-simplekdc](kerby-kerb/kerb-simplekdc/README.md) for details.
 
 ### ASN-1 support
 Please look at [kerby-asn1](kerby-asn1/) for details.
@@ -76,9 +88,6 @@ A standalone KDC server that can integrate various identity back ends including:
 
 ### How to play with the standalone KDC
  [Kerby KDC](kerby-dist/README.md)
-
-### SimpleKdcServer
-A simplified Kdc server. It can be imported by other project to work as a kdc server.
 
 #### Kerby Lib Projects
 - kerby-asn1. A model driven ASN-1 encoding and decoding framework
