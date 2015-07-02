@@ -1,48 +1,43 @@
 kerb-server
 ============
 
-* Initiate a kerby kdc server with prepared confDir.
+* Initiate a kdc server with prepared confDir.
 <pre>
-KerbyKdcServer server = new KerbyKdcServer(confDir);
-</pre>
-* Set runtime folder.
-<pre>
-server.setWorkDir(workDir);
+KdcServer server = new KdcServer(confDir);
 </pre>
 * Start kerby kdc server.
 <pre>
-server.start();
+start();
 </pre>
 * Set KDC realm for ticket request
 <pre>
-server.setKdcRealm(realm);
+setKdcRealm(realm);
 </pre>
 * Set KDC host.
 <pre>
-server.setKdcHost(kdcHost);
+setKdcHost(kdcHost);
 </pre>
 * Set KDC tcp port.
 <pre>
-server.setKdcTcpPort(kdcTcpPort);
+setKdcTcpPort(kdcTcpPort);
 </pre>
 * Set KDC udp port. Only makes sense when allowUdp is set.
 <pre>
-server.setKdcUdpPort(kdcUdpPort);
+setKdcUdpPort(kdcUdpPort);
 </pre>
 * Set to allow TCP or not.
 <pre>
-server.setAllowTcp(allowTcp);
+setAllowTcp(allowTcp);
 </pre>
 * Set to allow UDP or not.
 <pre>
-server.setAllowUdp(allowUdp);
+setAllowUdp(allowUdp);
 </pre>
 * Allow to debug so have more logs.
 <pre>
-server.enableDebug();
+enableDebug();
 </pre>
 * Allow to hook customized kdc implementation.
 <pre>
-server.setInnerKdcImpl(innerKdcImpl);
+setInnerKdcImpl(innerKdcImpl);
 </pre>
-
