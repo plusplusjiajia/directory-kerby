@@ -18,9 +18,11 @@ Apache Kerby is a Java Kerberos binding. It provides a rich, intuitive and inter
 + Minimal dependencies, the core part is ensured to depend only on JRE and SLF4J, for easy use and maintenance.
 
 ### KrbClient APIs
+A Krb client API for applications to interact with KDC
 Please look at [kerb-client](kerby-kerb/kerb-client/README.md) for details.
 
 ### Kadmin
+Server side admin facilities.
 Please look at [kerb-admin](kerby-kerb/kerb-admin/README.md) for details.
 
 ### KdcServer
