@@ -5,7 +5,7 @@ kerb-server
 <pre>
 KdcServer server = new KdcServer(confDir);
 </pre>
-* Start kerby kdc server.
+* Start kdc server.
 <pre>
 start();
 </pre>
