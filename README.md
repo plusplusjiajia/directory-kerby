@@ -22,19 +22,19 @@ Apache Kerby is a Java Kerberos binding. It provides a rich, intuitive and inter
 + Please look at [kerb-client](kerby-kerb/kerb-client/README.md) for details.
 
 ### Kadmin
-Server side admin facilities.
-Please look at [kerb-admin](kerby-kerb/kerb-admin/README.md) for details.
++ Server side admin facilities.
++ Please look at [kerb-admin](kerby-kerb/kerb-admin/README.md) for details.
 
 ### KdcServer
-Kerberos Server API.
-Please look at [kerb-server](kerby-kerb/kerb-server/README.md) for details.
++ Kerberos Server API.
++ Please look at [kerb-server](kerby-kerb/kerb-server/README.md) for details.
 
 ### SimpleKdcServer
-A simplified Kdc server. It can be imported by other project to work as a kdc server.
-Please look at [kerb-simplekdc](kerby-kerb/kerb-simplekdc/README.md) for details.
++ A simplified Kdc server. It can be imported by other project to work as a kdc server.
++ Please look at [kerb-simplekdc](kerby-kerb/kerb-simplekdc/README.md) for details.
 
 ### ASN-1 support
-Please look at [kerby-asn1](kerby-asn1/) for details.
++ Please look at [kerby-asn1](kerby-asn1/) for details.
 
 ### Kerberos Crypto and Encryption Types
 Implementing des, des3, rc4, aes, camellia encryption and corresponding checksum types
@@ -89,7 +89,7 @@ A standalone KDC server that can integrate various identity back ends including:
   - Lists the Kerby principal and tickets held in a credentials cache, or the keys held in a keytab file.
 
 ### How to play with the standalone KDC
- [Kerby KDC](kerby-dist/README.md)
+ - Please look at [Kerby KDC](kerby-dist/README.md) for details.
 
 #### Kerby Lib Projects
 - kerby-asn1. A model driven ASN-1 encoding and decoding framework
