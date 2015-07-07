@@ -20,7 +20,6 @@
 package org.apache.kerby.kerberos.kerb.server;
 
 import org.apache.kerby.kerberos.kerb.common.SectionConfigKey;
-import org.apache.kerby.kerberos.kerb.crypto.EncryptionHandler;
 
 public enum KdcConfigKey implements SectionConfigKey {
     KRB_DEBUG(true),
@@ -47,8 +46,9 @@ public enum KdcConfigKey implements SectionConfigKey {
     PROXIABLE_ALLOWED(true),
     RENEWABLE_ALLOWED(true),
     VERIFY_BODY_CHECKSUM(true),
-    ENCRYPTION_TYPES(EncryptionHandler.isAES256Enabled() ?
-            new String[] { "aes128-cts-hmac-sha1-96", "des3-cbc-sha1-kd", "aes256-cts-hmac-sha1-96"} :
+    ENCRYPTION_TYPES(
+//        EncryptionHandler.isAES256Enabled() ?
+//            new String[] { "aes128-cts-hmac-sha1-96", "des3-cbc-sha1-kd", "aes256-cts-hmac-sha1-96"} :
             new String[] { "aes128-cts-hmac-sha1-96", "des3-cbc-sha1-kd"}
     ),
     RESTRICT_ANONYMOUS_TO_TGT(false, "kdcdefaults"),
