@@ -430,7 +430,7 @@ public abstract class KdcRequest {
         encTypeInfo2 = KrbCodec.encode(eTypeInfo2);
 
         MethodData methodData = new MethodData();
-        methodData.add(new PaDataEntry(PaDataType.ENC_TIMESTAMP, null));
+        //methodData.add(new PaDataEntry(PaDataType.ENC_TIMESTAMP, null));
         if (!isNewEtype) {
             methodData.add(new PaDataEntry(PaDataType.ETYPE_INFO, encTypeInfo));
         }
