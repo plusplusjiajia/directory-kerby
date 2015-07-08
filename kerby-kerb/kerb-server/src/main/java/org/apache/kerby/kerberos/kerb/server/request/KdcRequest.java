@@ -396,7 +396,7 @@ public abstract class KdcRequest {
         }
     }
 
-    public static KrbError makePreAuthenticationError(KdcContext kdcContext, KdcReq request,
+    protected static KrbError makePreAuthenticationError(KdcContext kdcContext, KdcReq request,
                                                       KrbErrorCode errorCode)
         throws KrbException {
         List<EncryptionType> encryptionTypes = kdcContext.getConfig().getEncryptionTypes();
