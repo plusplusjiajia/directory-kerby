@@ -19,8 +19,12 @@
  */
 package org.apache.kerby.kerberos.tool.kadmin;
 
+import org.apache.kerby.KOptions;
 import org.apache.kerby.kerberos.kerb.KrbException;
 import org.apache.kerby.kerberos.kerb.admin.Kadmin;
+import org.apache.kerby.kerberos.kerb.admin.KadminOption;
+import org.apache.kerby.kerberos.kerb.common.KrbUtil;
+import org.apache.kerby.kerberos.kerb.spec.base.PrincipalName;
 import org.apache.kerby.kerberos.tool.kadmin.command.AddPrincipalCommand;
 import org.apache.kerby.kerberos.tool.kadmin.command.ChangePasswordCommand;
 import org.apache.kerby.kerberos.tool.kadmin.command.DeletePrincipalCommand;
@@ -32,6 +36,7 @@ import org.apache.kerby.kerberos.tool.kadmin.command.ListPrincipalCommand;
 import org.apache.kerby.kerberos.tool.kadmin.command.ModifyPrincipalCommand;
 import org.apache.kerby.kerberos.tool.kadmin.command.RenamePrincipalCommand;
 
+import javax.security.auth.login.LoginException;
 import java.io.File;
 import java.util.Map;
 import java.util.Scanner;
@@ -70,6 +75,15 @@ public class KadminTool {
             + "list_requests, lr, ?     List available requests.\n"
             + "quit, exit, q            Exit program.";
 
+    private static final String USAGE =
+        "Usage: kadmin [-c cache_name]"
+            + "\n";
+
+    private static void printUsage(String error) {
+        System.err.println(error + "\n");
+        System.err.println(USAGE);
+        System.exit(-1);
+    }
 
     private static void execute(Kadmin kadmin, String command) {
         //Omit the leading and trailing whitespace.
@@ -119,23 +133,19 @@ public class KadminTool {
         executor.execute(command);
     }
 
-    private static File getConfDir(String[] args) {
+    private static File getConfDir() {
         File confDir;
-        if (args.length == 0) {
-            String envDir;
-            try {
-                Map<String, String> mapEnv = System.getenv();
-                envDir = mapEnv.get("KRB5_KDC_DIR");
-            } catch (SecurityException e) {
-                envDir = null;
-            }
-            if (envDir != null) {
-                confDir = new File(envDir);
-            } else {
-                confDir = new File("/etc/kerby/"); // for Linux. TODO: fix for Win etc.
-            }
+        String envDir;
+        try {
+            Map<String, String> mapEnv = System.getenv();
+            envDir = mapEnv.get("KRB5_KDC_DIR");
+        } catch (SecurityException e) {
+            envDir = null;
+        }
+        if (envDir != null) {
+            confDir = new File(envDir);
         } else {
-            confDir = new File(args[0]);
+            confDir = new File("/etc/kerby/"); // for Linux. TODO: fix for Win etc.
         }
 
         if (!confDir.exists()) {
@@ -146,13 +156,46 @@ public class KadminTool {
     }
 
     public static void main(String[] args) {
+
+        if (args.length < 2) {
+            System.err.println(USAGE);
+            return;
+        }
+
+        KOptions kOptions = ToolUtil.parseOptions(args, 0, args.length - 1);
+        if (kOptions == null) {
+            System.err.println(USAGE);
+            return;
+        }
+
+        File ccFile = null;
+        if (kOptions.contains(KadminOption.C)) {
+            ccFile = kOptions.getFileOption(KadminOption.C);
+        }
+
+        if(ccFile == null || !ccFile.exists()) {
+            printUsage("Need the valid credentials cache file.");
+            return;
+        }
+
         Kadmin kadmin;
         try {
-            kadmin = new Kadmin(getConfDir(args));
+            kadmin = new Kadmin(getConfDir());
         } catch (KrbException e) {
             System.err.println("Failed to init Kadmin due to " + e.getMessage());
             return;
         }
+
+        PrincipalName kadminPrincipal =
+            KrbUtil.makeKadminPrincipal(kadmin.getKdcConfig().getKdcRealm());
+
+        try {
+            AuthUtil.loginUsingTicketCache(kadminPrincipal.getName(), ccFile);
+        } catch (LoginException e) {
+            System.err.println("Failed to perform the authentication, " + e.getMessage());
+            return;
+        }
+        System.out.println("Authenticated success.");
 
         System.out.print(PROMPT + ": ");
 
