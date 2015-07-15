@@ -23,8 +23,6 @@ import org.apache.kerby.KOptions;
 import org.apache.kerby.kerberos.kerb.KrbException;
 import org.apache.kerby.kerberos.kerb.admin.Kadmin;
 import org.apache.kerby.kerberos.kerb.admin.KadminOption;
-import org.apache.kerby.kerberos.kerb.common.KrbUtil;
-import org.apache.kerby.kerberos.kerb.spec.base.PrincipalName;
 import org.apache.kerby.kerberos.tool.kadmin.command.AddPrincipalCommand;
 import org.apache.kerby.kerberos.tool.kadmin.command.ChangePasswordCommand;
 import org.apache.kerby.kerberos.tool.kadmin.command.DeletePrincipalCommand;
@@ -76,7 +74,7 @@ public class KadminTool {
             + "quit, exit, q            Exit program.";
 
     private static final String USAGE =
-        "Usage: kadmin [-c cache_name]"
+        "Usage: kadmin [-c cache_name] [-k keytab]"
             + "\n";
 
     private static void printUsage(String error) {
@@ -162,22 +160,6 @@ public class KadminTool {
             return;
         }
 
-        KOptions kOptions = ToolUtil.parseOptions(args, 0, args.length - 1);
-        if (kOptions == null) {
-            System.err.println(USAGE);
-            return;
-        }
-
-        File ccFile = null;
-        if (kOptions.contains(KadminOption.C)) {
-            ccFile = kOptions.getFileOption(KadminOption.C);
-        }
-
-        if(ccFile == null || !ccFile.exists()) {
-            printUsage("Need the valid credentials cache file.");
-            return;
-        }
-
         Kadmin kadmin;
         try {
             kadmin = new Kadmin(getConfDir());
@@ -186,16 +168,41 @@ public class KadminTool {
             return;
         }
 
-        PrincipalName kadminPrincipal =
-            KrbUtil.makeKadminPrincipal(kadmin.getKdcConfig().getKdcRealm());
-
-        try {
-            AuthUtil.loginUsingTicketCache(kadminPrincipal.getName(), ccFile);
-        } catch (LoginException e) {
-            System.err.println("Failed to perform the authentication, " + e.getMessage());
+        KOptions kOptions = ToolUtil.parseOptions(args, 0, args.length - 1);
+        if (kOptions == null) {
+            System.err.println(USAGE);
             return;
         }
-        System.out.println("Authenticated success.");
+
+        String kadminPrincipal = kadmin.getKadminPrincipal();
+        if (kOptions.contains(KadminOption.CCACHE)) {
+            File ccFile = kOptions.getFileOption(KadminOption.CCACHE);
+            if (ccFile == null || !ccFile.exists()) {
+                printUsage("Need the valid credentials cache file.");
+                return;
+            }
+            try {
+                AuthUtil.loginUsingTicketCache(kadminPrincipal, ccFile);
+            } catch (LoginException e) {
+                System.err.println("Could not login with: " + kadminPrincipal
+                    + e.getMessage());
+                return;
+            }
+        } else if (kOptions.contains(KadminOption.KEYTAB)
+            || kOptions.contains(KadminOption.K)) {
+            File keyTabFile = new File(kOptions.getStringOption(KadminOption.KEYTAB));
+            if (keyTabFile == null || !keyTabFile.exists()) {
+                printUsage("Need the valid keytab file.");
+                return;
+            }
+            try {
+                AuthUtil.loginUsingKeytab(kadminPrincipal, keyTabFile);
+            } catch (LoginException e) {
+                System.err.println("Could not login with: " + kadminPrincipal
+                    + e.getMessage());
+                return;
+            }
+        }
 
         System.out.print(PROMPT + ": ");
 

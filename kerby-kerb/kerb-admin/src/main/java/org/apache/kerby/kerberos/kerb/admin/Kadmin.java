@@ -76,7 +76,7 @@ public class Kadmin {
         return KrbUtil.makeTgsPrincipal(kdcSetting.getKdcRealm()).getName();
     }
 
-    private String getKadminPrincipal() {
+    public String getKadminPrincipal() {
         return KrbUtil.makeKadminPrincipal(kdcSetting.getKdcRealm()).getName();
     }
 

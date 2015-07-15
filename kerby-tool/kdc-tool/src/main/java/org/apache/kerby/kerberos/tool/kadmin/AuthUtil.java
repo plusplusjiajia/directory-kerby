@@ -57,9 +57,28 @@ public class AuthUtil {
         return loginContext.getSubject();
     }
 
+    public static Subject loginUsingKeytab(
+        String principal, File keytabFile) throws LoginException {
+        Set<Principal> principals = new HashSet<Principal>();
+        principals.add(new KerberosPrincipal(principal));
+
+        Subject subject = new Subject(false, principals,
+            new HashSet<Object>(), new HashSet<Object>());
+
+        Configuration conf = useKeytab(principal, keytabFile);
+        String confName = "KeytabConf";
+        LoginContext loginContext = new LoginContext(confName, subject, null, conf);
+        loginContext.login();
+        return loginContext.getSubject();
+    }
+
     public static Configuration useTicketCache(String principal,
                                                File credentialFile) {
         return new TicketCacheJaasConf(principal, credentialFile);
+    }
+
+    public static Configuration useKeytab(String principal, File keytabFile) {
+        return new KeytabJaasConf(principal, keytabFile);
     }
 
     static class TicketCacheJaasConf extends Configuration {
@@ -88,6 +107,35 @@ public class AuthUtil {
                     new AppConfigurationEntry(getKrb5LoginModuleName(),
                             AppConfigurationEntry.LoginModuleControlFlag.REQUIRED,
                             options)};
+        }
+    }
+
+    static class KeytabJaasConf extends Configuration {
+        private String principal;
+        private File keytabFile;
+
+        public KeytabJaasConf(String principal, File keytab) {
+            this.principal = principal;
+            this.keytabFile = keytab;
+        }
+
+        @Override
+        public AppConfigurationEntry[] getAppConfigurationEntry(String name) {
+            Map<String, String> options = new HashMap<String, String>();
+            options.put("keyTab", keytabFile.getAbsolutePath());
+            options.put("principal", principal);
+            options.put("useKeyTab", "true");
+            options.put("storeKey", "true");
+            options.put("doNotPrompt", "true");
+            options.put("renewTGT", "false");
+            options.put("refreshKrb5Config", "true");
+            options.put("isInitiator", "false");
+            options.put("debug", String.valueOf(enableDebug));
+
+            return new AppConfigurationEntry[]{
+                new AppConfigurationEntry(getKrb5LoginModuleName(),
+                    AppConfigurationEntry.LoginModuleControlFlag.REQUIRED,
+                    options)};
         }
     }
 }
