@@ -202,6 +202,8 @@ public class KadminTool {
                     + e.getMessage());
                 return;
             }
+        } else {
+            printUsage("No credentials cache file or keytab file for authentication.");
         }
 
         System.out.print(PROMPT + ": ");

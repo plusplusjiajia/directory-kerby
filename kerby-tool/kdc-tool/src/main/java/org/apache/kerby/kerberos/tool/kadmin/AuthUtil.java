@@ -43,12 +43,12 @@ public class AuthUtil {
     }
 
     public static Subject loginUsingTicketCache(
-            String principal, File cacheFile) throws LoginException {
+        String principal, File cacheFile) throws LoginException {
         Set<Principal> principals = new HashSet<Principal>();
         principals.add(new KerberosPrincipal(principal));
 
         Subject subject = new Subject(false, principals,
-                new HashSet<Object>(), new HashSet<Object>());
+            new HashSet<Object>(), new HashSet<Object>());
 
         Configuration conf = useTicketCache(principal, cacheFile);
         String confName = "TicketCacheConf";
@@ -104,9 +104,9 @@ public class AuthUtil {
             options.put("debug", String.valueOf(enableDebug));
 
             return new AppConfigurationEntry[]{
-                    new AppConfigurationEntry(getKrb5LoginModuleName(),
-                            AppConfigurationEntry.LoginModuleControlFlag.REQUIRED,
-                            options)};
+                new AppConfigurationEntry(getKrb5LoginModuleName(),
+                    AppConfigurationEntry.LoginModuleControlFlag.REQUIRED,
+                    options)};
         }
     }
 
