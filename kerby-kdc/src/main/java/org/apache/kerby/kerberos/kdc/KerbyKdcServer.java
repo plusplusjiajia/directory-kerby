@@ -71,7 +71,6 @@ public class KerbyKdcServer extends KdcServer {
 
         KerbyKdcServer server = new KerbyKdcServer(confDir);
         server.setWorkDir(workDir);
-        server.init();
 
         server.start();
         System.out.println("KDC started.");
