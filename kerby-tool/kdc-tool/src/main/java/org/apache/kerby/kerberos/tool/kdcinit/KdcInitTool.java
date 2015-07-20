@@ -47,7 +47,7 @@ public class KdcInitTool extends KdcServer {
         kadmin.exportKeytab(keytabFile, kadmin.getKadminPrincipal());
         System.out.println("The kadmin principal " + kadmin.getKadminPrincipal()
             + " has exported into keytab file " + keytabFile.getAbsolutePath()
-            + " please make sure to keep it.");
+            + ", please make sure to keep it.");
     }
 
     public static void main(String[] args) throws KrbException {
