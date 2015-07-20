@@ -80,6 +80,14 @@ public class Kadmin {
         return KrbUtil.makeKadminPrincipal(kdcSetting.getKdcRealm()).getName();
     }
 
+    public void checkBuiltinPrincipals() throws KrbException {
+        String tgsPrincipal = getTgsPrincipal();
+        String kadminPrincipal = getKadminPrincipal();
+        if (backend.getIdentity(tgsPrincipal) == null || backend.getIdentity(kadminPrincipal) == null ) {
+            throw new KrbException("The builtin principals do not exist in backend, please run the kdcinit tool.");
+        }
+    }
+
     public void createBuiltinPrincipals() throws KrbException {
         String tgsPrincipal = getTgsPrincipal();
         if (backend.getIdentity(tgsPrincipal) == null) {
