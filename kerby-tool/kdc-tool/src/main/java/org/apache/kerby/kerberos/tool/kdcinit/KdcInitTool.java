@@ -43,12 +43,11 @@ public class KdcInitTool extends KdcServer {
         super.init();
 
         kadmin = new Kadmin(getKdcSetting(), getIdentityService());
-
         kadmin.createBuiltinPrincipals();
-
         kadmin.exportKeytab(keytabFile, kadmin.getKadminPrincipal());
         System.out.println("The kadmin principal " + kadmin.getKadminPrincipal()
-            + " has exported into keytab file " + keytabFile.getAbsolutePath() + " please save it.");
+            + " has exported into keytab file " + keytabFile.getAbsolutePath()
+            + " please make sure to keep it.");
     }
 
     public static void main(String[] args) throws KrbException {

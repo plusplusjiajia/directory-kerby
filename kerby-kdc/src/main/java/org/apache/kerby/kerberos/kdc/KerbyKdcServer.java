@@ -36,15 +36,6 @@ public class KerbyKdcServer extends KdcServer {
         setInnerKdcImpl(new NettyKdcServerImpl(getKdcSetting()));
     }
 
-    @Override
-    public void init() throws KrbException {
-        super.init();
-
-        kadmin = new Kadmin(getKdcSetting(), getIdentityService());
-
-        kadmin.createBuiltinPrincipals();
-    }
-
     private static final String USAGE = "Usage: "
             + KerbyKdcServer.class.getSimpleName()
             + " -start <conf-dir> <working-dir>";
