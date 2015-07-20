@@ -19,6 +19,8 @@
  */
 package org.apache.kerby.kerberos.kerb.client;
 
+import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
+
 import javax.security.auth.Subject;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
@@ -92,6 +94,20 @@ public final class JaasKrbUtil {
         return loginContext.getSubject();
     }
 
+    public static Subject loginUsingToken(
+            String principal, AuthToken token) throws LoginException {
+        Set<Principal> principals = new HashSet<Principal>();
+        principals.add(new KerberosPrincipal(principal));
+
+        Subject subject = new Subject(false, principals,
+                new HashSet<Object>(), new HashSet<Object>());
+        Configuration conf = useToken(principal, token);
+        String confName = "TokenConf";
+        LoginContext loginContext = new LoginContext(confName, subject, null, conf);
+        loginContext.login();
+        return loginContext.getSubject();
+    }
+
     public static Configuration usePassword(String principal) {
         return new PasswordJaasConf(principal);
     }
@@ -103,6 +119,10 @@ public final class JaasKrbUtil {
 
     public static Configuration useKeytab(String principal, File keytabFile) {
         return new KeytabJaasConf(principal, keytabFile);
+    }
+
+    public static Configuration useToken(String principal, AuthToken token) {
+        return new TokenJassConf(principal, token);
     }
 
     private static String getKrb5LoginModuleName() {
