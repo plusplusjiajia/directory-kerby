@@ -44,9 +44,6 @@ public class TokenAuthLoginModule implements LoginModule {
 
     // initial state
     private Subject subject;
-    private CallbackHandler callbackHandler;
-    private Map sharedState;
-    private Map<String, ?> options;
 
     // configurable option
     private boolean useToken = false;
@@ -62,7 +59,6 @@ public class TokenAuthLoginModule implements LoginModule {
     private AuthToken authToken = null;
     KrbToken krbToken = null;
     private File ccacheFile;
-    private static final String TOKEN = ".tokenauth.token";
     private File armorCache;
     private int tcpPort;
     private int udpPort;
@@ -74,9 +70,6 @@ public class TokenAuthLoginModule implements LoginModule {
                            Map<String, ?> sharedState, Map<String, ?> options) {
 
         this.subject = subject;
-        this.callbackHandler = callbackHandler;
-        this.sharedState = sharedState;
-        this.options = options;
 
         princName = (String)options.get("principal");
         // initialize any configured options
@@ -151,6 +144,8 @@ public class TokenAuthLoginModule implements LoginModule {
                 it.remove();
             }
         }
+
+        cleanup();
 
         succeeded = false;
         commitSucceeded = false;
@@ -239,10 +234,8 @@ public class TokenAuthLoginModule implements LoginModule {
     }
 
     private void cleanup() {
-        if (useToken) {
-            if (ccacheFile != null && ccacheFile.exists()) {
-                ccacheFile.delete();
-            }
+        if (useToken && ccacheFile != null && ccacheFile.exists()) {
+            ccacheFile.delete();
         }
     }
 
