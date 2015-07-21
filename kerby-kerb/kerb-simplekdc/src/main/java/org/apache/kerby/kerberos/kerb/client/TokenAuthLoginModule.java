@@ -19,10 +19,13 @@
  */
 package org.apache.kerby.kerberos.kerb.client;
 
-import com.sun.security.auth.module.Krb5LoginModule;
+import org.apache.kerby.kerberos.kerb.spec.base.KrbToken;
 
 import javax.security.auth.Subject;
 import javax.security.auth.callback.CallbackHandler;
+import javax.security.auth.kerberos.KerberosKey;
+import javax.security.auth.kerberos.KerberosTicket;
+import javax.security.auth.kerberos.KeyTab;
 import javax.security.auth.login.LoginException;
 import javax.security.auth.spi.LoginModule;
 import java.io.BufferedReader;
@@ -31,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 
@@ -105,10 +109,11 @@ public class TokenAuthLoginModule implements LoginModule {
 
     @Override
     public boolean commit() throws LoginException {
-        boolean result = krb5LoginModule.commit();
-        if (result && useToken) {
+//        boolean result = krb5LoginModule.commit();
+//        if (result && useToken) {
+        if(useToken)
             try {
-                KerbToken krbToken = TokenTool.fromJwtToken(token);
+                KrbToken krbToken = TokenTool.fromJwtToken(token);
                 subject.getPublicCredentials().add(krbToken); // better put in private set?
             } catch (ParseException e) {
                 throwWith("Failed to convert from JWT token", e);
@@ -119,12 +124,53 @@ public class TokenAuthLoginModule implements LoginModule {
 
     @Override
     public boolean abort() throws LoginException {
-        return krb5LoginModule.abort();
+        if (succeeded == false) {
+            return false;
+        } else if (succeeded == true && commitSucceeded == false) {
+            // login succeeded but overall authentication failed
+            succeeded = false;
+            cleanKerberosCred();
+        } else {
+            // overall authentication succeeded and commit succeeded,
+            // but someone else's commit failed
+            logout();
+        }
+        return true;
     }
 
     @Override
     public boolean logout() throws LoginException {
-        return krb5LoginModule.logout();
+//        if (debug) {
+//            System.out.println("\t\t[Krb5LoginModule]: " +
+//                    "Entering logout");
+//        }
+
+        if (subject.isReadOnly()) {
+            cleanKerberosCred();
+            throw new LoginException("Subject is Readonly");
+        }
+
+        subject.getPrincipals().remove(kerbClientPrinc);
+        // Let us remove all Kerberos credentials stored in the Subject
+        Iterator<Object> it = subject.getPrivateCredentials().iterator();
+        while (it.hasNext()) {
+            Object o = it.next();
+            if (o instanceof KerberosTicket ||
+                    o instanceof KerberosKey ||
+                    o instanceof KeyTab) {
+                it.remove();
+            }
+        }
+        // clean the kerberos ticket and keys
+        cleanKerberosCred();
+
+        succeeded = false;
+        commitSucceeded = false;
+//        if (debug) {
+//            System.out.println("\t\t[Krb5LoginModule]: " +
+//                    "logged out Subject");
+//        }
+        return true;
     }
 
     private boolean tokenLogin() throws LoginException {

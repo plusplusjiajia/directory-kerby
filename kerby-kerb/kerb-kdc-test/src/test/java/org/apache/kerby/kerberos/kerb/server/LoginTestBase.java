@@ -20,6 +20,7 @@
 package org.apache.kerby.kerberos.kerb.server;
 
 import org.apache.kerby.kerberos.kerb.client.JaasKrbUtil;
+import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
 import org.apache.kerby.kerberos.kerb.spec.ticket.TgtTicket;
 import org.junit.After;
 import org.junit.Before;
@@ -37,6 +38,7 @@ public class LoginTestBase extends KdcTestBase {
 
     protected File ticketCacheFile;
     protected File serviceKeytabFile;
+    protected File tokenCache;
 
     @Before
     @Override
@@ -45,6 +47,7 @@ public class LoginTestBase extends KdcTestBase {
 
         ticketCacheFile = new File(getTestDir(), "test-tkt.cc");
         serviceKeytabFile = new File(getTestDir(), "test-service.keytab");
+
     }
 
     protected Subject loginClientUsingPassword() throws LoginException {
@@ -65,6 +68,10 @@ public class LoginTestBase extends KdcTestBase {
         getKdcServer().exportPrincipal(getServerPrincipal(), serviceKeytabFile);
         return JaasKrbUtil.loginUsingKeytab(getServerPrincipal(),
             serviceKeytabFile);
+    }
+
+    protected Subject loginClientUsingToken() throws Exception {
+        return JaasKrbUtil.loginUsingToken(getClientPrincipal(), tokenCache);
     }
 
     protected void checkSubject(Subject subject) {

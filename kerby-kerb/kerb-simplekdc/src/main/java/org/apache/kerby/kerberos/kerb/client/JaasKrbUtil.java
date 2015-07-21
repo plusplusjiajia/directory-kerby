@@ -19,8 +19,6 @@
  */
 package org.apache.kerby.kerberos.kerb.client;
 
-import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
-
 import javax.security.auth.Subject;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
@@ -95,13 +93,13 @@ public final class JaasKrbUtil {
     }
 
     public static Subject loginUsingToken(
-            String principal, AuthToken token) throws LoginException {
+            String principal, File tokenCache) throws LoginException {
         Set<Principal> principals = new HashSet<Principal>();
         principals.add(new KerberosPrincipal(principal));
 
         Subject subject = new Subject(false, principals,
                 new HashSet<Object>(), new HashSet<Object>());
-        Configuration conf = useToken(principal, token);
+        Configuration conf = useToken(principal, tokenCache);
         String confName = "TokenConf";
         LoginContext loginContext = new LoginContext(confName, subject, null, conf);
         loginContext.login();
@@ -121,8 +119,8 @@ public final class JaasKrbUtil {
         return new KeytabJaasConf(principal, keytabFile);
     }
 
-    public static Configuration useToken(String principal, AuthToken token) {
-        return new TokenJassConf(principal, token);
+    public static Configuration useToken(String principal, File tokenCache) {
+        return new TokenJaasConf(principal, tokenCache);
     }
 
     private static String getKrb5LoginModuleName() {
@@ -238,4 +236,33 @@ public final class JaasKrbUtil {
         }
     }
 
+    static class TokenJaasConf extends Configuration {
+        private String principal;
+        private File tokenCache;
+
+        public TokenJaasConf(String principal, File tokenCache) {
+            this.principal = principal;
+            this.tokenCache = tokenCache;
+        }
+
+        @Override
+        public AppConfigurationEntry[] getAppConfigurationEntry(String name) {
+            Map<String, String> options = new HashMap<String, String>();
+            options.put("tokenCache", tokenCache.getAbsolutePath());
+            options.put("principal", principal);
+            options.put("useToken", "true");
+            options.put("useKeyTab", "false");
+            options.put("storeKey", "true");
+            options.put("doNotPrompt", "true");
+            options.put("renewTGT", "false");
+            options.put("refreshKrb5Config", "true");
+            options.put("isInitiator", "false");
+            options.put("debug", String.valueOf(enableDebug));
+
+            return new AppConfigurationEntry[]{
+                    new AppConfigurationEntry("org.apache.kerby.kerberos.kerb.client.TokenAuthLoginModule",
+                            AppConfigurationEntry.LoginModuleControlFlag.REQUIRED,
+                            options)};
+        }
+    }
 }
