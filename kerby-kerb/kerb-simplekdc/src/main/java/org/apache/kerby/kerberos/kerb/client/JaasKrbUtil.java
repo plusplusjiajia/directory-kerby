@@ -93,13 +93,14 @@ public final class JaasKrbUtil {
     }
 
     public static Subject loginUsingToken(
-            String principal, File tokenCache) throws LoginException {
+            String principal, File tokenCache, File armorCache, KrbSetting krbSetting)
+            throws LoginException {
         Set<Principal> principals = new HashSet<Principal>();
         principals.add(new KerberosPrincipal(principal));
 
         Subject subject = new Subject(false, principals,
                 new HashSet<Object>(), new HashSet<Object>());
-        Configuration conf = useToken(principal, tokenCache);
+        Configuration conf = useToken(principal, tokenCache, armorCache, krbSetting);
         String confName = "TokenConf";
         LoginContext loginContext = new LoginContext(confName, subject, null, conf);
         loginContext.login();
@@ -119,8 +120,8 @@ public final class JaasKrbUtil {
         return new KeytabJaasConf(principal, keytabFile);
     }
 
-    public static Configuration useToken(String principal, File tokenCache) {
-        return new TokenJaasConf(principal, tokenCache);
+    public static Configuration useToken(String principal, File tokenCache, File armorCache, KrbSetting krbSetting) {
+        return new TokenJaasConf(principal, tokenCache, armorCache, krbSetting);
     }
 
     private static String getKrb5LoginModuleName() {
@@ -239,16 +240,24 @@ public final class JaasKrbUtil {
     static class TokenJaasConf extends Configuration {
         private String principal;
         private File tokenCache;
+        private File armorCache;
+        private KrbSetting krbSetting;
 
-        public TokenJaasConf(String principal, File tokenCache) {
+        public TokenJaasConf(String principal, File tokenCache, File armorCache, KrbSetting krbSetting) {
             this.principal = principal;
             this.tokenCache = tokenCache;
+            this.armorCache = armorCache;
+            this.krbSetting = krbSetting;
         }
 
         @Override
         public AppConfigurationEntry[] getAppConfigurationEntry(String name) {
             Map<String, String> options = new HashMap<String, String>();
             options.put("tokenCache", tokenCache.getAbsolutePath());
+            options.put("armorCache", armorCache.getAbsolutePath());
+            options.put("tcpPort", Integer.toString(krbSetting.getKdcTcpPort()));
+            options.put("udpPort", Integer.toString(krbSetting.getKdcUdpPort()));
+            options.put("realm", krbSetting.getKdcRealm());
             options.put("principal", principal);
             options.put("useToken", "true");
             options.put("useKeyTab", "false");

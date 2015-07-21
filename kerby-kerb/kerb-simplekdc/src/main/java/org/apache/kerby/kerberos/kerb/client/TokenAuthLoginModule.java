@@ -19,26 +19,29 @@
  */
 package org.apache.kerby.kerberos.kerb.client;
 
+import org.apache.kerby.kerberos.kerb.KrbException;
+import org.apache.kerby.kerberos.kerb.KrbRuntime;
+import org.apache.kerby.kerberos.kerb.provider.TokenDecoder;
+import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
 import org.apache.kerby.kerberos.kerb.spec.base.KrbToken;
+import org.apache.kerby.kerberos.kerb.spec.base.TokenFormat;
+import org.apache.kerby.kerberos.kerb.spec.ticket.TgtTicket;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.security.auth.Subject;
 import javax.security.auth.callback.CallbackHandler;
-import javax.security.auth.kerberos.KerberosKey;
-import javax.security.auth.kerberos.KerberosTicket;
-import javax.security.auth.kerberos.KeyTab;
 import javax.security.auth.login.LoginException;
 import javax.security.auth.spi.LoginModule;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.text.ParseException;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
 
 public class TokenAuthLoginModule implements LoginModule {
+    private static final Logger LOG = LoggerFactory.getLogger(TokenAuthLoginModule.class);
+
     // initial state
     private Subject subject;
     private CallbackHandler callbackHandler;
@@ -54,9 +57,16 @@ public class TokenAuthLoginModule implements LoginModule {
     private boolean succeeded = false;
     private boolean commitSucceeded = false;
 
-    private String token = null;
+     private String princName = null;
+    private String tokenStr = null;
+    private AuthToken authToken = null;
+    KrbToken krbToken = null;
     private File ccacheFile;
     private static final String TOKEN = ".tokenauth.token";
+    private File armorCache;
+    private int tcpPort;
+    private int udpPort;
+    private String kdcRealm;
 
 
     @Override
@@ -68,58 +78,45 @@ public class TokenAuthLoginModule implements LoginModule {
         this.sharedState = sharedState;
         this.options = options;
 
+        princName = (String)options.get("principal");
         // initialize any configured options
         useToken = "true".equalsIgnoreCase((String) options.get("useToken"));
-        token = (String) options.get("token");
+        tokenStr = (String) options.get("token");
         tokenCacheName = (String) options.get("tokenCache");
         useDefaultTokenCache = "true".equalsIgnoreCase((String) options.get
                 ("useDefaultTokenCache"));
+        armorCache = new File((String) options.get("armorCache"));
+        tcpPort = Integer.parseInt((String) options.get("tcpPort"));
+        udpPort = Integer.parseInt((String) options.get("udpPort"));
+        kdcRealm = (String) options.get("realm");
     }
 
     @Override
     public boolean login() throws LoginException {
         validateConfiguration();
 
-        Map<String, ?> krbOptions = this.options;
-        Map krbSharedState = this.sharedState;
-
         if (useToken) {
             boolean result = tokenLogin();
-            if (!result) {
-                return false;
-            }
-
-            Map<String, Object> newOptions = new HashMap<String, Object>();
-            newOptions.putAll(this.options);
-            newOptions.put("useTicketCache", "true");
-            newOptions.put("ticketCache", ccacheFile.getAbsolutePath());
-            krbOptions = newOptions;
-
-            Map newSharedState = new HashMap();
-            newSharedState.putAll(this.sharedState);
-            krbSharedState = newSharedState;
+            succeeded = result;
+        } else {
+            return false;
         }
-
-//        krb5LoginModule = new Krb5LoginModule();
-//        krb5LoginModule.initialize(subject, null, krbSharedState, krbOptions);
-//        succeeded = krb5LoginModule.login();
-
         return succeeded;
     }
 
     @Override
     public boolean commit() throws LoginException {
-//        boolean result = krb5LoginModule.commit();
-//        if (result && useToken) {
-        if(useToken)
-            try {
-                KrbToken krbToken = TokenTool.fromJwtToken(token);
+
+        if (succeeded == false) {
+            return false;
+        } else {
+            if(useToken) {
                 subject.getPublicCredentials().add(krbToken); // better put in private set?
-            } catch (ParseException e) {
-                throwWith("Failed to convert from JWT token", e);
             }
         }
-        return result;
+        commitSucceeded = true;
+        LOG.info("Commit Succeeded \n");
+        return true;
     }
 
     @Override
@@ -129,7 +126,6 @@ public class TokenAuthLoginModule implements LoginModule {
         } else if (succeeded == true && commitSucceeded == false) {
             // login succeeded but overall authentication failed
             succeeded = false;
-            cleanKerberosCred();
         } else {
             // overall authentication succeeded and commit succeeded,
             // but someone else's commit failed
@@ -140,41 +136,26 @@ public class TokenAuthLoginModule implements LoginModule {
 
     @Override
     public boolean logout() throws LoginException {
-//        if (debug) {
-//            System.out.println("\t\t[Krb5LoginModule]: " +
-//                    "Entering logout");
-//        }
+        LOG.info("\t\t[TokenAuthLoginModule]: Entering logout");
 
         if (subject.isReadOnly()) {
-            cleanKerberosCred();
             throw new LoginException("Subject is Readonly");
         }
 
-        subject.getPrincipals().remove(kerbClientPrinc);
+        subject.getPrincipals().remove(princName);
         // Let us remove all Kerberos credentials stored in the Subject
         Iterator<Object> it = subject.getPrivateCredentials().iterator();
         while (it.hasNext()) {
             Object o = it.next();
-            if (o instanceof KerberosTicket ||
-                    o instanceof KerberosKey ||
-                    o instanceof KeyTab) {
+            if (o instanceof KrbToken) {
                 it.remove();
             }
         }
-        // clean the kerberos ticket and keys
-        cleanKerberosCred();
 
         succeeded = false;
         commitSucceeded = false;
-//        if (debug) {
-//            System.out.println("\t\t[Krb5LoginModule]: " +
-//                    "logged out Subject");
-//        }
-        return true;
-    }
 
-    private boolean tokenLogin() throws LoginException {
-        doTokenLogin();
+        LOG.info("\t\t[TokenAuthLoginModule]: logged out Subject");
         return true;
     }
 
@@ -183,13 +164,13 @@ public class TokenAuthLoginModule implements LoginModule {
 
         String error = "";
         if (useDefaultTokenCache) {
-            if (token != null || tokenCacheName != null) {
+            if (tokenStr != null || tokenCacheName != null) {
                 error = "useDefaultTokenCache is specified, but token or tokenCacheName is also specified";
             }
         } else {
-            if (token == null && tokenCacheName == null) {
+            if (tokenStr == null && tokenCacheName == null) {
                 error = "useToken is specified but no token or token cache is provided";
-            } else if (token != null && tokenCacheName != null) {
+            } else if (tokenStr != null && tokenCacheName != null) {
                 error = "either token or token cache should be provided but not both";
             }
         }
@@ -199,12 +180,40 @@ public class TokenAuthLoginModule implements LoginModule {
         }
     }
 
-    private void doTokenLogin() throws LoginException {
-        if (token == null) {
-            token = TokenCache.readToken(tokenCacheName);
-            if (token == null) {
+    private boolean tokenLogin() throws LoginException {
+        if (tokenStr == null) {
+            tokenStr = TokenCache.readToken(tokenCacheName);
+            if (tokenStr == null) {
                 throw new LoginException("No valid token was found in token cache: " + tokenCacheName);
             }
+        }
+
+        TokenDecoder tokenDecoder = KrbRuntime.getTokenProvider().createTokenDecoder();
+        try {
+            authToken = tokenDecoder.decodeFromString(tokenStr);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        krbToken = new KrbToken(authToken, TokenFormat.JWT);
+
+        KrbClient krbClient = null;
+        try {
+            krbClient = new KrbClient();
+            krbClient.setKdcTcpPort(tcpPort);
+            krbClient.setKdcUdpPort(udpPort);
+            krbClient.setKdcRealm(kdcRealm);
+            krbClient.init();
+        } catch (KrbException e) {
+            e.printStackTrace();
+        }
+
+        TgtTicket tgtTicket = null;
+        try {
+            tgtTicket = krbClient.requestTgtWithToken(krbToken, armorCache.getAbsolutePath());
+        } catch (KrbException e) {
+            throwWith("Failed to do login with token: " + tokenStr, e);
+            return false;
         }
 
         try {
@@ -212,50 +221,12 @@ public class TokenAuthLoginModule implements LoginModule {
         } catch (IOException e) {
             throwWith("Failed to create tmp ccache file", e);
         }
-
-        String[] tokenInitCmd = null;
-        if (useDefaultTokenCache && token == null) {
-            tokenInitCmd = new String[]{
-                    "ktinit.sh", "-c", ccacheFile.getAbsolutePath()
-            };
-        } else {
-            tokenInitCmd = new String[]{
-                    "ktinit.sh", "-t", token, "-c", ccacheFile.getAbsolutePath()
-            };
-        }
-
-        Process proc = null;
-        BufferedReader reader;
         try {
-            proc = Runtime.getRuntime().exec(tokenInitCmd);
-        } catch (IOException e) {
-            throwWith("Failed to do token init with token: " + token, e);
+            krbClient.storeTicket(tgtTicket, ccacheFile);
+        } catch (KrbException e) {
+            e.printStackTrace();
         }
-
-        int exitCode = 1;
-        reader = new BufferedReader(new InputStreamReader(
-                proc.getInputStream()));
-        try {
-            exitCode = proc.waitFor();
-        } catch (InterruptedException e) {
-            throwWith("Failed to do token init with token: " + token, e);
-        }
-
-        if (exitCode != 0) {
-            String errors = "";
-            StringBuffer lines = new StringBuffer();
-            String line;
-            try {
-                while (reader.ready()) {
-                    line = reader.readLine();
-                    lines.append(line).append("\n");
-                }
-                errors = lines.toString();
-            } catch (IOException e) {
-                errors = e.getMessage();
-            }
-            throw new RuntimeException(errors);
-        }
+        return true;
     }
 
     private File makeCcacheFile() throws IOException {
