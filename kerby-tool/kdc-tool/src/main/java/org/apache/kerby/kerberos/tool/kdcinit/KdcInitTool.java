@@ -21,33 +21,25 @@ package org.apache.kerby.kerberos.tool.kdcinit;
 
 import org.apache.kerby.kerberos.kerb.KrbException;
 import org.apache.kerby.kerberos.kerb.admin.Kadmin;
-import org.apache.kerby.kerberos.kerb.server.KdcServer;
 
 import java.io.File;
 
-public class KdcInitTool extends KdcServer {
+public class KdcInitTool {
     private Kadmin kadmin;
     private static File keytabFile;
 
     private static final String USAGE = "Usage: " +
         KdcInitTool.class.getSimpleName() +
-        " conf-dir keytab-dir";
+        " conf-dir keytab";
 
-    public KdcInitTool(File confDir) throws KrbException {
-        super(confDir);
-
-    }
-
-    @Override
-    public void init() throws KrbException {
-        super.init();
-
-        kadmin = new Kadmin(getKdcSetting(), getIdentityService());
+    public void init(File confDir) throws KrbException {
+        kadmin = new Kadmin(confDir);
         kadmin.createBuiltinPrincipals();
         kadmin.exportKeytab(keytabFile, kadmin.getKadminPrincipal());
-        System.out.println("The kadmin principal " + kadmin.getKadminPrincipal()
-            + " has exported into keytab file " + keytabFile.getAbsolutePath()
-            + ", please make sure to keep it.");
+        System.out.println("The kadmin principal " + kadmin.getKadminPrincipal() +
+                " has exported into keytab file " + keytabFile.getAbsolutePath() +
+                ", please make sure to keep it, because it will be used by kadmin tool" +
+                " for the authentication.");
     }
 
     public static void main(String[] args) throws KrbException {
@@ -59,25 +51,33 @@ public class KdcInitTool extends KdcServer {
         String confDirPath = args[0];
         String keyTabPath = args[1];
         File confDir = new File(confDirPath);
-        File keytabDir = new File(keyTabPath);
-        if (!confDir.exists() || !keytabDir.exists()) {
-            System.err.println("Invalid or not exist conf-dir or keytab-dir.");
-            System.exit(3);
+        keytabFile = new File(keyTabPath);
+        if (!confDir.exists()) {
+            System.err.println("Invalid or not exist conf-dir.");
+            System.exit(2);
+        }
+        File keytabFilePath = keytabFile.getParentFile();
+        if (keytabFilePath != null) {
+            if (!keytabFilePath.exists() && !keytabFilePath.mkdirs()) {
+                System.err.println("Could not create keytab path." + keytabFilePath);
+                System.exit(3);
+            }
+        } else {
+            System.err.println("Please give the absolute path of keytab file.");
+            System.exit(4);
         }
 
-        keytabFile = new File(keytabDir, "kadmin.keytab");
-
         if (keytabFile.exists()) {
-            System.err.println("There is one kadmin.keytab exsits," +
-                " this tool maybe have executed, if not," +
-                " please delete it or change the kertab-dir.");
+            System.err.println("There is one kadmin keytab exists in " + keyTabPath +
+                ", this tool maybe have been executed, if not," +
+                " please delete it or change the keytab-dir.");
             return;
         }
 
-        KdcInitTool kdcInitTool = new KdcInitTool(confDir);
+        KdcInitTool kdcInitTool = new KdcInitTool();
 
         try {
-            kdcInitTool.init();
+            kdcInitTool.init(confDir);
         } catch (KrbException e) {
           System.err.println("Errors occurred when init the kdc " + e.getMessage());
           return;
