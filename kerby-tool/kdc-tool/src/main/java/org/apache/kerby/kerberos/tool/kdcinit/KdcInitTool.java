@@ -32,7 +32,7 @@ public class KdcInitTool {
         KdcInitTool.class.getSimpleName() +
         " conf-dir keytab";
 
-    public void init(File confDir) throws KrbException {
+    private void init(File confDir) throws KrbException {
         kadmin = new Kadmin(confDir);
         kadmin.createBuiltinPrincipals();
         kadmin.exportKeytab(keytabFile, kadmin.getKadminPrincipal());
@@ -57,14 +57,9 @@ public class KdcInitTool {
             System.exit(2);
         }
         File keytabFilePath = keytabFile.getParentFile();
-        if (keytabFilePath != null) {
-            if (!keytabFilePath.exists() && !keytabFilePath.mkdirs()) {
-                System.err.println("Could not create keytab path." + keytabFilePath);
-                System.exit(3);
-            }
-        } else {
-            System.err.println("Please give the absolute path of keytab file.");
-            System.exit(4);
+        if (keytabFilePath != null && !keytabFilePath.exists() && !keytabFilePath.mkdirs()) {
+            System.err.println("Could not create keytab path." + keytabFilePath);
+            System.exit(3);
         }
 
         if (keytabFile.exists()) {
