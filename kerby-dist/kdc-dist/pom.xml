@@ -12,7 +12,7 @@
   See the License for the specific language governing permissions and
   limitations under the License. See accompanying LICENSE file.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -27,9 +27,15 @@
   <packaging>pom</packaging>
 
   <dependencies>
+    <!-- For KDC itself -->
     <dependency>
       <groupId>org.apache.kerby</groupId>
       <artifactId>kerby-kdc</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.kerby</groupId>
+      <artifactId>kerby-asn1</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -39,18 +45,91 @@
     </dependency>
     <dependency>
       <groupId>org.apache.kerby</groupId>
+      <artifactId>kerb-client-api-all</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.kerby</groupId>
+      <artifactId>token-provider</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-transport</artifactId>
+      <version>4.0.29.Final</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-handler</artifactId>
+      <version>4.0.29.Final</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-common</artifactId>
+      <version>4.0.29.Final</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-codec</artifactId>
+      <version>4.0.29.Final</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-buffer</artifactId>
+      <version>4.0.29.Final</version>
+    </dependency>
+
+    <!-- For KDC tool -->
+    <dependency>
+      <groupId>org.apache.kerby</groupId>
+      <artifactId>kdc-tool</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!-- For Zookeeper backend -->
+    <dependency>
+      <groupId>org.apache.kerby</groupId>
       <artifactId>zookeeper-backend</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.zookeeper</groupId>
+      <artifactId>zookeeper</artifactId>
+      <version>3.4.6</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty</artifactId>
+      <version>3.7.0.Final</version>
+    </dependency>
+
+    <!-- For json backend -->
     <dependency>
       <groupId>org.apache.kerby</groupId>
       <artifactId>json-backend</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.3.1</version>
+    </dependency>
+
+    <!-- For common and misc -->
+    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <version>${slf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.16</version>
     </dependency>
   </dependencies>
 
@@ -71,8 +150,27 @@
                 </goals>
                 <configuration>
                   <outputDirectory>lib</outputDirectory>
-                  <excludeTransitive>false</excludeTransitive>
+                  <excludeTransitive>true</excludeTransitive>
+                  <excludeGroupIds>junit, org.assertj</excludeGroupIds>
                 </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <configuration>
+              <appendAssemblyId>false</appendAssemblyId>
+              <descriptors>
+                <descriptor>assembly.xml</descriptor>
+              </descriptors>
+            </configuration>
+            <executions>
+              <execution>
+                <id>make-assembly</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
               </execution>
             </executions>
           </plugin>
@@ -80,5 +178,4 @@
       </build>
     </profile>
   </profiles>
-
 </project>

@@ -25,8 +25,8 @@ import org.apache.kerby.kerberos.kerb.common.EncryptionUtil;
 import org.apache.kerby.kerberos.kerb.common.KrbUtil;
 import org.apache.kerby.kerberos.kerb.identity.IdentityService;
 import org.apache.kerby.kerberos.kerb.identity.KrbIdentity;
+import org.apache.kerby.kerberos.kerb.identity.backend.BackendConfig;
 import org.apache.kerby.kerberos.kerb.keytab.Keytab;
-import org.apache.kerby.kerberos.kerb.server.BackendConfig;
 import org.apache.kerby.kerberos.kerb.server.KdcConfig;
 import org.apache.kerby.kerberos.kerb.server.KdcSetting;
 import org.apache.kerby.kerberos.kerb.server.KdcUtil;
@@ -80,15 +80,27 @@ public class Kadmin {
         return KrbUtil.makeKadminPrincipal(kdcSetting.getKdcRealm()).getName();
     }
 
+    public void checkBuiltinPrincipals() throws KrbException {
+        String tgsPrincipal = getTgsPrincipal();
+        String kadminPrincipal = getKadminPrincipal();
+        if (backend.getIdentity(tgsPrincipal) == null || backend.getIdentity(kadminPrincipal) == null ) {
+            throw new KrbException("The builtin principals do not exist in backend, please run the kdcinit tool.");
+        }
+    }
+
     public void createBuiltinPrincipals() throws KrbException {
         String tgsPrincipal = getTgsPrincipal();
         if (backend.getIdentity(tgsPrincipal) == null) {
             addPrincipal(tgsPrincipal);
+        } else {
+            throw new KrbException("The tgs principal already exists in backend.");
         }
 
         String kadminPrincipal = getKadminPrincipal();
         if (backend.getIdentity(kadminPrincipal) == null) {
             addPrincipal(kadminPrincipal);
+        } else {
+            throw new KrbException("The kadmin principal already exists in backend.");
         }
     }
 
@@ -212,7 +224,7 @@ public class Kadmin {
         KrbIdentity identity = backend.getIdentity(principal);
         if (identity == null) {
             throw new KrbException("Principal \""
-                    + identity.getPrincipalName() + "\" does not exist.");
+                    + principal + "\" does not exist.");
         }
         AdminHelper.updateIdentity(identity, kOptions);
         backend.updateIdentity(identity);

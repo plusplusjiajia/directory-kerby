@@ -26,10 +26,6 @@
   <name>Json identity backend</name>
   <description>Json identity backend</description>
 
-  <properties>
-    <json.version>2.3.1</json.version>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>org.apache.kerby</groupId>
@@ -45,20 +41,12 @@
       <groupId>org.apache.kerby</groupId>
       <artifactId>kerb-identity-test</artifactId>
       <version>${project.version}</version>
-      <type>test-jar</type>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
-      <version>${json.version}</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.12</version>
-      <scope>test</scope>
+      <version>2.3.1</version>
     </dependency>
   </dependencies>
 </project>
