@@ -93,14 +93,14 @@ public final class JaasKrbUtil {
     }
 
     public static Subject loginUsingToken(
-            String principal, File tokenCache, File armorCache, KrbSetting krbSetting)
+            String principal, File tokenCache, File armorCache)
             throws LoginException {
         Set<Principal> principals = new HashSet<Principal>();
         principals.add(new KerberosPrincipal(principal));
 
         Subject subject = new Subject(false, principals,
                 new HashSet<Object>(), new HashSet<Object>());
-        Configuration conf = useTokenCache(principal, tokenCache, armorCache, krbSetting);
+        Configuration conf = useTokenCache(principal, tokenCache, armorCache);
         String confName = "TokenCacheConf";
         LoginContext loginContext = new LoginContext(confName, subject, null, conf);
         loginContext.login();
@@ -108,14 +108,14 @@ public final class JaasKrbUtil {
     }
 
     public static Subject loginUsingToken(
-            String principal, String tokenStr, File armorCache, KrbSetting krbSetting)
+            String principal, String tokenStr, File armorCache)
             throws LoginException {
         Set<Principal> principals = new HashSet<Principal>();
         principals.add(new KerberosPrincipal(principal));
 
         Subject subject = new Subject(false, principals,
                 new HashSet<Object>(), new HashSet<Object>());
-        Configuration conf = useTokenStr(principal, tokenStr, armorCache, krbSetting);
+        Configuration conf = useTokenStr(principal, tokenStr, armorCache);
         String confName = "TokenStrConf";
         LoginContext loginContext = new LoginContext(confName, subject, null, conf);
         loginContext.login();
@@ -136,13 +136,13 @@ public final class JaasKrbUtil {
     }
 
     public static Configuration useTokenCache(String principal, File tokenCache,
-                                         File armorCache, KrbSetting krbSetting) {
-        return new TokenJaasConf(principal, tokenCache, armorCache, krbSetting);
+                                         File armorCache) {
+        return new TokenJaasConf(principal, tokenCache, armorCache);
     }
 
     public static Configuration useTokenStr(String principal, String tokenStr,
-                                         File armorCache, KrbSetting krbSetting) {
-        return new TokenJaasConf(principal, tokenStr, armorCache, krbSetting);
+                                         File armorCache) {
+        return new TokenJaasConf(principal, tokenStr, armorCache);
     }
 
     private static String getKrb5LoginModuleName() {
@@ -263,33 +263,28 @@ public final class JaasKrbUtil {
         private File tokenCache;
         private String tokenStr;
         private File armorCache;
-        private KrbSetting krbSetting;
 
-        public TokenJaasConf(String principal, File tokenCache, File armorCache,
-                             KrbSetting krbSetting) {
+        public TokenJaasConf(String principal, File tokenCache, File armorCache) {
             this.principal = principal;
             this.tokenCache = tokenCache;
             this.armorCache = armorCache;
-            this.krbSetting = krbSetting;
         }
 
-        public TokenJaasConf(String principal, String tokenStr, File armorCache,
-                             KrbSetting krbSetting) {
+        public TokenJaasConf(String principal, String tokenStr, File armorCache) {
             this.principal = principal;
             this.tokenStr = tokenStr;
             this.armorCache = armorCache;
-            this.krbSetting = krbSetting;
         }
 
         @Override
         public AppConfigurationEntry[] getAppConfigurationEntry(String name) {
             Map<String, String> options = new HashMap<String, String>();
-            options.put("tokenCache", tokenCache.getAbsolutePath());
-            options.put("tokenStr", tokenStr);
+            if (tokenCache != null) {
+                options.put("tokenCache", tokenCache.getAbsolutePath());
+            } else if (tokenStr != null) {
+                options.put("tokenStr", tokenStr);
+            }
             options.put("armorCache", armorCache.getAbsolutePath());
-            options.put("tcpPort", Integer.toString(krbSetting.getKdcTcpPort()));
-            options.put("udpPort", Integer.toString(krbSetting.getKdcUdpPort()));
-            options.put("realm", krbSetting.getKdcRealm());
             options.put("principal", principal);
             options.put("useToken", "true");
             options.put("useKeyTab", "false");
@@ -301,7 +296,8 @@ public final class JaasKrbUtil {
             options.put("debug", String.valueOf(enableDebug));
 
             return new AppConfigurationEntry[]{
-                    new AppConfigurationEntry("org.apache.kerby.kerberos.kerb.client.TokenAuthLoginModule",
+                    new AppConfigurationEntry(
+                            "org.apache.kerby.kerberos.kerb.client.TokenAuthLoginModule",
                             AppConfigurationEntry.LoginModuleControlFlag.REQUIRED,
                             options)};
         }

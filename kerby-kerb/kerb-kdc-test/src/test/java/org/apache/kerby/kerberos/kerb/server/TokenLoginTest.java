@@ -24,8 +24,13 @@ import org.junit.Test;
 public class TokenLoginTest extends LoginTestBase {
 
     @Test
-    public void testLogin() throws Exception {
-        checkSubject(super.loginClientUsingToken());
+    public void testLoginWithTokenStr() throws Exception {
+        checkSubject(super.loginClientUsingTokenStr());
+    }
+
+       @Test
+    public void testLoginWithTokenCache() throws Exception {
+        checkSubject(super.loginClientUsingTokenCache());
     }
 
 }

@@ -38,7 +38,6 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 
-
 public class TokenAuthLoginModule implements LoginModule {
     private static final Logger LOG = LoggerFactory.getLogger(TokenAuthLoginModule.class);
 
@@ -60,10 +59,6 @@ public class TokenAuthLoginModule implements LoginModule {
     KrbToken krbToken = null;
     private File ccacheFile;
     private File armorCache;
-    private int tcpPort;
-    private int udpPort;
-    private String kdcRealm;
-
 
     @Override
     public void initialize(Subject subject, CallbackHandler callbackHandler,
@@ -74,14 +69,11 @@ public class TokenAuthLoginModule implements LoginModule {
         princName = (String)options.get("principal");
         // initialize any configured options
         useToken = "true".equalsIgnoreCase((String) options.get("useToken"));
-        tokenStr = (String) options.get("token");
+        tokenStr = (String) options.get("tokenStr");
         tokenCacheName = (String) options.get("tokenCache");
         useDefaultTokenCache = "true".equalsIgnoreCase((String) options.get
                 ("useDefaultTokenCache"));
         armorCache = new File((String) options.get("armorCache"));
-        tcpPort = Integer.parseInt((String) options.get("tcpPort"));
-        udpPort = Integer.parseInt((String) options.get("udpPort"));
-        kdcRealm = (String) options.get("realm");
     }
 
     @Override
@@ -104,7 +96,7 @@ public class TokenAuthLoginModule implements LoginModule {
             return false;
         } else {
             if(useToken) {
-                subject.getPublicCredentials().add(krbToken); // better put in private set?
+                subject.getPublicCredentials().add(krbToken);
             }
         }
         commitSucceeded = true;
@@ -194,10 +186,8 @@ public class TokenAuthLoginModule implements LoginModule {
 
         KrbClient krbClient = null;
         try {
-            krbClient = new KrbClient();
-            krbClient.setKdcTcpPort(tcpPort);
-            krbClient.setKdcUdpPort(udpPort);
-            krbClient.setKdcRealm(kdcRealm);
+            File conf = new File(System.getProperty(Krb5Conf.KRB5_CONF));
+            krbClient = new KrbClient(conf.getParentFile());
             krbClient.init();
         } catch (KrbException e) {
             e.printStackTrace();

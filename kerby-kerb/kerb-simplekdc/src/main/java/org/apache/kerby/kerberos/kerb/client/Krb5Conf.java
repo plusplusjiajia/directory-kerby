@@ -12,7 +12,7 @@ import java.io.InputStream;
  * Generate krb5 file using given kdc server settings.
  */
 public class Krb5Conf {
-    private static final String KRB5_CONF = "java.security.krb5.conf";
+    public static final String KRB5_CONF = "java.security.krb5.conf";
     private static final String KRB5_CONF_FILE = "krb5.conf";
     private SimpleKdcServer kdcServer;
 
@@ -41,6 +41,13 @@ public class Krb5Conf {
                 : setting.getKdcTcpPort();
         content = content.replaceAll("_PORT_",
                 String.valueOf(kdcPort));
+
+        if(setting.allowTcp()) {
+            content = content.replaceAll("#kdc_tcp_port", "kdc_tcp_port = " + setting.getKdcTcpPort());
+        }
+        if(setting.allowUdp()) {
+            content = content.replaceAll("#kdc_udp_port", "kdc_udp_port = " + setting.getKdcUdpPort());
+        }
 
         int udpLimit = setting.allowUdp() ? 4096 : 1;
         content = content.replaceAll("_UDP_LIMIT_", String.valueOf(udpLimit));
