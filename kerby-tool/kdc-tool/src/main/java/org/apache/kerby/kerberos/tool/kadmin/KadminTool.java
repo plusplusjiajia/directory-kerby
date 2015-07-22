@@ -33,6 +33,8 @@ import org.apache.kerby.kerberos.tool.kadmin.command.KeytabRemoveCommand;
 import org.apache.kerby.kerberos.tool.kadmin.command.ListPrincipalCommand;
 import org.apache.kerby.kerberos.tool.kadmin.command.ModifyPrincipalCommand;
 import org.apache.kerby.kerberos.tool.kadmin.command.RenamePrincipalCommand;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.security.auth.login.LoginException;
 import java.io.File;
@@ -40,6 +42,8 @@ import java.util.Map;
 import java.util.Scanner;
 
 public class KadminTool {
+    private static final Logger LOG = LoggerFactory.getLogger(KadminTool.class);
+
     private static final String PROMPT = KadminTool.class.getSimpleName() + ".local";
     private static final String REQUEST_LIST = "Available " + PROMPT + " requests:\n"
             + "\n"
@@ -74,8 +78,9 @@ public class KadminTool {
             + "quit, exit, q            Exit program.";
 
     private static final String USAGE =
-        "Usage: kadmin [-c cache_name] [-k keytab]"
-            + "\n";
+        "Usage: sh bin/kadmin.sh <conf-dir> [-c cache_name]|[-k keytab]\n"
+            + "\tExample:\n"
+            + "\t\tsh bin/kadmin.sh conf -k /home/admin.keytab\n";
 
     private static void printUsage(String error) {
         System.err.println(error + "\n");
@@ -131,25 +136,29 @@ public class KadminTool {
         executor.execute(command);
     }
 
-    private static File getConfDir() {
+    private static File getConfDir(String[] args) {
         File confDir;
         String envDir;
-        try {
-            Map<String, String> mapEnv = System.getenv();
-            envDir = mapEnv.get("KRB5_KDC_DIR");
-        } catch (SecurityException e) {
-            envDir = null;
-        }
-        if (envDir != null) {
-            confDir = new File(envDir);
-        } else {
-            confDir = new File("/etc/kerby/"); // for Linux. TODO: fix for Win etc.
-        }
+        confDir = new File(args[0]);
+        if (confDir == null || !confDir.exists()) {
+            try {
+                Map<String, String> mapEnv = System.getenv();
+                envDir = mapEnv.get("KRB5_KDC_DIR");
+            } catch (SecurityException e) {
+                envDir = null;
+            }
+            if (envDir != null) {
+                confDir = new File(envDir);
+            } else {
+                confDir = new File("/etc/kerby/"); // for Linux. TODO: fix for Win etc.
+            }
 
-        if (!confDir.exists()) {
-            throw new RuntimeException("Can not locate KDC backend directory "
-                + confDir.getAbsolutePath());
+            if (!confDir.exists()) {
+                throw new RuntimeException("Can not locate KDC backend directory "
+                        + confDir.getAbsolutePath());
+            }
         }
+        LOG.info("Conf dir:" + confDir.getAbsolutePath());
         return confDir;
     }
 
@@ -162,13 +171,13 @@ public class KadminTool {
 
         Kadmin kadmin;
         try {
-            kadmin = new Kadmin(getConfDir());
+            kadmin = new Kadmin(getConfDir(args));
         } catch (KrbException e) {
             System.err.println("Failed to init Kadmin due to " + e.getMessage());
             return;
         }
 
-        KOptions kOptions = ToolUtil.parseOptions(args, 0, args.length - 1);
+        KOptions kOptions = ToolUtil.parseOptions(args, 1, args.length - 1);
         if (kOptions == null) {
             System.err.println(USAGE);
             return;
@@ -188,9 +197,8 @@ public class KadminTool {
                     + e.getMessage());
                 return;
             }
-        } else if (kOptions.contains(KadminOption.KEYTAB)
-            || kOptions.contains(KadminOption.K)) {
-            File keyTabFile = new File(kOptions.getStringOption(KadminOption.KEYTAB));
+        } else if (kOptions.contains(KadminOption.K)) {
+            File keyTabFile = new File(kOptions.getStringOption(KadminOption.K));
             if (keyTabFile == null || !keyTabFile.exists()) {
                 printUsage("Need the valid keytab file.");
                 return;
