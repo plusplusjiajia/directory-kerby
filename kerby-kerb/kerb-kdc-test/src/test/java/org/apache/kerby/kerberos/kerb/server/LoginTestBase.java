@@ -19,13 +19,8 @@
  */
 package org.apache.kerby.kerberos.kerb.server;
 
-import org.apache.kerby.kerberos.kerb.KrbRuntime;
 import org.apache.kerby.kerberos.kerb.client.JaasKrbUtil;
-import org.apache.kerby.kerberos.kerb.client.TokenCache;
-import org.apache.kerby.kerberos.kerb.provider.TokenEncoder;
-import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
 import org.apache.kerby.kerberos.kerb.spec.ticket.TgtTicket;
-import org.apache.kerby.kerberos.provider.token.JwtTokenProvider;
 import org.junit.After;
 import org.junit.Before;
 
@@ -33,9 +28,6 @@ import javax.security.auth.Subject;
 import javax.security.auth.login.LoginException;
 import java.io.File;
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -45,15 +37,6 @@ public class LoginTestBase extends KdcTestBase {
 
     protected File ticketCacheFile;
     protected File serviceKeytabFile;
-    protected File tokenCache;
-    protected File armorCache;
-
-    static final String GROUP = "sales-group";
-    static final String ROLE = "ADMIN";
-
-    static {
-        KrbRuntime.setTokenProvider(new JwtTokenProvider());
-    }
 
     @Before
     @Override
@@ -62,7 +45,6 @@ public class LoginTestBase extends KdcTestBase {
 
         ticketCacheFile = new File(getTestDir(), "test-tkt.cc");
         serviceKeytabFile = new File(getTestDir(), "test-service.keytab");
-        armorCache = new File(getTestDir(), "armorcache.cc");
     }
 
     protected Subject loginClientUsingPassword() throws LoginException {
@@ -85,35 +67,12 @@ public class LoginTestBase extends KdcTestBase {
             serviceKeytabFile);
     }
 
-    protected Subject loginClientUsingTokenStr() throws Exception {
-        String tokenStr = createTokenAndArmorCache();
+    protected Subject loginClientUsingTokenStr(String tokenStr, File armorCache) throws Exception {
         return JaasKrbUtil.loginUsingToken(getClientPrincipal(), tokenStr, armorCache);
     }
 
-    protected Subject loginClientUsingTokenCache() throws Exception {
-        createTokenAndArmorCache();
+    protected Subject loginClientUsingTokenCache(File tokenCache, File armorCache) throws Exception {
         return JaasKrbUtil.loginUsingToken(getClientPrincipal(), tokenCache, armorCache);
-    }
-
-    protected String createTokenAndArmorCache() throws Exception {
-
-        TokenEncoder tokenEncoder = null;
-        try {
-            tokenEncoder = KrbRuntime.getTokenProvider().createTokenEncoder();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        AuthToken token = issueToken(getClientPrincipal());
-        String tokenStr = tokenEncoder.encodeAsString(token);
-        TokenCache.writeToken(tokenStr);
-        System.out.println("Issued token: " + tokenStr);
-        tokenCache = TokenCache.getDefaultTokenCache();
-
-        TgtTicket tgt = getKrbClient().requestTgtWithPassword(getClientPrincipal(),
-                getClientPassword());
-        getKrbClient().storeTicket(tgt, armorCache);
-
-        return tokenStr;
     }
 
     protected void checkSubject(Subject subject) {
@@ -128,36 +87,5 @@ public class LoginTestBase extends KdcTestBase {
         serviceKeytabFile.delete();
 
         super.tearDown();
-    }
-
-    public static AuthToken issueToken(String principal) {
-        AuthToken authToken = KrbRuntime.getTokenProvider().createTokenFactory().createToken();
-
-        String iss = "token-service";
-        authToken.setIssuer(iss);
-
-        String sub = principal;
-        authToken.setSubject(sub);
-
-        authToken.addAttribute("group", GROUP);
-
-        authToken.addAttribute("role", ROLE);
-
-        List<String> aud = new ArrayList<String>();
-        aud.add("krb5kdc-with-token-extension");
-        authToken.setAudiences(aud);
-
-        // Set expiration in 60 minutes
-        final Date now = new Date(new Date().getTime() / 1000 * 1000);
-        Date exp = new Date(now.getTime() + 1000 * 60 * 60);
-        authToken.setExpirationTime(exp);
-
-        Date nbf = now;
-        authToken.setNotBeforeTime(nbf);
-
-        Date iat = now;
-        authToken.setIssueTime(iat);
-
-        return authToken;
     }
 }

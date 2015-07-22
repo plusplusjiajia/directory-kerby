@@ -297,7 +297,7 @@ public final class JaasKrbUtil {
 
             return new AppConfigurationEntry[]{
                     new AppConfigurationEntry(
-                            "org.apache.kerby.kerberos.kerb.client.TokenAuthLoginModule",
+                            "org.apache.kerby.kerberos.kerb.integration.test.jaas.TokenAuthLoginModule",
                             AppConfigurationEntry.LoginModuleControlFlag.REQUIRED,
                             options)};
         }

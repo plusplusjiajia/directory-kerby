@@ -17,10 +17,12 @@
  *  under the License.
  *
  */
-package org.apache.kerby.kerberos.kerb.client;
+package org.apache.kerby.kerberos.kerb.integration.test.jaas;
 
 import org.apache.kerby.kerberos.kerb.KrbException;
 import org.apache.kerby.kerberos.kerb.KrbRuntime;
+import org.apache.kerby.kerberos.kerb.client.Krb5Conf;
+import org.apache.kerby.kerberos.kerb.client.KrbClient;
 import org.apache.kerby.kerberos.kerb.provider.TokenDecoder;
 import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
 import org.apache.kerby.kerberos.kerb.spec.base.KrbToken;

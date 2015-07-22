@@ -17,7 +17,7 @@
  *  under the License. 
  *  
  */
-package org.apache.kerby.kerberos.kerb.client;
+package org.apache.kerby.kerberos.kerb.integration.test.jaas;
 
 
 import org.apache.commons.io.output.FileWriterWithEncoding;
