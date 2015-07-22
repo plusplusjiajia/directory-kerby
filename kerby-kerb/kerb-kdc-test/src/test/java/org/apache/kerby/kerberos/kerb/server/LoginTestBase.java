@@ -67,22 +67,22 @@ public class LoginTestBase extends KdcTestBase {
 
     protected Subject loginClientUsingPassword() throws LoginException {
         return JaasKrbUtil.loginUsingPassword(getClientPrincipal(),
-                getClientPassword());
+            getClientPassword());
     }
 
     protected Subject loginClientUsingTicketCache() throws Exception {
         TgtTicket tgt = getKrbClient().requestTgtWithPassword(getClientPrincipal(),
-                getClientPassword());
+            getClientPassword());
         getKrbClient().storeTicket(tgt, ticketCacheFile);
 
         return JaasKrbUtil.loginUsingTicketCache(getClientPrincipal(),
-                ticketCacheFile);
+            ticketCacheFile);
     }
 
     protected Subject loginServiceUsingKeytab() throws Exception {
         getKdcServer().exportPrincipal(getServerPrincipal(), serviceKeytabFile);
         return JaasKrbUtil.loginUsingKeytab(getServerPrincipal(),
-                serviceKeytabFile);
+            serviceKeytabFile);
     }
 
     protected Subject loginClientUsingTokenStr() throws Exception {
