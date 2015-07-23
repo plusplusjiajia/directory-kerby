@@ -23,6 +23,7 @@ import org.apache.kerby.kerberos.kerb.KrbException;
 import org.apache.kerby.kerberos.kerb.KrbRuntime;
 import org.apache.kerby.kerberos.kerb.client.Krb5Conf;
 import org.apache.kerby.kerberos.kerb.client.KrbClient;
+import org.apache.kerby.kerberos.kerb.client.KrbConfig;
 import org.apache.kerby.kerberos.kerb.provider.TokenDecoder;
 import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
 import org.apache.kerby.kerberos.kerb.spec.base.KrbToken;
@@ -40,72 +41,78 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 
+/**
+ * This <code>LoginModule</code> authenticates users using token
+ * tokenStr: token-string
+ * tokenCache: token-cache-file
+ * armorCache: armor-cache-file
+ */
 public class TokenAuthLoginModule implements LoginModule {
     private static final Logger LOG = LoggerFactory.getLogger(TokenAuthLoginModule.class);
 
-    // initial state
+    /** initial state*/
     private Subject subject;
 
-    // configurable option
-    private boolean useToken = false;
-    private boolean useDefaultTokenCache = false;
+    /** configurable option*/
     private String tokenCacheName = null;
 
-    // the authentication status
+    /** the authentication status*/
     private boolean succeeded = false;
     private boolean commitSucceeded = false;
 
-     private String princName = null;
+    private String princName = null;
     private String tokenStr = null;
     private AuthToken authToken = null;
     KrbToken krbToken = null;
-    private File ccacheFile;
     private File armorCache;
+    private File tgtCache;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void initialize(Subject subject, CallbackHandler callbackHandler,
                            Map<String, ?> sharedState, Map<String, ?> options) {
 
         this.subject = subject;
-
+        /** initialize any configured options*/
         princName = (String)options.get("principal");
-        // initialize any configured options
-        useToken = "true".equalsIgnoreCase((String) options.get("useToken"));
         tokenStr = (String) options.get("tokenStr");
         tokenCacheName = (String) options.get("tokenCache");
-        useDefaultTokenCache = "true".equalsIgnoreCase((String) options.get
-                ("useDefaultTokenCache"));
         armorCache = new File((String) options.get("armorCache"));
+        tgtCache = new File((String) options.get("tgtCache"));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean login() throws LoginException {
         validateConfiguration();
 
-        if (useToken) {
-            boolean result = tokenLogin();
-            succeeded = result;
-        } else {
-            return false;
-        }
+        succeeded = tokenLogin();
         return succeeded;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean commit() throws LoginException {
 
         if (succeeded == false) {
             return false;
         } else {
-            if(useToken) {
-                subject.getPublicCredentials().add(krbToken);
-            }
+            subject.getPublicCredentials().add(krbToken);
         }
         commitSucceeded = true;
         LOG.info("Commit Succeeded \n");
         return true;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean abort() throws LoginException {
         if (succeeded == false) {
@@ -121,6 +128,9 @@ public class TokenAuthLoginModule implements LoginModule {
         return true;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean logout() throws LoginException {
         LOG.info("\t\t[TokenAuthLoginModule]: Entering logout");
@@ -149,19 +159,12 @@ public class TokenAuthLoginModule implements LoginModule {
     }
 
     private void validateConfiguration() throws LoginException {
-        if (!useToken) return;
 
         String error = "";
-        if (useDefaultTokenCache) {
-            if (tokenStr != null || tokenCacheName != null) {
-                error = "useDefaultTokenCache is specified, but token or tokenCacheName is also specified";
-            }
-        } else {
-            if (tokenStr == null && tokenCacheName == null) {
-                error = "useToken is specified but no token or token cache is provided";
-            } else if (tokenStr != null && tokenCacheName != null) {
-                error = "either token or token cache should be provided but not both";
-            }
+        if (tokenStr == null && tokenCacheName == null) {
+            error = "useToken is specified but no token or token cache is provided";
+        } else if (tokenStr != null && tokenCacheName != null) {
+            error = "either token or token cache should be provided but not both";
         }
 
         if (!error.isEmpty()) {
@@ -188,10 +191,14 @@ public class TokenAuthLoginModule implements LoginModule {
 
         KrbClient krbClient = null;
         try {
-            File conf = new File(System.getProperty(Krb5Conf.KRB5_CONF));
-            krbClient = new KrbClient(conf.getParentFile());
+            File confFile = new File(System.getProperty(Krb5Conf.KRB5_CONF));
+            KrbConfig krbConfig = new KrbConfig();
+            krbConfig.addIniConfig(confFile);
+            krbClient = new KrbClient(krbConfig);
             krbClient.init();
         } catch (KrbException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
@@ -204,30 +211,33 @@ public class TokenAuthLoginModule implements LoginModule {
         }
 
         try {
-            ccacheFile = makeCcacheFile();
+            tgtCache = makeTgtCache();
         } catch (IOException e) {
-            throwWith("Failed to create tmp ccache file", e);
+            e.printStackTrace();
         }
         try {
-            krbClient.storeTicket(tgtTicket, ccacheFile);
+            krbClient.storeTicket(tgtTicket, tgtCache);
         } catch (KrbException e) {
             e.printStackTrace();
         }
         return true;
     }
 
-    private File makeCcacheFile() throws IOException {
-        File ccacheFile = File.createTempFile("/tmp/krb5cc_token", ".tmp");
-        ccacheFile.setExecutable(false);
-        ccacheFile.setReadable(true);
-        ccacheFile.setWritable(true);
+    private File makeTgtCache() throws IOException {
 
-        return ccacheFile;
+        if (!tgtCache.exists() && !tgtCache.createNewFile()) {
+            throw new IOException("Failed to create tgtcache file "
+                    + tgtCache.getAbsolutePath());
+        }
+        tgtCache.setExecutable(false);
+        tgtCache.setReadable(true);
+        tgtCache.setWritable(true);
+        return tgtCache;
     }
 
     private void cleanup() {
-        if (useToken && ccacheFile != null && ccacheFile.exists()) {
-            ccacheFile.delete();
+        if (tgtCache != null && tgtCache.exists()) {
+            tgtCache.delete();
         }
     }
 

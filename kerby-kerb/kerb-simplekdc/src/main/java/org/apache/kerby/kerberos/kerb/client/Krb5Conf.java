@@ -39,14 +39,14 @@ public class Krb5Conf {
 
         int kdcPort = setting.allowUdp() ? setting.getKdcUdpPort()
                 : setting.getKdcTcpPort();
-        content = content.replaceAll("_PORT_",
+        content = content.replaceAll("_KDC_PORT_",
                 String.valueOf(kdcPort));
 
         if(setting.allowTcp()) {
-            content = content.replaceAll("#kdc_tcp_port", "kdc_tcp_port = " + setting.getKdcTcpPort());
+            content = content.replaceAll("#_KDC_TCP_PORT_", "kdc_tcp_port = " + setting.getKdcTcpPort());
         }
         if(setting.allowUdp()) {
-            content = content.replaceAll("#kdc_udp_port", "kdc_udp_port = " + setting.getKdcUdpPort());
+            content = content.replaceAll("#_KDC_UDP_PORT_", "kdc_udp_port = " + setting.getKdcUdpPort());
         }
 
         int udpLimit = setting.allowUdp() ? 4096 : 1;

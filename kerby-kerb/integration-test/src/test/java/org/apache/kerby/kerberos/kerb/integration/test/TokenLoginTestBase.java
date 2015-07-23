@@ -27,17 +27,17 @@ import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
 import org.apache.kerby.kerberos.kerb.spec.ticket.TgtTicket;
 import org.apache.kerby.kerberos.provider.token.JwtTokenProvider;
 import org.junit.Before;
-import org.junit.Test;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class TokenLoginTest extends LoginTestBase {
+public class TokenLoginTestBase extends LoginTestBase {
 
-    protected File tokenCache;
-    protected File armorCache;
+    private File tokenCache;
+    private File armorCache;
+    private File tgtCache;
 
     static final String GROUP = "sales-group";
     static final String ROLE = "ADMIN";
@@ -51,9 +51,10 @@ public class TokenLoginTest extends LoginTestBase {
     public void setUp() throws Exception {
         super.setUp();
         armorCache = new File(getTestDir(), "armorcache.cc");
+        tgtCache = new File(getTestDir(), "tgtcache.cc");
     }
 
-    protected String createTokenAndArmorCache() throws Exception {
+    private String createTokenAndArmorCache() throws Exception {
 
         TokenEncoder tokenEncoder = null;
         try {
@@ -74,7 +75,7 @@ public class TokenLoginTest extends LoginTestBase {
         return tokenStr;
     }
 
-    public static AuthToken issueToken(String principal) {
+    private AuthToken issueToken(String principal) {
         AuthToken authToken = KrbRuntime.getTokenProvider().createTokenFactory().createToken();
 
         String iss = "token-service";
@@ -105,15 +106,13 @@ public class TokenLoginTest extends LoginTestBase {
         return authToken;
     }
 
-    @Test
     public void testLoginWithTokenStr() throws Exception {
         String tokenStr = createTokenAndArmorCache();
-        checkSubject(super.loginClientUsingTokenStr(tokenStr, armorCache));
+        checkSubject(super.loginClientUsingTokenStr(tokenStr, armorCache, tgtCache));
     }
 
-       @Test
     public void testLoginWithTokenCache() throws Exception {
         createTokenAndArmorCache();
-        checkSubject(super.loginClientUsingTokenCache(tokenCache, armorCache));
+        checkSubject(super.loginClientUsingTokenCache(tokenCache, armorCache, tgtCache));
     }
 }

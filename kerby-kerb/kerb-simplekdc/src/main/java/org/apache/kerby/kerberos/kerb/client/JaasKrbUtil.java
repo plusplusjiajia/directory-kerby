@@ -93,14 +93,14 @@ public final class JaasKrbUtil {
     }
 
     public static Subject loginUsingToken(
-            String principal, File tokenCache, File armorCache)
+            String principal, File tokenCache, File armorCache, File tgtCache)
             throws LoginException {
         Set<Principal> principals = new HashSet<Principal>();
         principals.add(new KerberosPrincipal(principal));
 
         Subject subject = new Subject(false, principals,
                 new HashSet<Object>(), new HashSet<Object>());
-        Configuration conf = useTokenCache(principal, tokenCache, armorCache);
+        Configuration conf = useTokenCache(principal, tokenCache, armorCache, tgtCache);
         String confName = "TokenCacheConf";
         LoginContext loginContext = new LoginContext(confName, subject, null, conf);
         loginContext.login();
@@ -108,14 +108,14 @@ public final class JaasKrbUtil {
     }
 
     public static Subject loginUsingToken(
-            String principal, String tokenStr, File armorCache)
+            String principal, String tokenStr, File armorCache, File tgtCache)
             throws LoginException {
         Set<Principal> principals = new HashSet<Principal>();
         principals.add(new KerberosPrincipal(principal));
 
         Subject subject = new Subject(false, principals,
                 new HashSet<Object>(), new HashSet<Object>());
-        Configuration conf = useTokenStr(principal, tokenStr, armorCache);
+        Configuration conf = useTokenStr(principal, tokenStr, armorCache, tgtCache);
         String confName = "TokenStrConf";
         LoginContext loginContext = new LoginContext(confName, subject, null, conf);
         loginContext.login();
@@ -136,13 +136,13 @@ public final class JaasKrbUtil {
     }
 
     public static Configuration useTokenCache(String principal, File tokenCache,
-                                         File armorCache) {
-        return new TokenJaasConf(principal, tokenCache, armorCache);
+                                         File armorCache, File tgtCache) {
+        return new TokenJaasConf(principal, tokenCache, armorCache, tgtCache);
     }
 
     public static Configuration useTokenStr(String principal, String tokenStr,
-                                         File armorCache) {
-        return new TokenJaasConf(principal, tokenStr, armorCache);
+                                         File armorCache, File tgtCache) {
+        return new TokenJaasConf(principal, tokenStr, armorCache, tgtCache);
     }
 
     private static String getKrb5LoginModuleName() {
@@ -263,37 +263,41 @@ public final class JaasKrbUtil {
         private File tokenCache;
         private String tokenStr;
         private File armorCache;
+        private File tgtCache;
 
-        public TokenJaasConf(String principal, File tokenCache, File armorCache) {
+        /**
+         * Implementation of CopyListing::buildListing().
+         * Iterates over all source paths mentioned in the input-file.
+         *
+         * @param pathToListFile Path on HDFS where the listing file is written.
+         * @param options        Input Options for DistCp (indicating source/target paths.)
+         * @throws IOException
+         */
+        public TokenJaasConf(String principal, File tokenCache, File armorCache, File tgtCache) {
             this.principal = principal;
             this.tokenCache = tokenCache;
             this.armorCache = armorCache;
+            this.tgtCache = tgtCache;
         }
 
-        public TokenJaasConf(String principal, String tokenStr, File armorCache) {
+        public TokenJaasConf(String principal, String tokenStr, File armorCache, File tgtCache) {
             this.principal = principal;
             this.tokenStr = tokenStr;
             this.armorCache = armorCache;
+            this.tgtCache = tgtCache;
         }
 
         @Override
         public AppConfigurationEntry[] getAppConfigurationEntry(String name) {
             Map<String, String> options = new HashMap<String, String>();
+            options.put("principal", principal);
             if (tokenCache != null) {
                 options.put("tokenCache", tokenCache.getAbsolutePath());
             } else if (tokenStr != null) {
                 options.put("tokenStr", tokenStr);
             }
             options.put("armorCache", armorCache.getAbsolutePath());
-            options.put("principal", principal);
-            options.put("useToken", "true");
-            options.put("useKeyTab", "false");
-            options.put("storeKey", "true");
-            options.put("doNotPrompt", "true");
-            options.put("renewTGT", "false");
-            options.put("refreshKrb5Config", "true");
-            options.put("isInitiator", "false");
-            options.put("debug", String.valueOf(enableDebug));
+            options.put("tgtCache", tgtCache.getAbsolutePath());
 
             return new AppConfigurationEntry[]{
                     new AppConfigurationEntry(
