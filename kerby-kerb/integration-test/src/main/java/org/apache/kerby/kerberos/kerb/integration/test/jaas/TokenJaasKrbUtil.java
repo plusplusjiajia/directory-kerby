@@ -62,7 +62,7 @@ public class TokenJaasKrbUtil {
     }
 
     /**
-     * login using token cache.
+     * login using token string.
      *
      * @param principal The client principal name
      * @param tokenStr the token string for login
