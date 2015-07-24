@@ -26,10 +26,19 @@ import org.apache.kerby.kerberos.kerb.KrbException;
 import java.io.*;
 import java.nio.charset.Charset;
 
+/**
+ * This class provides APIs for converting token cache file with token string.
+ */
 public class TokenCache {
     private static final String DEFAULT_TOKEN_CACHE_PATH = ".tokenauth";
     private static final String TOKEN_CACHE_FILE = ".tokenauth.token";
 
+    /**
+     * Obtain token string from token cache file.
+     *
+     * @param tokenCacheFile The file stored token
+     * @return Token string
+     */
     public static String readToken(String tokenCacheFile) {
         File cacheFile;
 
@@ -54,13 +63,18 @@ public class TokenCache {
             if (line != null) {
                 token = line;
             }
-        } catch (IOException ex) { //NOPMD
+        } catch (IOException ex) {
             ex.printStackTrace();
         }
 
         return token;
     }
 
+    /**
+     * Write the token string to token cache file.
+     *
+     * @param token The token string
+     */
     public static void writeToken(String token) {
         File cacheFile = getDefaultTokenCache();
 
@@ -87,6 +101,11 @@ public class TokenCache {
         }
     }
 
+    /**
+     * Get the default token cache.
+     *
+     * @return  The default token cache
+     */
     public static File getDefaultTokenCache() {
         String homeDir = System.getProperty("user.home", DEFAULT_TOKEN_CACHE_PATH);
         return new File(homeDir, TOKEN_CACHE_FILE);

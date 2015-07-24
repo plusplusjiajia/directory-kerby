@@ -92,36 +92,6 @@ public final class JaasKrbUtil {
         return loginContext.getSubject();
     }
 
-    public static Subject loginUsingToken(
-            String principal, File tokenCache, File armorCache, File tgtCache)
-            throws LoginException {
-        Set<Principal> principals = new HashSet<Principal>();
-        principals.add(new KerberosPrincipal(principal));
-
-        Subject subject = new Subject(false, principals,
-                new HashSet<Object>(), new HashSet<Object>());
-        Configuration conf = useTokenCache(principal, tokenCache, armorCache, tgtCache);
-        String confName = "TokenCacheConf";
-        LoginContext loginContext = new LoginContext(confName, subject, null, conf);
-        loginContext.login();
-        return loginContext.getSubject();
-    }
-
-    public static Subject loginUsingToken(
-            String principal, String tokenStr, File armorCache, File tgtCache)
-            throws LoginException {
-        Set<Principal> principals = new HashSet<Principal>();
-        principals.add(new KerberosPrincipal(principal));
-
-        Subject subject = new Subject(false, principals,
-                new HashSet<Object>(), new HashSet<Object>());
-        Configuration conf = useTokenStr(principal, tokenStr, armorCache, tgtCache);
-        String confName = "TokenStrConf";
-        LoginContext loginContext = new LoginContext(confName, subject, null, conf);
-        loginContext.login();
-        return loginContext.getSubject();
-    }
-
     public static Configuration usePassword(String principal) {
         return new PasswordJaasConf(principal);
     }
@@ -133,16 +103,6 @@ public final class JaasKrbUtil {
 
     public static Configuration useKeytab(String principal, File keytabFile) {
         return new KeytabJaasConf(principal, keytabFile);
-    }
-
-    public static Configuration useTokenCache(String principal, File tokenCache,
-                                         File armorCache, File tgtCache) {
-        return new TokenJaasConf(principal, tokenCache, armorCache, tgtCache);
-    }
-
-    public static Configuration useTokenStr(String principal, String tokenStr,
-                                         File armorCache, File tgtCache) {
-        return new TokenJaasConf(principal, tokenStr, armorCache, tgtCache);
     }
 
     private static String getKrb5LoginModuleName() {
@@ -255,55 +215,6 @@ public final class JaasKrbUtil {
                     }
                 }
             }
-        }
-    }
-
-    static class TokenJaasConf extends Configuration {
-        private String principal;
-        private File tokenCache;
-        private String tokenStr;
-        private File armorCache;
-        private File tgtCache;
-
-        /**
-         * Implementation of CopyListing::buildListing().
-         * Iterates over all source paths mentioned in the input-file.
-         *
-         * @param pathToListFile Path on HDFS where the listing file is written.
-         * @param options        Input Options for DistCp (indicating source/target paths.)
-         * @throws IOException
-         */
-        public TokenJaasConf(String principal, File tokenCache, File armorCache, File tgtCache) {
-            this.principal = principal;
-            this.tokenCache = tokenCache;
-            this.armorCache = armorCache;
-            this.tgtCache = tgtCache;
-        }
-
-        public TokenJaasConf(String principal, String tokenStr, File armorCache, File tgtCache) {
-            this.principal = principal;
-            this.tokenStr = tokenStr;
-            this.armorCache = armorCache;
-            this.tgtCache = tgtCache;
-        }
-
-        @Override
-        public AppConfigurationEntry[] getAppConfigurationEntry(String name) {
-            Map<String, String> options = new HashMap<String, String>();
-            options.put("principal", principal);
-            if (tokenCache != null) {
-                options.put("tokenCache", tokenCache.getAbsolutePath());
-            } else if (tokenStr != null) {
-                options.put("tokenStr", tokenStr);
-            }
-            options.put("armorCache", armorCache.getAbsolutePath());
-            options.put("tgtCache", tgtCache.getAbsolutePath());
-
-            return new AppConfigurationEntry[]{
-                    new AppConfigurationEntry(
-                            "org.apache.kerby.kerberos.kerb.integration.test.jaas.TokenAuthLoginModule",
-                            AppConfigurationEntry.LoginModuleControlFlag.REQUIRED,
-                            options)};
         }
     }
 }

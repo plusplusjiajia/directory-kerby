@@ -21,6 +21,7 @@ package org.apache.kerby.kerberos.kerb.integration.test;
 
 import org.apache.kerby.kerberos.kerb.KrbRuntime;
 import org.apache.kerby.kerberos.kerb.integration.test.jaas.TokenCache;
+import org.apache.kerby.kerberos.kerb.integration.test.jaas.TokenJaasKrbUtil;
 import org.apache.kerby.kerberos.kerb.provider.TokenEncoder;
 import org.apache.kerby.kerberos.kerb.server.LoginTestBase;
 import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
@@ -28,6 +29,7 @@ import org.apache.kerby.kerberos.kerb.spec.ticket.TgtTicket;
 import org.apache.kerby.kerberos.provider.token.JwtTokenProvider;
 import org.junit.Before;
 
+import javax.security.auth.Subject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
@@ -106,13 +108,21 @@ public class TokenLoginTestBase extends LoginTestBase {
         return authToken;
     }
 
-    public void testLoginWithTokenStr() throws Exception {
-        String tokenStr = createTokenAndArmorCache();
-        checkSubject(super.loginClientUsingTokenStr(tokenStr, armorCache, tgtCache));
+    private Subject loginClientUsingTokenStr(String tokenStr, File armorCache, File tgtCache) throws Exception {
+        return TokenJaasKrbUtil.loginUsingToken(getClientPrincipal(), tokenStr, armorCache, tgtCache);
     }
 
-    public void testLoginWithTokenCache() throws Exception {
+    private Subject loginClientUsingTokenCache(File tokenCache, File armorCache, File tgtCache) throws Exception {
+        return TokenJaasKrbUtil.loginUsingToken(getClientPrincipal(), tokenCache, armorCache, tgtCache);
+    }
+
+    protected void testLoginWithTokenStr() throws Exception {
+        String tokenStr = createTokenAndArmorCache();
+        checkSubject(loginClientUsingTokenStr(tokenStr, armorCache, tgtCache));
+    }
+
+    protected void testLoginWithTokenCache() throws Exception {
         createTokenAndArmorCache();
-        checkSubject(super.loginClientUsingTokenCache(tokenCache, armorCache, tgtCache));
+        checkSubject(loginClientUsingTokenCache(tokenCache, armorCache, tgtCache));
     }
 }

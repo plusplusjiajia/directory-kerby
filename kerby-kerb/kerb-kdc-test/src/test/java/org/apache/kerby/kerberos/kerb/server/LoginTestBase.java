@@ -67,14 +67,6 @@ public class LoginTestBase extends KdcTestBase {
             serviceKeytabFile);
     }
 
-    protected Subject loginClientUsingTokenStr(String tokenStr, File armorCache, File tgtCache) throws Exception {
-        return JaasKrbUtil.loginUsingToken(getClientPrincipal(), tokenStr, armorCache, tgtCache);
-    }
-
-    protected Subject loginClientUsingTokenCache(File tokenCache, File armorCache, File tgtCache) throws Exception {
-        return JaasKrbUtil.loginUsingToken(getClientPrincipal(), tokenCache, armorCache, tgtCache);
-    }
-
     protected void checkSubject(Subject subject) {
         Set<Principal> clientPrincipals = subject.getPrincipals();
         assertThat(clientPrincipals);

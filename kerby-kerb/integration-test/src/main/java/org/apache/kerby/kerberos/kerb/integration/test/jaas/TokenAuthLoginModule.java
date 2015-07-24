@@ -42,7 +42,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 /**
- * This <code>LoginModule</code> authenticates users using token
+ * This <code>LoginModule</code> authenticates users using token.
  * tokenStr: token-string
  * tokenCache: token-cache-file
  * armorCache: armor-cache-file
@@ -66,6 +66,11 @@ public class TokenAuthLoginModule implements LoginModule {
     KrbToken krbToken = null;
     private File armorCache;
     private File tgtCache;
+    public static final String PRINC_NAME = "princName";
+    public static final String TOKEN_STR = "tokenStr";
+    public static final String TOKEN_CACHE = "tokenCache";
+    public static final String ARMOR_CACHE = "armorCache";
+    public static final String TGT_CACHE = "tgtCache";
 
     /**
      * {@inheritDoc}
@@ -76,11 +81,11 @@ public class TokenAuthLoginModule implements LoginModule {
 
         this.subject = subject;
         /** initialize any configured options*/
-        princName = (String)options.get("principal");
-        tokenStr = (String) options.get("tokenStr");
-        tokenCacheName = (String) options.get("tokenCache");
-        armorCache = new File((String) options.get("armorCache"));
-        tgtCache = new File((String) options.get("tgtCache"));
+        princName = (String)options.get(PRINC_NAME);
+        tokenStr = (String) options.get(TOKEN_STR);
+        tokenCacheName = (String) options.get(TOKEN_CACHE);
+        armorCache = new File((String) options.get(ARMOR_CACHE));
+        tgtCache = new File((String) options.get(TGT_CACHE));
     }
 
     /**
@@ -179,16 +184,13 @@ public class TokenAuthLoginModule implements LoginModule {
                 throw new LoginException("No valid token was found in token cache: " + tokenCacheName);
             }
         }
-
         TokenDecoder tokenDecoder = KrbRuntime.getTokenProvider().createTokenDecoder();
         try {
             authToken = tokenDecoder.decodeFromString(tokenStr);
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         krbToken = new KrbToken(authToken, TokenFormat.JWT);
-
         KrbClient krbClient = null;
         try {
             File confFile = new File(System.getProperty(Krb5Conf.KRB5_CONF));
@@ -201,7 +203,6 @@ public class TokenAuthLoginModule implements LoginModule {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         TgtTicket tgtTicket = null;
         try {
             tgtTicket = krbClient.requestTgtWithToken(krbToken, armorCache.getAbsolutePath());
