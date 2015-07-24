@@ -19,19 +19,17 @@
  */
 package org.apache.kerby.kerberos.kerb.integration.test;
 
-import org.apache.kerby.kerberos.kerb.server.KdcConfigKey;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
  * Test login with token when token preauth is not allowed by kdc.
  */
-public class TokenLoginTestWithNotAllowToken extends TokenLoginTestBase {
+public class TokenLoginTestWithTokenPreauthDisabled extends TokenLoginTestBase {
 
     @Override
-    protected void configKdcSeverAndClient() {
-        super.configKdcSeverAndClient();
-        getKdcServer().getKdcConfig().setBoolean(KdcConfigKey.ALLOW_TOKEN_PREAUTH, false);
+    protected Boolean isTokenPreauthAllowed() {
+        return false;
     }
 
     @Test

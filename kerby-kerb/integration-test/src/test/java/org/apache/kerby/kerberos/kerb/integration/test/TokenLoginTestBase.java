@@ -23,6 +23,7 @@ import org.apache.kerby.kerberos.kerb.KrbRuntime;
 import org.apache.kerby.kerberos.kerb.integration.test.jaas.TokenCache;
 import org.apache.kerby.kerberos.kerb.integration.test.jaas.TokenJaasKrbUtil;
 import org.apache.kerby.kerberos.kerb.provider.TokenEncoder;
+import org.apache.kerby.kerberos.kerb.server.KdcConfigKey;
 import org.apache.kerby.kerberos.kerb.server.LoginTestBase;
 import org.apache.kerby.kerberos.kerb.spec.base.AuthToken;
 import org.apache.kerby.kerberos.kerb.spec.ticket.TgtTicket;
@@ -54,6 +55,17 @@ public class TokenLoginTestBase extends LoginTestBase {
         super.setUp();
         armorCache = new File(getTestDir(), "armorcache.cc");
         tgtCache = new File(getTestDir(), "tgtcache.cc");
+    }
+
+    @Override
+    protected void configKdcSeverAndClient() {
+        super.configKdcSeverAndClient();
+        getKdcServer().getKdcConfig().setBoolean(KdcConfigKey.ALLOW_TOKEN_PREAUTH,
+                isTokenPreauthAllowed());
+    }
+
+    protected Boolean isTokenPreauthAllowed() {
+        return true;
     }
 
     private String createTokenAndArmorCache() throws Exception {

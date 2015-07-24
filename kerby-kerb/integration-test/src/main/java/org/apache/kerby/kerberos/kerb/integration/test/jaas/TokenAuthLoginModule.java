@@ -65,12 +65,12 @@ public class TokenAuthLoginModule implements LoginModule {
     private AuthToken authToken = null;
     KrbToken krbToken = null;
     private File armorCache;
-    private File tgtCache;
-    public static final String PRINC_NAME = "princName";
-    public static final String TOKEN_STR = "tokenStr";
+    private File cCache;
+    public static final String PRINCIPAL = "principal";
+    public static final String TOKEN = "token";
     public static final String TOKEN_CACHE = "tokenCache";
     public static final String ARMOR_CACHE = "armorCache";
-    public static final String TGT_CACHE = "tgtCache";
+    public static final String CREDENTIAL_CACHE = "credentialCache";
 
     /**
      * {@inheritDoc}
@@ -81,11 +81,11 @@ public class TokenAuthLoginModule implements LoginModule {
 
         this.subject = subject;
         /** initialize any configured options*/
-        princName = (String)options.get(PRINC_NAME);
-        tokenStr = (String) options.get(TOKEN_STR);
+        princName = (String)options.get(PRINCIPAL);
+        tokenStr = (String) options.get(TOKEN);
         tokenCacheName = (String) options.get(TOKEN_CACHE);
         armorCache = new File((String) options.get(ARMOR_CACHE));
-        tgtCache = new File((String) options.get(TGT_CACHE));
+        cCache = new File((String) options.get(CREDENTIAL_CACHE));
     }
 
     /**
@@ -212,12 +212,12 @@ public class TokenAuthLoginModule implements LoginModule {
         }
 
         try {
-            tgtCache = makeTgtCache();
+            cCache = makeTgtCache();
         } catch (IOException e) {
             e.printStackTrace();
         }
         try {
-            krbClient.storeTicket(tgtTicket, tgtCache);
+            krbClient.storeTicket(tgtTicket, cCache);
         } catch (KrbException e) {
             e.printStackTrace();
         }
@@ -226,19 +226,19 @@ public class TokenAuthLoginModule implements LoginModule {
 
     private File makeTgtCache() throws IOException {
 
-        if (!tgtCache.exists() && !tgtCache.createNewFile()) {
+        if (!cCache.exists() && !cCache.createNewFile()) {
             throw new IOException("Failed to create tgtcache file "
-                    + tgtCache.getAbsolutePath());
+                    + cCache.getAbsolutePath());
         }
-        tgtCache.setExecutable(false);
-        tgtCache.setReadable(true);
-        tgtCache.setWritable(true);
-        return tgtCache;
+        cCache.setExecutable(false);
+        cCache.setReadable(true);
+        cCache.setWritable(true);
+        return cCache;
     }
 
     private void cleanup() {
-        if (tgtCache != null && tgtCache.exists()) {
-            tgtCache.delete();
+        if (cCache != null && cCache.exists()) {
+            cCache.delete();
         }
     }
 
