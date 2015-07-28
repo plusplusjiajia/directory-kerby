@@ -45,4 +45,9 @@ public class KrbUtil {
         return new PrincipalName(nameString, NameType.NT_PRINCIPAL);
     }
 
+    public static PrincipalName makeMasterPrincipal(String realm) {
+        String nameString = "K/M" + "/" + realm + "@" + realm;
+        return new PrincipalName(nameString, NameType.NT_PRINCIPAL);
+    }
+
 }

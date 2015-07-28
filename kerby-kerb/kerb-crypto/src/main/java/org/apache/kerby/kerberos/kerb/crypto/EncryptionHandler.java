@@ -203,6 +203,21 @@ public class EncryptionHandler {
         return new EncryptionKey(eType, keyBytes);
     }
 
+    public static EncryptionKey string2Key(String principalName,
+                                           String passPhrase, EncryptionType eType, byte[] masterKey) throws KrbException {
+        PrincipalName principal = new PrincipalName(principalName);
+        return string2Key(passPhrase,
+                PrincipalName.makeSalt(principal), null, eType, masterKey);
+    }
+
+    public static EncryptionKey string2Key(String string, String salt,
+                                           byte[] s2kparams, EncryptionType eType, byte[] masterKey) throws KrbException {
+        EncTypeHandler handler = getEncHandler(eType);
+        byte[] keyBytes = handler.str2key(string, salt, s2kparams);
+        byte[] cipher = handler.encrypt(keyBytes, masterKey, KeyUsage.UNKNOWN.getValue());
+        return new EncryptionKey(eType, cipher);
+    }
+
     public static EncryptionKey random2Key(EncryptionType eType) throws KrbException {
         EncTypeHandler handler = getEncHandler(eType);
 

@@ -48,7 +48,10 @@ public enum KdcConfigKey implements SectionConfigKey {
     VERIFY_BODY_CHECKSUM(true),
     ENCRYPTION_TYPES("aes128-cts-hmac-sha1-96 des3-cbc-sha1-kd"),
     RESTRICT_ANONYMOUS_TO_TGT(false, "kdcdefaults"),
-    KDC_MAX_DGRAM_REPLY_SIZE(4096, "kdcdefaults");
+    KDC_MAX_DGRAM_REPLY_SIZE(4096, "kdcdefaults"),
+    MASTER_KEY_NAME("K/M"),
+    KEY_STASH_FILE(".k5.REALM"),
+    MASTER_KEY_TYPE("aes256-cts-hmac-sha1-96");
 
     private Object defaultValue;
 

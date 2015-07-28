@@ -101,16 +101,25 @@ public class EncryptionUtil {
 
     public static List<EncryptionKey> generateKeys(
             String principal, String passwd,
-            List<EncryptionType> encryptionTypes) throws KrbException {
+            List<EncryptionType> encryptionTypes, EncryptionKey masterKey) throws KrbException {
         List<EncryptionKey> results = new ArrayList<EncryptionKey>(encryptionTypes.size());
         for (EncryptionType eType : encryptionTypes) {
             EncryptionKey encKey = EncryptionHandler.string2Key(
                 principal, passwd, eType);
+            if(masterKey != null) {
+                encKey = encryptKeyWithMasterKey(encKey, masterKey);
+            }
             encKey.setKvno(1);
             results.add(encKey);
         }
 
         return results;
+    }
+
+    public static EncryptionKey encryptKeyWithMasterKey(EncryptionKey key, EncryptionKey masterKey) throws KrbException {
+        EncryptedData encryptedData = EncryptionHandler.encrypt(key.getKeyData(), masterKey, KeyUsage.UNKNOWN);
+        key.setKeyData(encryptedData.getCipher());
+        return key;
     }
 
     public static EncryptionType getBestEncryptionType(List<EncryptionType> requestedTypes,

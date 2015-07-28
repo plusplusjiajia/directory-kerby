@@ -23,6 +23,8 @@ import org.apache.kerby.KOptions;
 import org.apache.kerby.kerberos.kerb.KrbException;
 import org.apache.kerby.kerberos.kerb.common.EncryptionUtil;
 import org.apache.kerby.kerberos.kerb.common.KrbUtil;
+import org.apache.kerby.kerberos.kerb.crypto.EncTypeHandler;
+import org.apache.kerby.kerberos.kerb.crypto.EncryptionHandler;
 import org.apache.kerby.kerberos.kerb.identity.IdentityService;
 import org.apache.kerby.kerberos.kerb.identity.KrbIdentity;
 import org.apache.kerby.kerberos.kerb.identity.backend.BackendConfig;
@@ -31,9 +33,13 @@ import org.apache.kerby.kerberos.kerb.server.KdcConfig;
 import org.apache.kerby.kerberos.kerb.server.KdcSetting;
 import org.apache.kerby.kerberos.kerb.server.KdcUtil;
 import org.apache.kerby.kerberos.kerb.spec.base.EncryptionKey;
+import org.apache.kerby.kerberos.kerb.spec.base.EncryptionType;
+import org.apache.kerby.kerberos.kerb.spec.base.KeyUsage;
 import org.apache.kerby.kerberos.kerb.spec.base.PrincipalName;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -44,6 +50,7 @@ import java.util.List;
 public class Kadmin {
     private final KdcSetting kdcSetting;
     private final IdentityService backend;
+    private EncryptionKey masterKey;
 
     public Kadmin(KdcConfig kdcConfig,
                   BackendConfig backendConfig) throws KrbException {
@@ -151,7 +158,8 @@ public class Kadmin {
         principal = fixPrincipal(principal);
         KrbIdentity identity = AdminHelper.createIdentity(principal, kOptions);
         List<EncryptionKey> keys = EncryptionUtil.generateKeys(principal, password,
-            getKdcConfig().getEncryptionTypes());
+            getKdcConfig().getEncryptionTypes(), masterKey);
+
         identity.addKeys(keys);
         backend.addIdentity(identity);
     }
@@ -275,7 +283,7 @@ public class Kadmin {
                     + "was not found. Please check the input and try again");
         }
         List<EncryptionKey> keys = EncryptionUtil.generateKeys(principal, password,
-            getKdcConfig().getEncryptionTypes());
+            getKdcConfig().getEncryptionTypes(), masterKey);
         identity.addKeys(keys);
 
         backend.updateIdentity(identity);
@@ -299,5 +307,58 @@ public class Kadmin {
             principal += "@" + getKdcConfig().getKdcRealm();
         }
         return principal;
+    }
+
+    public KrbIdentity createMasterKeyIdentity(String masterPrincipal,
+                                               String password, EncryptionType masterKeyType)
+            throws KrbException {
+        KrbIdentity identity = new KrbIdentity(masterPrincipal);
+
+        List<EncryptionKey> keys = new ArrayList<EncryptionKey>(1);
+        EncryptionKey masterKey = EncryptionHandler.string2Key(
+                masterPrincipal, password, masterKeyType);
+        keys.add(masterKey);
+        masterKey.setKvno(1);
+
+        identity.addKeys(keys);
+
+        backend.addIdentity(identity);
+        return identity;
+    }
+
+    public void findMasterKey(KOptions kOptions) throws KrbException {
+        if(getStashFile().exists()) {
+            Keytab keytab = null;
+            try {
+                keytab = Keytab.loadKeytab(getStashFile());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            System.out.println("stash file:"+getStashFile());
+            this.masterKey = keytab.getKeytabEntries(new PrincipalName(getMasterPrincipal())).get(0).getKey();
+
+        }
+        if (kOptions.contains(KadminOption.PASSWORD)) {
+            String password = kOptions.getStringOption(KadminOption.PASSWORD);
+            String masterPrincipalName = getMasterPrincipal();
+            PrincipalName masterPrincipal = new PrincipalName(masterPrincipalName);
+            KrbIdentity master = backend.getIdentity(masterPrincipalName);
+            EncryptionType masterKeyType = master.getKeys().keySet().iterator().next();
+            EncryptionKey encryptedMasterKey = master.getKey(masterKeyType);
+            EncTypeHandler handler = EncryptionHandler.getEncHandler(masterKeyType);
+            byte[] masterKeyBytes = handler.str2key(password, PrincipalName.makeSalt(masterPrincipal), null);
+            this.masterKey = new EncryptionKey(masterKeyType, EncryptionHandler.decrypt(encryptedMasterKey.getKeyData(),
+                    new EncryptionKey(masterKeyType, masterKeyBytes), KeyUsage.UNKNOWN));
+        } else {
+            this.masterKey = null;
+        }
+    }
+
+    public String getMasterPrincipal() {
+        return KrbUtil.makeMasterPrincipal(kdcSetting.getKdcRealm()).getName();
+    }
+
+    public File getStashFile() {
+        return new File(getKdcConfig().getKeyStashFile());
     }
 }

@@ -183,6 +183,12 @@ public class KadminTool {
             return;
         }
 
+        try {
+            kadmin.findMasterKey(kOptions);
+        } catch (KrbException e) {
+            e.printStackTrace();
+        }
+
         String kadminPrincipal = kadmin.getKadminPrincipal();
         if (kOptions.contains(KadminOption.CCACHE)) {
             File ccFile = kOptions.getFileOption(KadminOption.CCACHE);

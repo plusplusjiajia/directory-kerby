@@ -161,4 +161,16 @@ public class KdcConfig extends Conf {
         return KrbConfHelper.getIntUnderSection(this,
                 KdcConfigKey.KDC_MAX_DGRAM_REPLY_SIZE);
     }
+
+    public String getMasterKeyName() {
+        return getString(KdcConfigKey.MASTER_KEY_NAME);
+    }
+
+    public String getKeyStashFile() {
+        return getString(KdcConfigKey.KEY_STASH_FILE);
+    }
+
+    public String getMasterKeyType() {
+        return getString(KdcConfigKey.MASTER_KEY_TYPE);
+    }
 }

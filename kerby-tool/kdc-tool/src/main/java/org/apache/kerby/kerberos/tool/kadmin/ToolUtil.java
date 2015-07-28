@@ -19,6 +19,7 @@
  */
 package org.apache.kerby.kerberos.tool.kadmin;
 
+import org.apache.kerby.KOption;
 import org.apache.kerby.KOptionType;
 import org.apache.kerby.KOptions;
 import org.apache.kerby.kerberos.kerb.admin.KadminOption;
@@ -33,7 +34,7 @@ public class ToolUtil {
     }
 
     public static KOptions parseOptions(String[] commands, int beginIndex, int endIndex) {
-        KadminOption kOption;
+        KOption kOption;
         String opt, error, param;
 
         if (beginIndex < 0) {

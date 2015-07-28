@@ -35,7 +35,8 @@ public enum KadminOption implements KOption {
     KEYSALTLIST("-e", "key saltlist", KOptionType.STR),
     K("-k", "keytab file path", KOptionType.STR),
     KEYTAB("-keytab", "keytab file path", KOptionType.STR),
-    CCACHE("-c", "credentials cache", KOptionType.FILE);
+    CCACHE("-c", "credentials cache", KOptionType.FILE),
+    PASSWORD("-p", "master password", KOptionType.STR);
 
     private String name;
     private KOptionType type = KOptionType.NONE;

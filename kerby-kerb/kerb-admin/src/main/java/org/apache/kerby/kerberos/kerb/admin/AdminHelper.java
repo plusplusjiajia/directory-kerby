@@ -41,7 +41,7 @@ public final class AdminHelper {
 
     private AdminHelper() { }
 
-    static void exportKeytab(File keytabFile, KrbIdentity identity)
+    public static void exportKeytab(File keytabFile, KrbIdentity identity)
             throws KrbException {
 
         Keytab keytab = createOrLoadKeytab(keytabFile);

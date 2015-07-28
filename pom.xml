@@ -142,6 +142,7 @@
             <reuseForks>false</reuseForks>
             <systemPropertyVariables>
             </systemPropertyVariables>
+            <skipTests>true</skipTests>
           </configuration>
         </plugin>
 
