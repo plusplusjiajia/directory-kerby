@@ -1,7 +1,7 @@
 #!/bin/bash
 
-DEBUG=""
-args=""
+DEBUG=
+args=
 for var in $*; do
   if [ $var == "-D" ]; then
     DEBUG="-Xdebug -Xrunjdwp:transport=dt_socket,address=8001,server=y,suspend=n"
