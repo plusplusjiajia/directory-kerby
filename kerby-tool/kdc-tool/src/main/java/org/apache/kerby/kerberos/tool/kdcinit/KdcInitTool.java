@@ -48,10 +48,10 @@ public class KdcInitTool {
         createMasterKey(kOptions);
         kadmin.createBuiltinPrincipals();
         kadmin.exportKeytab(keytabFile, kadmin.getKadminPrincipal());
-        System.out.println("The kadmin principal " + kadmin.getKadminPrincipal() +
-                " has exported into keytab file " + keytabFile.getAbsolutePath() +
-                ", please make sure to keep it, because it will be used by kadmin tool" +
-                " for the authentication.");
+        System.out.println("The kadmin principal " + kadmin.getKadminPrincipal()
+                + " has exported into keytab file " + keytabFile.getAbsolutePath()
+                + ", please make sure to keep it, because it will be used by kadmin tool"
+                + " for the authentication.");
     }
 
     private static void printUsage(String error) {
