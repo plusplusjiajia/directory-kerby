@@ -461,6 +461,7 @@ public class PKCS8Key {
         return new DecryptResult(transformation, keySize, decryptedBytes);
     }
 
+    @SuppressWarnings("checkstyle:methodlength")
     private static DecryptResult decryptPKCS8(Asn1PkcsStructure pkcs8,
                                               char[] password)
         throws GeneralSecurityException {
@@ -813,42 +814,42 @@ public class PKCS8Key {
         // sha1, md2, md5 all use 512 bits.  But future hashes might not.
         int v = 512 / 8;
         md.reset();
-        byte[] d = new byte[v];
+        byte[] dD = new byte[v];
         byte[] dKey = new byte[n];
-        for (int i = 0; i != d.length; i++) {
-            d[i] = (byte) idByte;
+        for (int i = 0; i != dD.length; i++) {
+            dD[i] = (byte) idByte;
         }
-        byte[] s;
+        byte[] sS;
         if ((salt != null) && (salt.length != 0)) {
-            s = new byte[v * ((salt.length + v - 1) / v)];
-            for (int i = 0; i != s.length; i++) {
-                s[i] = salt[i % salt.length];
+            sS = new byte[v * ((salt.length + v - 1) / v)];
+            for (int i = 0; i != sS.length; i++) {
+                sS[i] = salt[i % salt.length];
             }
         } else {
-            s = new byte[0];
+            sS = new byte[0];
         }
-        byte[] p;
+        byte[] pP;
         if ((password != null) && (password.length != 0)) {
-            p = new byte[v * ((password.length + v - 1) / v)];
-            for (int i = 0; i != p.length; i++) {
-                p[i] = password[i % password.length];
+            pP = new byte[v * ((password.length + v - 1) / v)];
+            for (int i = 0; i != pP.length; i++) {
+                pP[i] = password[i % password.length];
             }
         } else {
-            p = new byte[0];
+            pP = new byte[0];
         }
-        byte[] iI = new byte[s.length + p.length];
-        System.arraycopy(s, 0, iI, 0, s.length);
-        System.arraycopy(p, 0, iI, s.length, p.length);
-        byte[] b = new byte[v];
+        byte[] iI = new byte[sS.length + pP.length];
+        System.arraycopy(sS, 0, iI, 0, sS.length);
+        System.arraycopy(pP, 0, iI, sS.length, pP.length);
+        byte[] bB = new byte[v];
         int c = (n + u - 1) / u;
         for (int i = 1; i <= c; i++) {
-            md.update(d);
+            md.update(dD);
             byte[] result = md.digest(iI);
             for (int j = 1; j != iterationCount; j++) {
                 result = md.digest(result);
             }
-            for (int j = 0; j != b.length; j++) {
-                b[j] = result[j % result.length];
+            for (int j = 0; j != bB.length; j++) {
+                bB[j] = result[j % result.length];
             }
             for (int j = 0; j < (iI.length / v); j++) {
                 /*
@@ -857,12 +858,12 @@ public class PKCS8Key {
                      * modulo 2^b.length in case of overflow.
                      */
                 int aOff = j * v;
-                int bLast = b.length - 1;
-                int x = (b[bLast] & 0xff) + (iI[aOff + bLast] & 0xff) + 1;
+                int bLast = bB.length - 1;
+                int x = (bB[bLast] & 0xff) + (iI[aOff + bLast] & 0xff) + 1;
                 iI[aOff + bLast] = (byte) x;
                 x >>>= 8;
-                for (int k = b.length - 2; k >= 0; k--) {
-                    x += (b[k] & 0xff) + (iI[aOff + k] & 0xff);
+                for (int k = bB.length - 2; k >= 0; k--) {
+                    x += (bB[k] & 0xff) + (iI[aOff + k] & 0xff);
                     iI[aOff + k] = (byte) x;
                     x >>>= 8;
                 }
