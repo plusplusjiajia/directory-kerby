@@ -105,7 +105,7 @@ public class KeyStoreBuilder {
         UnrecoverableKeyException {
 
         if (keyPassword == null || keyPassword.length <= 0) {
-            keyPassword = jksPassword.clone();
+            keyPassword = jksPassword;
         }
 
         BuildResult br1 = parse(jksOrCerts, jksPassword, keyPassword);
@@ -313,8 +313,8 @@ public class KeyStoreBuilder {
 
     public static BuildResult parse(byte[] stuff, char[] jksPass,
                                     char[] keyPass)
-        throws IOException, CertificateException, KeyStoreException,
-        ProbablyBadPasswordException {
+            throws IOException, CertificateException, KeyStoreException,
+            ProbablyBadPasswordException {
 
         return parse(stuff, jksPass, keyPass, false);
     }
@@ -333,7 +333,6 @@ public class KeyStoreBuilder {
             throw pbpe;
         } catch (GeneralSecurityException gse) {
             // no luck
-            gse.printStackTrace();
         }
 
         List pemItems = PEMUtil.decode(stuff);
@@ -372,7 +371,6 @@ public class KeyStoreBuilder {
             }
         } catch (Exception e) {
             // isProbablyPKCS12 and isASN are set properly by now.
-            e.printStackTrace();
         }
 
         ByteArrayInputStream stuffStream = new ByteArrayInputStream(stuff);
@@ -417,7 +415,6 @@ public class KeyStoreBuilder {
                 }
             } catch (CertificateException ce) {
                 // oh well
-                ce.printStackTrace();
             }
 
             stuffStream.reset();
@@ -434,7 +431,6 @@ public class KeyStoreBuilder {
                 }
             } catch (CertificateException ce) {
                 // oh well
-                ce.printStackTrace();
             }
         }
 
@@ -460,7 +456,7 @@ public class KeyStoreBuilder {
     ) throws ProbablyBadPasswordException {
         in.reset();
         if (keyPassword == null || keyPassword.length <= 0) {
-            keyPassword = jksPassword.clone();
+            keyPassword = jksPassword;
         }
 
         keystoreType = keystoreType.trim().toLowerCase();
@@ -487,7 +483,6 @@ public class KeyStoreBuilder {
                         uke = e;  // We might throw this one later. 
                     } catch (GeneralSecurityException gse) {
                         // Swallow... keep looping.
-                        gse.printStackTrace();
                     }
                 }
                 if (isPKCS12 && en.hasMoreElements()) {
@@ -599,7 +594,6 @@ public class KeyStoreBuilder {
                 }
             } catch (Exception e) {
                 // oh well, try next one.
-                e.printStackTrace();
             }
         }
 

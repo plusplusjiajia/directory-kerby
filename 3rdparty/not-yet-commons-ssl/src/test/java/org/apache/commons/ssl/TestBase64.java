@@ -36,7 +36,7 @@ public class TestBase64 {
             random.nextBytes(buf);
             byte[] enc = Base64.encodeBase64(buf);
             ByteArrayInputStream in = new ByteArrayInputStream(enc);
-            enc = Util.streamToBytes(in);
+            enc = Util.streamToBytes(in);            
             byte[] dec = Base64.decodeBase64(enc);
             boolean result = Arrays.equals(buf, dec);
             if (!result) {

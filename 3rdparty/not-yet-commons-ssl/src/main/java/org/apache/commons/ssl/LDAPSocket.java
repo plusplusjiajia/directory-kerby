@@ -42,7 +42,7 @@ import java.security.GeneralSecurityException;
  * @since 28-Feb-2006
  */
 public final class LDAPSocket extends SSLClient {
-    private static final LDAPSocket INSTANT;
+    private static final LDAPSocket INSTANCE;
 
     static {
         LDAPSocket sf = null;
@@ -52,14 +52,14 @@ public final class LDAPSocket extends SSLClient {
             System.out.println("could not create LDAPSocket: " + e);
             e.printStackTrace();
         } finally {
-            INSTANT = sf;
+            INSTANCE = sf;
         }
     }
 
     private LDAPSocket() throws GeneralSecurityException, IOException {
         super();
 
-        // For now we setup the usual trusst infrastructure, but consumers
+        // For now we setup the usual trust infrastructure, but consumers
         // are encouraged to call getInstance().addTrustMaterial() or
         // getInstance().setTrustMaterial() to customize the trust.
         if (TrustMaterial.JSSE_CACERTS != null) {
@@ -74,8 +74,7 @@ public final class LDAPSocket extends SSLClient {
     }
 
     public static LDAPSocket getInstance() {
-        return INSTANT;
+        return INSTANCE;
     }
-
 
 }

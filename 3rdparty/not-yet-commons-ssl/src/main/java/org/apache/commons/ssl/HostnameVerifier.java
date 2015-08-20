@@ -111,7 +111,7 @@ public interface HostnameVerifier extends javax.net.ssl.HostnameVerifier {
      * as "*.foo.com") with DEFAULT matches all subdomains, including
      * "a.b.foo.com".
      */
-     HostnameVerifier DEFAULT =
+    HostnameVerifier DEFAULT =
         new AbstractVerifier() {
             public final void check(final String[] hosts, final String[] cns,
                                     final String[] subjectAlts)

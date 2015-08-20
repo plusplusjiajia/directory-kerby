@@ -165,7 +165,6 @@ public class SSLProxyServer {
                     }
                     s.close();
                 } catch (Exception e) {
-                    e.printStackTrace();
                 }
 
                 try {
@@ -177,7 +176,6 @@ public class SSLProxyServer {
                     }
                     newSocket.close();
                 } catch (Exception e) {
-                    e.printStackTrace();
                 }
 
 
@@ -190,4 +188,5 @@ public class SSLProxyServer {
             }
         }
     }
+
 }

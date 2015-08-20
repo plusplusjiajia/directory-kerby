@@ -252,9 +252,9 @@ public class SSLClient extends SSLSocketFactory {
      * @param localPort the port on the local machine
      * @param timeout   the connection timeout (0==infinite)
      * @return Socket a new socket
-     * @throws java.io.IOException           if an I/O error occurs while creating thesocket
+     * @throws java.io.IOException          if an I/O error occurs while creating thesocket
      * @throws java.net.UnknownHostException if the IP address of the host cannot be
-     *                                       determined
+     *                              determined
      */
     public Socket createSocket(String host, int port, InetAddress localHost,
                                int localPort, int timeout)

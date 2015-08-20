@@ -333,14 +333,14 @@ public class Util {
         Map argsMatch = Ping.argsMatch;
 
         int l = cargs.length;
-        final String[] emptyValues = {""};
+        final String[] emptyValue = {""};
         for (int i = 0; i < l; i++) {
             String k = cargs[i];
             Ping.Arg a = (Ping.Arg) argsMatch.get(k);
             if (l > i + 1) {
                 String v = cargs[++i];
                 while (argsMatch.containsKey(v)) {
-                    args.put(a, emptyValues);
+                    args.put(a, emptyValue);
                     a = (Ping.Arg) argsMatch.get(v);
                     v = "";
                     if (l > i + 1) {
@@ -360,7 +360,7 @@ public class Util {
                     args.put(a, list.toArray(new String[list.size()]));
                 }
             } else {
-                args.put(a, emptyValues);
+                args.put(a, emptyValue);
             }
         }
         return args;

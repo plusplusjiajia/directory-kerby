@@ -203,12 +203,8 @@ public class Certificates {
 
     public static String toString(X509Certificate cert, boolean htmlStyle) {
         String cn = getCN(cert);
-        String startStart;
-        String endDate;
-        synchronized (DF) {
-            startStart = DF.format(cert.getNotBefore());
-            endDate = DF.format(cert.getNotAfter());
-        }
+        String startStart = DF.format(cert.getNotBefore());
+        String endDate = DF.format(cert.getNotAfter());
         String subject = JavaImpl.getSubjectX500(cert);
         String issuer = JavaImpl.getIssuerX500(cert);
         Iterator crls = getCRLs(cert).iterator();
@@ -317,7 +313,6 @@ public class Certificates {
         byte[] bytes = cert.getExtensionValue("2.5.29.31");
         if (bytes == null) {
             // log.warn( "Cert doesn't contain X509v3 CRL Distribution Points (2.5.29.31): " + name );
-            System.out.println("Cert doesn't contain X509v3 CRL Distribution Points (2.5.29.31): ");
         } else {
             List crlList = getCRLs(cert);
             Iterator it = crlList.iterator();
@@ -381,10 +376,7 @@ public class Certificates {
             if (now - creationTime > 24 * 60 * 60 * 1000) {
                 // Expire cache every 24 hours
                 if (tempCRLFile != null && tempCRLFile.exists()) {
-                    if (!tempCRLFile.delete()) {
-                        throw new CertificateException("CRLFile:" + tempCRLFile.getPath()
-                            + " can not be deleted");
-                    }
+                    tempCRLFile.delete();
                 }
                 tempCRLFile = null;
                 passedTest.clear();
@@ -440,7 +432,6 @@ public class Certificates {
                             setReadTimeout.invoke(httpConn, Integer.valueOf(5000));
                         } catch (NoSuchMethodException nsme) {
                             // oh well, java 1.4 users can suffer.
-                            nsme.printStackTrace();
                         } catch (Exception e) {
                             throw new RuntimeException("can't set timeout", e);
                         }
@@ -463,7 +454,6 @@ public class Certificates {
                     this.creationTime = System.currentTimeMillis();
                 } catch (IOException ioe) {
                     // log.warn( "Cannot check CRL: " + e );
-                    ioe.printStackTrace();
                 }
             }
 
@@ -486,11 +476,9 @@ public class Certificates {
                 } catch (IOException ioe) {
                     // couldn't load CRL that's supposed to be stored in Temp file.
                     // log.warn(  );
-                    ioe.printStackTrace();
                 } catch (CRLException crle) {
                     // something is wrong with the CRL
                     // log.warn(  );
-                    crle.printStackTrace();
                 }
             }
             return crl != null;
@@ -518,9 +506,7 @@ public class Certificates {
                             cnList.add(value.toString());
                         }
                     } catch (NoSuchElementException ignore) {
-                        ignore.printStackTrace();
                     } catch (NamingException ignore) {
-                        ignore.printStackTrace();
                     }
                 }
             }
@@ -528,7 +514,6 @@ public class Certificates {
                 return cnList.toArray(new String[cnList.size()]);
             }
         } catch (InvalidNameException ignore) {
-            ignore.printStackTrace();
         }
         return null;
     }

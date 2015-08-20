@@ -131,7 +131,6 @@ public class SSLEchoServer {
                     }
                     s.close();
                 } catch (Exception e) {
-                    e.printStackTrace();
                 }
 
                 if (ioe instanceof InterruptedIOException) {

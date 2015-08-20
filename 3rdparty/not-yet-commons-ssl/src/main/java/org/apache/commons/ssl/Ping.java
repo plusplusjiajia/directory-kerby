@@ -62,15 +62,16 @@ public class Ping {
         "[hostname[:port]]              default port=0 \"ANY\"");
     protected static final Arg ARG_PROXY = new Arg("-r", "--proxy",
         "[hostname[:port]]              default port=80");
-    protected static final Arg ARG_TRUST_CERT = new Arg("-tm",
-        "--trust-cert", "[path to trust material]       {pem, der, crt, jks}");
-    protected static final Arg ARG_CLIENT_CERT = new Arg("-km",
-        "--client-cert", "[path to client's private key] {jks, pkcs12, pkcs8}");
-    protected static final Arg ARG_CERT_CHAIN = new Arg("-cc",
-        "--cert-chain", "[path to client's cert chain for pkcs8/OpenSSL key]");
-    protected static final Arg ARG_PASSWORD = new Arg("-p", "--password", "[client cert password]");
-    protected static final Arg ARG_HOST_HEADER = new Arg("-h",
-        "--host-header", "[http-host-header]      in case -t is an IP address");
+    protected static final Arg ARG_TRUST_CERT = new Arg("-tm", "--trust-cert",
+        "[path to trust material]       {pem, der, crt, jks}");
+    protected static final Arg ARG_CLIENT_CERT = new Arg("-km", "--client-cert",
+        "[path to client's private key] {jks, pkcs12, pkcs8}");
+    protected static final Arg ARG_CERT_CHAIN = new Arg("-cc", "--cert-chain",
+        "[path to client's cert chain for pkcs8/OpenSSL key]");
+    protected static final Arg ARG_PASSWORD = new Arg("-p", "--password",
+        "[client cert password]");
+    protected static final Arg ARG_HOST_HEADER = new Arg("-h", "--host-header",
+        "[http-host-header]      in case -t is an IP address");
     protected static final Arg ARG_PATH = new Arg("-u", "--path",
         "[path for GET/HEAD request]    default=/");
     protected static final Arg ARG_METHOD = new Arg("-m", "--method",
@@ -96,35 +97,6 @@ public class Ping {
         argsMatch = Collections.unmodifiableMap(argsMatch);
     }
 
-    public static void printUsage(Exception parseException) {
-        if (parseException != null) {
-            System.out.println();
-            System.out.println("* Error: " + parseException.getMessage() + ".");
-            parseException.printStackTrace(System.out);
-            System.out.println();
-        }
-        System.out.println("Usage:  java -jar not-yet-commons-ssl-" + Version.VERSION + ".jar [options]");
-        System.out.println(Version.versionString());
-        System.out.println("Options:   (*=required)");
-        Iterator it = Ping.args.iterator();
-        while (it.hasNext()) {
-            Arg a = (Arg) it.next();
-            String s = Util.pad(a.shortArg, 3, false);
-            String l = Util.pad(a.longArg, 18, false);
-            String required = a.isRequired ? "*" : " ";
-            String d = a.description;
-            System.out.println(required + "  " + s + " " + l + " " + d);
-        }
-        System.out.println();
-        String example = "java -jar commons-ssl.jar -t host.com:443 -c ./client.pfx -p `cat ./pass.txt` ";
-        System.out.println("Example:");
-        System.out.println();
-        System.out.println(example);
-        System.out.println();
-        System.exit(1);
-        return;
-    }
-
     public static void main(String[] args) throws Exception {
         boolean showUsage = args.length == 0;
         Exception parseException = null;
@@ -137,7 +109,32 @@ public class Ping {
             }
         }
         if (showUsage) {
-            printUsage(parseException);
+            if (parseException != null) {
+                System.out.println();
+                System.out.println("* Error: " + parseException.getMessage() + ".");
+                parseException.printStackTrace(System.out);
+                System.out.println();
+            }
+            System.out.println("Usage:  java -jar not-yet-commons-ssl-" + Version.VERSION + ".jar [options]");
+            System.out.println(Version.versionString());
+            System.out.println("Options:   (*=required)");
+            Iterator it = Ping.args.iterator();
+            while (it.hasNext()) {
+                Arg a = (Arg) it.next();
+                String s = Util.pad(a.shortArg, 3, false);
+                String l = Util.pad(a.longArg, 18, false);
+                String required = a.isRequired ? "*" : " ";
+                String d = a.description;
+                System.out.println(required + "  " + s + " " + l + " " + d);
+            }
+            System.out.println();
+            String example = "java -jar commons-ssl.jar -t host.com:443 -c ./client.pfx -p `cat ./pass.txt` ";
+            System.out.println("Example:");
+            System.out.println();
+            System.out.println(example);
+            System.out.println();
+            System.exit(1);
+            return;
         }
 
         SSLClient ssl = new SSLClient();

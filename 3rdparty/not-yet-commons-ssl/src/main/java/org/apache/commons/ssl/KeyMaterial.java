@@ -71,13 +71,17 @@ public class KeyMaterial extends TrustMaterial {
 
     public KeyMaterial(InputStream jks, InputStream key, char[] password)
         throws GeneralSecurityException, IOException {
-        this(Util.streamToBytes(jks), Util.streamToBytes(key), password);
+        this(jks != null ? Util.streamToBytes(jks) : null,
+            key != null ? Util.streamToBytes(key) : null,
+            password);
     }
 
     public KeyMaterial(InputStream jks, InputStream key, char[] jksPass,
                        char[] keyPass)
         throws GeneralSecurityException, IOException {
-        this(Util.streamToBytes(jks), Util.streamToBytes(key), jksPass, keyPass);
+        this(jks != null ? Util.streamToBytes(jks) : null,
+            key != null ? Util.streamToBytes(key) : null,
+            jksPass, keyPass);
     }
 
     public KeyMaterial(String pathToJksFile, char[] password)
@@ -195,13 +199,12 @@ public class KeyMaterial extends TrustMaterial {
                         }
                         myChains.add(c);
                     } else {
-                        throw new KeyStoreException("Could not find KeyMaterial's associated"
-                            + "certificate chain with alis=[" + alias + "]");
+                        throw new KeyStoreException("Could not find KeyMaterial's"
+                            + " associated certificate chain with alis=[" + alias + "]");
                     }
 
                 } catch (GeneralSecurityException gse) {
                     // oh well, we can't use that KeyStore alias.
-                    gse.printStackTrace();
                 }
             }
         }
@@ -231,10 +234,10 @@ public class KeyMaterial extends TrustMaterial {
 
     public static void main(String[] args) throws Exception {
         if (args.length < 2) {
-            System.out.println(
-                "Usage1:  java org.apache.commons.ssl.KeyMaterial [password] [pkcs12 or jks]");
-            System.out.println(
-                "Usage2:  java org.apache.commons.ssl.KeyMaterial [password] [private-key] [cert-chain]");
+            System.out.println("Usage1:"
+                + " java org.apache.commons.ssl.KeyMaterial [password] [pkcs12 or jks]");
+            System.out.println("Usage2:"
+                + " java org.apache.commons.ssl.KeyMaterial [password] [private-key] [cert-chain]");
             System.exit(1);
         }
         char[] jksPass = args[0].toCharArray();

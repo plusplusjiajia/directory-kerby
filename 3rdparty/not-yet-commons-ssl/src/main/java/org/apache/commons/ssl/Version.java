@@ -139,9 +139,7 @@ public class Version {
         private static String getCompileTimeString(String resource) {
             try {
                 Date d = getCompileTime(resource);
-                synchronized (DF) {
-                    return d != null ? DF.format(d) : "[unknown]";
-                }
+                return d != null ? DF.format(d) : "[unknown]";
             } catch (IOException ioe) {
                 return ioe.toString();
             }
@@ -162,7 +160,6 @@ public class Version {
                     JarFile jf = new JarFile(fileLocation);
                     long newestTime = 0;
                     Enumeration entries = jf.entries();
-                    jf.close();
                     while (entries.hasMoreElements()) {
                         JarEntry entry = (JarEntry) entries.nextElement();
                         if (entry.getName().endsWith(".class")) {
