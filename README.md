@@ -52,13 +52,13 @@ Independent of Kerberos code in JRE, but rely on JCE
 - kerby-event. A pure event driven application framework aiming to construct applications of asynchronous and concurrent handlers. It includes UDP and TCP transports based on pure Java NIO and concurrency pattern.
 - kerby-config. A unified configuration API that aims to support various configuration file formats, like XML, INI, even Java Map and Properties.
 - api
-
+```
 <dependency>
     <groupId>org.apache.kerby</groupId>
     <artifactId>kerb-simplekdc</artifactId>
     <version>1.0.0-RC1</version>
 </dependency>
-
+```
 
 ### Dependency
 - The core part is ensured to only depend on the JRE and SLF4J. Every external dependency is taken carefully and maintained separately.
