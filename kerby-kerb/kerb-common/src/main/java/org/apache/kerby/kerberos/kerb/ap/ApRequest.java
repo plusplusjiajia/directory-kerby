@@ -20,18 +20,15 @@
 package org.apache.kerby.kerberos.kerb.ap;
 
 import org.apache.kerby.kerberos.kerb.KrbException;
-import org.apache.kerby.kerberos.kerb.common.CheckSumUtil;
 import org.apache.kerby.kerberos.kerb.common.EncryptionUtil;
 import org.apache.kerby.kerberos.kerb.type.KerberosTime;
+import org.apache.kerby.kerberos.kerb.type.ap.ApOption;
 import org.apache.kerby.kerberos.kerb.type.ap.ApOptions;
 import org.apache.kerby.kerberos.kerb.type.ap.ApReq;
 import org.apache.kerby.kerberos.kerb.type.ap.Authenticator;
-import org.apache.kerby.kerberos.kerb.type.base.CheckSum;
 import org.apache.kerby.kerberos.kerb.type.base.EncryptedData;
 import org.apache.kerby.kerberos.kerb.type.base.EncryptionKey;
 import org.apache.kerby.kerberos.kerb.type.base.KeyUsage;
-import org.apache.kerby.kerberos.kerb.type.kdc.KdcReq;
-import org.apache.kerby.kerberos.kerb.type.kdc.KdcReqBody;
 import org.apache.kerby.kerberos.kerb.type.ticket.SgtTicket;
 
 public class ApRequest {
@@ -59,12 +56,13 @@ public class ApRequest {
 
         Authenticator authenticator = makeAuthenticator();
         EncryptionKey sessionKey = sgtTicket.getSessionKey();
-        EncryptedData authnData = EncryptionUtil.seal(authenticator,
+        EncryptedData authData = EncryptionUtil.seal(authenticator,
                 sessionKey, KeyUsage.TGS_REQ_AUTH);
-        apReq.setEncryptedAuthenticator(authnData);
+        apReq.setEncryptedAuthenticator(authData);
         apReq.setAuthenticator(authenticator);
         apReq.setTicket(sgtTicket.getTicket());
         ApOptions apOptions = new ApOptions();
+        apOptions.setFlag(ApOption.USE_SESSION_KEY);
         apReq.setApOptions(apOptions);
 
         return apReq;
@@ -73,7 +71,8 @@ public class ApRequest {
     private Authenticator makeAuthenticator() throws KrbException {
         Authenticator authenticator = new Authenticator();
         authenticator.setAuthenticatorVno(5);
-        authenticator.setCname(sgtTicket.getTicket().getEncPart().getCname());
+        // TODO
+//        authenticator.setCname();
         authenticator.setCrealm(sgtTicket.getRealm());
         authenticator.setCtime(KerberosTime.now());
         authenticator.setCusec(0);

@@ -19,15 +19,21 @@
  */
 package org.apache.kerby.kerberos.kerb.ap;
 
+import org.apache.kerby.kerberos.kerb.KrbErrorCode;
 import org.apache.kerby.kerberos.kerb.KrbException;
 import org.apache.kerby.kerberos.kerb.common.EncryptionUtil;
 import org.apache.kerby.kerberos.kerb.type.KerberosTime;
+import org.apache.kerby.kerberos.kerb.type.ap.ApOption;
 import org.apache.kerby.kerberos.kerb.type.ap.ApRep;
 import org.apache.kerby.kerberos.kerb.type.ap.ApReq;
+import org.apache.kerby.kerberos.kerb.type.ap.Authenticator;
 import org.apache.kerby.kerberos.kerb.type.ap.EncAPRepPart;
 import org.apache.kerby.kerberos.kerb.type.base.EncryptedData;
+import org.apache.kerby.kerberos.kerb.type.base.EncryptionKey;
 import org.apache.kerby.kerberos.kerb.type.base.KeyUsage;
+import org.apache.kerby.kerberos.kerb.type.ticket.EncTicketPart;
 import org.apache.kerby.kerberos.kerb.type.ticket.TgtTicket;
+import org.apache.kerby.kerberos.kerb.type.ticket.Ticket;
 
 public class ApResponse {
     private ApReq apReq;
@@ -39,6 +45,8 @@ public class ApResponse {
     }
 
     public ApRep getApRep() throws KrbException {
+        checkApReq();
+
         if(apRep == null) {
             apRep = makeApRep();
         }
@@ -54,6 +62,7 @@ public class ApResponse {
      *  the message type, and an encrypted time-stamp.
      */
     private ApRep makeApRep() throws KrbException {
+
         ApRep apRep = new ApRep();
         EncAPRepPart encAPRepPart = new EncAPRepPart();
         // This field contains the current time on the client's host.
@@ -64,9 +73,41 @@ public class ApResponse {
         encAPRepPart.setSeqNumber(0);
         apRep.setEncRepPart(encAPRepPart);
         EncryptedData encPart = EncryptionUtil.seal(encAPRepPart,
-                tgtTicket.getSessionKey(), KeyUsage.AP_REP_ENCPART);
+                apReq.getAuthenticator().getSubKey(), KeyUsage.AP_REP_ENCPART);
         apRep.setEncryptedEncPart(encPart);
 
         return apRep;
+    }
+
+    private void checkApReq() throws KrbException {
+        Ticket ticket = apReq.getTicket();
+        EncryptionKey encKey = null;
+        if (apReq.getApOptions().isFlagSet(ApOption.USE_SESSION_KEY)) {
+            encKey = tgtTicket.getSessionKey();
+        }
+        if (encKey == null) {
+            throw new KrbException(KrbErrorCode.KRB_AP_ERR_NOKEY);
+        }
+        EncTicketPart encPart = EncryptionUtil.unseal(ticket.getEncryptedEncPart(),
+                encKey, KeyUsage.KDC_REP_TICKET, EncTicketPart.class);
+        ticket.setEncPart(encPart);
+
+        unsealAuthenticator(encPart.getKey());
+
+        Authenticator authenticator = apReq.getAuthenticator();
+        if (!authenticator.getCname().equals(ticket.getEncPart().getCname())) {
+            throw new KrbException(KrbErrorCode.KRB_AP_ERR_BADMATCH);
+        }
+        if (!authenticator.getCrealm().equals(ticket.getEncPart().getCrealm())) {
+            throw new KrbException(KrbErrorCode.KRB_AP_ERR_BADMATCH);
+        }
+    }
+
+    private void unsealAuthenticator(EncryptionKey encKey) throws KrbException {
+        EncryptedData authData = apReq.getEncryptedAuthenticator();
+
+        Authenticator authenticator = EncryptionUtil.unseal(authData,
+                encKey, KeyUsage.AP_REQ_AUTH, Authenticator.class);
+        apReq.setAuthenticator(authenticator);
     }
 }
