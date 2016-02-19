@@ -58,7 +58,7 @@ public class ApResponse {
     }
 
     public ApRep getApRep() throws KrbException {
-        checkApReq();
+        ApRequest.validate(keytab, apReq);
 
         if (apRep == null) {
             apRep = makeApRep();
@@ -92,44 +92,5 @@ public class ApResponse {
         return apRep;
     }
 
-    /*
-     *  Check the ApReq.
-    */
-    private void checkApReq() throws KrbException {
-        Ticket ticket = apReq.getTicket();
-        EncryptionKey encKey = null;
 
-        /* if ap_req_options specifies AP_OPTS_USE_SESSION_KEY, then creds->ticket
-        must contain the appropriate ENC-TKT-IN-SKEY ticket. */
-        if (apReq.getApOptions().isFlagSet(ApOption.USE_SESSION_KEY)) {
-            PrincipalName serverPricipal = apReq.getTicket().getSname();
-            serverPricipal.setRealm(apReq.getTicket().getRealm());
-            encKey = keytab.getKey(serverPricipal,
-                    apReq.getTicket().getEncryptedEncPart().getEType());
-        }
-        if (encKey == null) {
-            throw new KrbException(KrbErrorCode.KRB_AP_ERR_NOKEY);
-        }
-        EncTicketPart encPart = EncryptionUtil.unseal(ticket.getEncryptedEncPart(),
-                encKey, KeyUsage.KDC_REP_TICKET, EncTicketPart.class);
-        ticket.setEncPart(encPart);
-
-        unsealAuthenticator(encPart.getKey());
-
-        Authenticator authenticator = apReq.getAuthenticator();
-        if (!authenticator.getCname().equals(ticket.getEncPart().getCname())) {
-            throw new KrbException(KrbErrorCode.KRB_AP_ERR_BADMATCH);
-        }
-        if (!authenticator.getCrealm().equals(ticket.getEncPart().getCrealm())) {
-            throw new KrbException(KrbErrorCode.KRB_AP_ERR_BADMATCH);
-        }
-    }
-
-    private void unsealAuthenticator(EncryptionKey encKey) throws KrbException {
-        EncryptedData authData = apReq.getEncryptedAuthenticator();
-
-        Authenticator authenticator = EncryptionUtil.unseal(authData,
-                encKey, KeyUsage.AP_REQ_AUTH, Authenticator.class);
-        apReq.setAuthenticator(authenticator);
-    }
 }
