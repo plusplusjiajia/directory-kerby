@@ -29,19 +29,22 @@ import org.apache.kerby.kerberos.kerb.type.ap.Authenticator;
 import org.apache.kerby.kerberos.kerb.type.base.EncryptedData;
 import org.apache.kerby.kerberos.kerb.type.base.EncryptionKey;
 import org.apache.kerby.kerberos.kerb.type.base.KeyUsage;
+import org.apache.kerby.kerberos.kerb.type.base.PrincipalName;
 import org.apache.kerby.kerberos.kerb.type.ticket.SgtTicket;
 
 public class ApRequest {
 
+    private PrincipalName clientPrincipal;
     private SgtTicket sgtTicket;
     private ApReq apReq;
 
-    public ApRequest(SgtTicket sgtTicket) {
+    public ApRequest(PrincipalName clientPrincipal, SgtTicket sgtTicket) {
+        this.clientPrincipal = clientPrincipal;
         this.sgtTicket = sgtTicket;
     }
 
     public ApReq getApReq() throws KrbException {
-        if(apReq == null) {
+        if (apReq == null) {
             apReq = makeApReq();
         }
         return apReq;
@@ -57,7 +60,7 @@ public class ApRequest {
         Authenticator authenticator = makeAuthenticator();
         EncryptionKey sessionKey = sgtTicket.getSessionKey();
         EncryptedData authData = EncryptionUtil.seal(authenticator,
-                sessionKey, KeyUsage.TGS_REQ_AUTH);
+                sessionKey, KeyUsage.AP_REQ_AUTH);
         apReq.setEncryptedAuthenticator(authData);
         apReq.setAuthenticator(authenticator);
         apReq.setTicket(sgtTicket.getTicket());
@@ -71,14 +74,11 @@ public class ApRequest {
     private Authenticator makeAuthenticator() throws KrbException {
         Authenticator authenticator = new Authenticator();
         authenticator.setAuthenticatorVno(5);
-        // TODO
-//        authenticator.setCname();
+        authenticator.setCname(clientPrincipal);
         authenticator.setCrealm(sgtTicket.getRealm());
         authenticator.setCtime(KerberosTime.now());
         authenticator.setCusec(0);
         authenticator.setSubKey(sgtTicket.getSessionKey());
-
-//        authenticator.setCksum(checksum);
 
         return authenticator;
     }

@@ -22,6 +22,7 @@ package org.apache.kerby.kerberos.kerb.ap;
 import org.apache.kerby.kerberos.kerb.KrbErrorCode;
 import org.apache.kerby.kerberos.kerb.KrbException;
 import org.apache.kerby.kerberos.kerb.common.EncryptionUtil;
+import org.apache.kerby.kerberos.kerb.keytab.Keytab;
 import org.apache.kerby.kerberos.kerb.type.KerberosTime;
 import org.apache.kerby.kerberos.kerb.type.ap.ApOption;
 import org.apache.kerby.kerberos.kerb.type.ap.ApRep;
@@ -31,23 +32,35 @@ import org.apache.kerby.kerberos.kerb.type.ap.EncAPRepPart;
 import org.apache.kerby.kerberos.kerb.type.base.EncryptedData;
 import org.apache.kerby.kerberos.kerb.type.base.EncryptionKey;
 import org.apache.kerby.kerberos.kerb.type.base.KeyUsage;
+import org.apache.kerby.kerberos.kerb.type.base.PrincipalName;
 import org.apache.kerby.kerberos.kerb.type.ticket.EncTicketPart;
-import org.apache.kerby.kerberos.kerb.type.ticket.TgtTicket;
 import org.apache.kerby.kerberos.kerb.type.ticket.Ticket;
+
+import java.io.File;
+import java.io.IOException;
+
 
 public class ApResponse {
     private ApReq apReq;
     private ApRep apRep;
-    private TgtTicket tgtTicket;
-    public ApResponse(ApReq apReq, TgtTicket tgtTicket) {
+    private File keytabFile;
+    private Keytab keytab;
+    public ApResponse(ApReq apReq, File keyTabFile) {
         this.apReq = apReq;
-        this.tgtTicket = tgtTicket;
+        this.keytabFile = keyTabFile;
+
+        // Load Keytab File
+        try {
+            keytab =  Keytab.loadKeytab(keytabFile);
+        } catch (IOException e) {
+            System.err.println("Can not load keytab from file" + keytabFile.getAbsolutePath());
+        }
     }
 
     public ApRep getApRep() throws KrbException {
         checkApReq();
 
-        if(apRep == null) {
+        if (apRep == null) {
             apRep = makeApRep();
         }
         return apRep;
@@ -68,7 +81,7 @@ public class ApResponse {
         // This field contains the current time on the client's host.
         encAPRepPart.setCtime(KerberosTime.now());
         // This field contains the microsecond part of the client's timestamp.
-        encAPRepPart.setCusec((int)KerberosTime.now().getTimeInSeconds());
+        encAPRepPart.setCusec((int) KerberosTime.now().getTimeInSeconds());
         encAPRepPart.setSubkey(apReq.getAuthenticator().getSubKey());
         encAPRepPart.setSeqNumber(0);
         apRep.setEncRepPart(encAPRepPart);
@@ -79,11 +92,20 @@ public class ApResponse {
         return apRep;
     }
 
+    /*
+     *  Check the ApReq.
+    */
     private void checkApReq() throws KrbException {
         Ticket ticket = apReq.getTicket();
         EncryptionKey encKey = null;
+
+        /* if ap_req_options specifies AP_OPTS_USE_SESSION_KEY, then creds->ticket
+        must contain the appropriate ENC-TKT-IN-SKEY ticket. */
         if (apReq.getApOptions().isFlagSet(ApOption.USE_SESSION_KEY)) {
-            encKey = tgtTicket.getSessionKey();
+            PrincipalName serverPricipal = apReq.getTicket().getSname();
+            serverPricipal.setRealm(apReq.getTicket().getRealm());
+            encKey = keytab.getKey(serverPricipal,
+                    apReq.getTicket().getEncryptedEncPart().getEType());
         }
         if (encKey == null) {
             throw new KrbException(KrbErrorCode.KRB_AP_ERR_NOKEY);
