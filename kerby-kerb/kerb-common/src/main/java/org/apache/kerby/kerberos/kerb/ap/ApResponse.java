@@ -43,22 +43,14 @@ import java.io.IOException;
 public class ApResponse {
     private ApReq apReq;
     private ApRep apRep;
-    private File keytabFile;
-    private Keytab keytab;
-    public ApResponse(ApReq apReq, File keyTabFile) {
+    EncryptionKey encryptionKey;
+    public ApResponse(ApReq apReq, EncryptionKey encryptionKey) {
         this.apReq = apReq;
-        this.keytabFile = keyTabFile;
-
-        // Load Keytab File
-        try {
-            keytab =  Keytab.loadKeytab(keytabFile);
-        } catch (IOException e) {
-            System.err.println("Can not load keytab from file" + keytabFile.getAbsolutePath());
-        }
+        this.encryptionKey = encryptionKey;
     }
 
     public ApRep getApRep() throws KrbException {
-        ApRequest.validate(keytab, apReq);
+        ApRequest.validate(encryptionKey, apReq);
 
         if (apRep == null) {
             apRep = makeApRep();

@@ -90,18 +90,9 @@ public class ApRequest {
     /*
      *  Validate the ApReq.
      */
-    public static void validate(Keytab keytab, ApReq apReq) throws KrbException {
+    public static void validate(EncryptionKey encKey, ApReq apReq) throws KrbException {
         Ticket ticket = apReq.getTicket();
-        EncryptionKey encKey = null;
 
-        /* if ap_req_options specifies AP_OPTS_USE_SESSION_KEY, then creds->ticket
-        must contain the appropriate ENC-TKT-IN-SKEY ticket. */
-        if (apReq.getApOptions().isFlagSet(ApOption.USE_SESSION_KEY)) {
-            PrincipalName serverPricipal = apReq.getTicket().getSname();
-            serverPricipal.setRealm(apReq.getTicket().getRealm());
-            encKey = keytab.getKey(serverPricipal,
-                    apReq.getTicket().getEncryptedEncPart().getEType());
-        }
         if (encKey == null) {
             throw new KrbException(KrbErrorCode.KRB_AP_ERR_NOKEY);
         }

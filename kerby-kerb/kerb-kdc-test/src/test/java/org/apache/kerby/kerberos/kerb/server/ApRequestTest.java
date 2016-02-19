@@ -20,11 +20,11 @@
 package org.apache.kerby.kerberos.kerb.server;
 
 import org.apache.kerby.kerberos.kerb.KrbException;
-import org.apache.kerby.kerberos.kerb.admin.LocalKadmin;
 import org.apache.kerby.kerberos.kerb.ap.ApRequest;
 import org.apache.kerby.kerberos.kerb.ap.ApResponse;
 import org.apache.kerby.kerberos.kerb.type.ap.ApRep;
 import org.apache.kerby.kerberos.kerb.type.ap.ApReq;
+import org.apache.kerby.kerberos.kerb.type.base.EncryptionKey;
 import org.apache.kerby.kerberos.kerb.type.base.KrbMessageType;
 import org.apache.kerby.kerberos.kerb.type.base.PrincipalName;
 import org.apache.kerby.kerberos.kerb.type.ticket.SgtTicket;
@@ -32,28 +32,14 @@ import org.apache.kerby.kerberos.kerb.type.ticket.TgtTicket;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApRequestTest extends KdcTestBase {
-    private final String serverPassowrd = "012345";
-    private File keyTabFile;
-
-    @Override
-    protected void createPrincipals() throws KrbException {
-        getKdcServer().createPrincipal(getServerPrincipal(), serverPassowrd);
-        getKdcServer().createPrincipal(getClientPrincipal(), getClientPassword());
-    }
 
     @Test
     public void test() throws IOException, KrbException {
-
-        // Export the server principal keytab
-        keyTabFile = new File(getTestDir(), "serverKeyTab");
-        LocalKadmin kadmin = getKdcServer().getKadmin();
-        kadmin.exportKeytab(keyTabFile, getServerPrincipal());
 
         TgtTicket tgt = null;
         SgtTicket tkt = null;
@@ -79,8 +65,9 @@ public class ApRequestTest extends KdcTestBase {
         assertThat(apReq.getAuthenticator().getCname()).isEqualTo(tgt.getClientPrincipal());
         assertThat(apReq.getAuthenticator().getCrealm()).isEqualTo(tgt.getRealm());
 
-
-        ApResponse apResponse = new ApResponse(apReq, keyTabFile);
+        EncryptionKey encryptedKey = getKdcServer().getKadmin().getPrincipal(
+                getServerPrincipal()).getKey(tkt.getTicket().getEncryptedEncPart().getEType());
+        ApResponse apResponse = new ApResponse(apReq, encryptedKey);
         ApRep apRep = apResponse.getApRep();
         assertThat(apRep.getPvno()).isEqualTo(5);
         assertThat(apRep.getMsgType()).isEqualTo(KrbMessageType.AP_REP);
