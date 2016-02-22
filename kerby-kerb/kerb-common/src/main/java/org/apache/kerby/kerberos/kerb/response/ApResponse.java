@@ -17,33 +17,27 @@
  *  under the License.
  *
  */
-package org.apache.kerby.kerberos.kerb.ap;
+package org.apache.kerby.kerberos.kerb.response;
 
-import org.apache.kerby.kerberos.kerb.KrbErrorCode;
 import org.apache.kerby.kerberos.kerb.KrbException;
 import org.apache.kerby.kerberos.kerb.common.EncryptionUtil;
-import org.apache.kerby.kerberos.kerb.keytab.Keytab;
+import org.apache.kerby.kerberos.kerb.request.ApRequest;
 import org.apache.kerby.kerberos.kerb.type.KerberosTime;
-import org.apache.kerby.kerberos.kerb.type.ap.ApOption;
 import org.apache.kerby.kerberos.kerb.type.ap.ApRep;
 import org.apache.kerby.kerberos.kerb.type.ap.ApReq;
-import org.apache.kerby.kerberos.kerb.type.ap.Authenticator;
 import org.apache.kerby.kerberos.kerb.type.ap.EncAPRepPart;
 import org.apache.kerby.kerberos.kerb.type.base.EncryptedData;
 import org.apache.kerby.kerberos.kerb.type.base.EncryptionKey;
 import org.apache.kerby.kerberos.kerb.type.base.KeyUsage;
-import org.apache.kerby.kerberos.kerb.type.base.PrincipalName;
-import org.apache.kerby.kerberos.kerb.type.ticket.EncTicketPart;
-import org.apache.kerby.kerberos.kerb.type.ticket.Ticket;
 
-import java.io.File;
-import java.io.IOException;
-
-
+/**
+ * A wrapper for ApRep request.
+ */
 public class ApResponse {
     private ApReq apReq;
     private ApRep apRep;
     EncryptionKey encryptionKey;
+
     public ApResponse(ApReq apReq, EncryptionKey encryptionKey) {
         this.apReq = apReq;
         this.encryptionKey = encryptionKey;
@@ -83,6 +77,4 @@ public class ApResponse {
 
         return apRep;
     }
-
-
 }

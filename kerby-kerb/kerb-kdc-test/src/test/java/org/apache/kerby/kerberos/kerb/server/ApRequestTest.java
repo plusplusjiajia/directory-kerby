@@ -20,8 +20,8 @@
 package org.apache.kerby.kerberos.kerb.server;
 
 import org.apache.kerby.kerberos.kerb.KrbException;
-import org.apache.kerby.kerberos.kerb.ap.ApRequest;
-import org.apache.kerby.kerberos.kerb.ap.ApResponse;
+import org.apache.kerby.kerberos.kerb.request.ApRequest;
+import org.apache.kerby.kerberos.kerb.response.ApResponse;
 import org.apache.kerby.kerberos.kerb.type.ap.ApRep;
 import org.apache.kerby.kerberos.kerb.type.ap.ApReq;
 import org.apache.kerby.kerberos.kerb.type.base.EncryptionKey;

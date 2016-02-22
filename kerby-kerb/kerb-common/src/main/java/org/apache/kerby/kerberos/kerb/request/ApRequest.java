@@ -17,12 +17,11 @@
  *  under the License.
  *
  */
-package org.apache.kerby.kerberos.kerb.ap;
+package org.apache.kerby.kerberos.kerb.request;
 
 import org.apache.kerby.kerberos.kerb.KrbErrorCode;
 import org.apache.kerby.kerberos.kerb.KrbException;
 import org.apache.kerby.kerberos.kerb.common.EncryptionUtil;
-import org.apache.kerby.kerberos.kerb.keytab.Keytab;
 import org.apache.kerby.kerberos.kerb.type.KerberosTime;
 import org.apache.kerby.kerberos.kerb.type.ap.ApOption;
 import org.apache.kerby.kerberos.kerb.type.ap.ApOptions;
@@ -36,6 +35,10 @@ import org.apache.kerby.kerberos.kerb.type.ticket.EncTicketPart;
 import org.apache.kerby.kerberos.kerb.type.ticket.SgtTicket;
 import org.apache.kerby.kerberos.kerb.type.ticket.Ticket;
 
+/**
+ * A wrapper for ApReq request
+ * The client principal and sgt ticket are needed to create ApReq message.
+ */
 public class ApRequest {
 
     private PrincipalName clientPrincipal;
@@ -75,6 +78,9 @@ public class ApRequest {
         return apReq;
     }
 
+    /*
+     * Make the Authenticator for ApReq.
+     */
     private Authenticator makeAuthenticator() throws KrbException {
         Authenticator authenticator = new Authenticator();
         authenticator.setAuthenticatorVno(5);
@@ -111,6 +117,9 @@ public class ApRequest {
         }
     }
 
+    /*
+     *  Unseal the authenticator through the encryption key from ticket
+     */
     public static void unsealAuthenticator(EncryptionKey encKey, ApReq apReq) throws KrbException {
         EncryptedData authData = apReq.getEncryptedAuthenticator();
 
