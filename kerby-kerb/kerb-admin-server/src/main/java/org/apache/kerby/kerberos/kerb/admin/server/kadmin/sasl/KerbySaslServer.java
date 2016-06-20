@@ -51,6 +51,22 @@ public class KerbySaslServer implements Runnable {
         this.serverFqdn = args[2];
     }
 
+    public static enum QualityOfProtection {
+        AUTHENTICATION("auth"),
+        INTEGRITY("auth-int"),
+        PRIVACY("auth-conf");
+
+        public final String saslQop;
+
+        private QualityOfProtection(String saslQop) {
+            this.saslQop = saslQop;
+        }
+
+        public String getSaslQop() {
+            return saslQop;
+        }
+    }
+
     public static void main(String[] args) throws Exception {
         new KerbySaslServer(args).run();
     }

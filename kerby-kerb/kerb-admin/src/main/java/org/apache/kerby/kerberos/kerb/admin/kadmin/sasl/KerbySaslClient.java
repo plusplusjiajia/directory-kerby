@@ -43,7 +43,8 @@ public class KerbySaslClient {
         String protocol = args[2];
         String serverFqdn = args[3];
         Map<String, String> props = new HashMap<String, String>();
-        props.put(Sasl.QOP, "auth");
+        props.put(Sasl.QOP, "auth-conf");
+        props.put("com.sun.security.sasl.digest.cipher", "rc4");
 
         this.saslClient = Sasl.createSaslClient(new String[]{"GSSAPI"}, null,
             protocol, serverFqdn, props, null);
