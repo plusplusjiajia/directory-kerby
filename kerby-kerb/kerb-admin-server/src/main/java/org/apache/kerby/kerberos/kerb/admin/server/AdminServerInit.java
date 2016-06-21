@@ -23,6 +23,7 @@ package org.apache.kerby.kerberos.kerb.admin.server;
 import org.apache.kerby.kerberos.kerb.KrbException;
 import org.apache.kerby.kerberos.kerb.admin.server.kadmin.AdminServer;
 import org.apache.kerby.kerberos.kerb.admin.server.kadmin.AdminServerConfig;
+import org.apache.kerby.kerberos.kerb.admin.server.kadmin.sasl.KerbySaslServer;
 import org.apache.kerby.util.OSUtil;
 
 import java.io.File;
@@ -61,5 +62,22 @@ public class AdminServerInit {
         }
         adminServer.start();
         System.out.println("Admin server started!");
+
+        sasl();
+    }
+
+    private static void sasl() throws Exception {
+        KerbySaslServer saslServer = new KerbySaslServer("GSSAPI",
+            getServerPrincipalName(), getHostname());
+        saslServer.start();
+    }
+
+    private static String getServerPrincipalName() {
+        return "serverprincial";
+    }
+
+    private static String getHostname() {
+        return "localhost";
     }
 }
+

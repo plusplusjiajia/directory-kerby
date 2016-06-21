@@ -20,10 +20,12 @@
 package org.apache.kerby.kerberos.kerb.admin.kadmin.sasl;
 
 import org.apache.kerby.kerberos.kerb.Transport;
+import org.apache.kerby.kerberos.kerb.transport.KrbTransport;
 
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslClient;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,59 +35,64 @@ public class KerbySaslClient {
     private Transport.Connection conn;
 
     public KerbySaslClient(String[] args) throws Exception {
-        usage(args);
 
-        String hostName = args[0];
-        int port = Integer.parseInt(args[1]);
+//        String hostName = args[0];
+//        int port = Integer.parseInt(args[1]);
 
-        this.conn = Transport.Connector.connect(hostName, port);
+//        this.conn = Transport.Connector.connect(hostName, port);
 
-        String protocol = args[2];
-        String serverFqdn = args[3];
+        String protocol = args[0];
+        String serverFqdn = args[1];
         Map<String, String> props = new HashMap<String, String>();
         props.put(Sasl.QOP, "auth-conf");
-        props.put("com.sun.security.sasl.digest.cipher", "rc4");
+//        props.put(Sasl.SERVER_AUTH, "true");
+//        props.put("com.sun.security.sasl.digest.cipher", "rc4");
 
         this.saslClient = Sasl.createSaslClient(new String[]{"GSSAPI"}, null,
             protocol, serverFqdn, props, null);
     }
 
-    protected void usage(String[] args) {
-        if (args.length < 2) {
-            System.err.println("Usage: java <options> AppClient "
-                + "<server-host> <server-port>");
-            throw new RuntimeException("Arguments are invalid.");
-        }
-    }
-
-    protected void withConnection(Transport.Connection conn) throws Exception {
+    public void withConnection(KrbTransport conn) throws Exception {
         byte[] token = saslClient.hasInitialResponse() ? new byte[0] : null;
         token = saslClient.evaluateChallenge(token);
-        conn.sendMessage("CONT", token);
+        ByteBuffer byteBuffer = ByteBuffer.allocate(token.length);
+        byteBuffer.put(token);
+        conn.sendMessage(byteBuffer);
 
-        Transport.Message msg = conn.recvMessage();
-        while (!saslClient.isComplete() && (isContinue(msg) || isOK(msg))) {
-            byte[] respToken = saslClient.evaluateChallenge(msg.body);
-
-            if (isOK(msg)) {
-                if (respToken != null) {
-                    throw new IOException("Attempting to send response after completion");
-                }
-                break;
-            } else {
-                conn.sendMessage("CONT", respToken);
-                msg = conn.recvMessage();
-            }
-        }
+        ByteBuffer msg = conn.receiveMessage();
+        System.out.println("Recevived from server: " + msg);
+//        while (!saslClient.isComplete() && (isContinue(msg) || isOK(msg))) {
+//            byte[] respToken = saslClient.evaluateChallenge(msg.body);
+//
+//            if (isOK(msg)) {
+//                if (respToken != null) {
+//                    throw new IOException("Attempting to send response after completion");
+//                }
+//                break;
+//            } else {
+//                conn.sendMessage("CONT", respToken);
+//                msg = conn.recvMessage();
+//            }
+//        }
 
         System.out.println("Context Established! ");
 
         token = "Hello There!\0".getBytes(StandardCharsets.UTF_8);
         System.out.println("Will send wrap token of size " + token.length);
 
-        conn.sendToken(token);
+//        conn.sendMessage(token);
 
-        saslClient.dispose();
+        disposeSasl();
+    }
+
+    private synchronized void disposeSasl() {
+        if (saslClient != null) {
+            try {
+                saslClient.dispose();
+                saslClient = null;
+            } catch (IOException ignored) {
+            }
+        }
     }
 
     private boolean isOK(Transport.Message msg) {

@@ -40,44 +40,12 @@ public class KerbySaslServer implements Runnable {
     protected Transport.Acceptor acceptor;
     private boolean terminated = false;
 
-    public KerbySaslServer(String[] args) throws Exception {
-        usage(args);
+    public KerbySaslServer(String mechanism, String serviceProtocol, String serverFqdn)
+        throws Exception {
 
-        int listenPort = Integer.parseInt(args[0]);
-        this.acceptor = new Transport.Acceptor(listenPort);
-
-        this.mechanism = "GSSAPI";
-        this.serviceProtocol = args[1];
-        this.serverFqdn = args[2];
-    }
-
-    public static enum QualityOfProtection {
-        AUTHENTICATION("auth"),
-        INTEGRITY("auth-int"),
-        PRIVACY("auth-conf");
-
-        public final String saslQop;
-
-        private QualityOfProtection(String saslQop) {
-            this.saslQop = saslQop;
-        }
-
-        public String getSaslQop() {
-            return saslQop;
-        }
-    }
-
-    public static void main(String[] args) throws Exception {
-        new KerbySaslServer(args).run();
-    }
-
-    protected void usage(String[] args) {
-        if (args.length < 3) {
-            System.err.println("Usage: SaslAppServer "
-                + "<ListenPort> <service-protocol> <server-fqdn>");
-            throw new RuntimeException("Usage: SaslAppServer "
-                + "<ListenPort> <service-protocol> <server-fqdn>");
-        }
+        this.mechanism = mechanism;
+        this.serviceProtocol = serviceProtocol;
+        this.serverFqdn = serverFqdn;
     }
 
     public synchronized void start() {
@@ -122,7 +90,7 @@ public class KerbySaslServer implements Runnable {
         //mechanism, protocol, serverId, saslProperties, callbackT
         CallbackHandler callbackHandler = new SaslGssCallbackHandler();
         Map<String, Object> props = new HashMap<String, Object>();
-        props.put(Sasl.QOP, "auth");
+        props.put(Sasl.QOP, "auth-conf");
 
         SaslServer ss = Sasl.createSaslServer(mechanism,
             serviceProtocol, serverFqdn, props, callbackHandler);

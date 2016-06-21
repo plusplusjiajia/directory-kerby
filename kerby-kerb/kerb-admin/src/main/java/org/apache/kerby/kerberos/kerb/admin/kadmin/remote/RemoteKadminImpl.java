@@ -24,17 +24,22 @@ import org.apache.kerby.kerberos.kerb.KrbException;
 import org.apache.kerby.kerberos.kerb.admin.kadmin.Kadmin;
 import org.apache.kerby.kerberos.kerb.admin.kadmin.remote.impl.DefaultAdminHandler;
 import org.apache.kerby.kerberos.kerb.admin.kadmin.remote.impl.InternalAdminClient;
-import org.apache.kerby.kerberos.kerb.transport.KrbNetwork;
-import org.apache.kerby.kerberos.kerb.transport.KrbTransport;
-import org.apache.kerby.kerberos.kerb.transport.TransportPair;
 import org.apache.kerby.kerberos.kerb.admin.kadmin.remote.request.AddPrincipalRequest;
 import org.apache.kerby.kerberos.kerb.admin.kadmin.remote.request.AdminRequest;
 import org.apache.kerby.kerberos.kerb.admin.kadmin.remote.request.DeletePrincipalRequest;
-import org.apache.kerby.kerberos.kerb.admin.kadmin.remote.request.RenamePrincipalRequest;
 import org.apache.kerby.kerberos.kerb.admin.kadmin.remote.request.GetprincsRequest;
+import org.apache.kerby.kerberos.kerb.admin.kadmin.remote.request.RenamePrincipalRequest;
+import org.apache.kerby.kerberos.kerb.admin.kadmin.sasl.AuthUtil;
+import org.apache.kerby.kerberos.kerb.admin.kadmin.sasl.KerbySaslClient;
+import org.apache.kerby.kerberos.kerb.transport.KrbNetwork;
+import org.apache.kerby.kerberos.kerb.transport.KrbTransport;
+import org.apache.kerby.kerberos.kerb.transport.TransportPair;
 
+import javax.security.auth.Subject;
+import javax.security.auth.login.LoginException;
 import java.io.File;
 import java.io.IOException;
+import java.security.PrivilegedAction;
 import java.util.List;
 
 /**
@@ -51,7 +56,7 @@ public class RemoteKadminImpl implements Kadmin {
     private InternalAdminClient innerClient;
     private KrbTransport transport;
 
-    public RemoteKadminImpl(InternalAdminClient innerClient) throws KrbException {
+    public RemoteKadminImpl(final InternalAdminClient innerClient) throws KrbException {
         this.innerClient = innerClient;
         TransportPair tpair = null;
         try {
@@ -59,13 +64,47 @@ public class RemoteKadminImpl implements Kadmin {
         } catch (KrbException e) {
             e.printStackTrace();
         }
-        KrbNetwork network = new KrbNetwork();
+        final KrbNetwork network = new KrbNetwork();
         network.setSocketTimeout(innerClient.getSetting().getTimeout());
         try {
             transport = network.connect(tpair);
         } catch (IOException e) {
             throw new KrbException("Failed to create transport", e);
         }
+
+        String kadminPrincipal = null;
+        File keyTabFile = null;
+
+        Subject subject = null;
+        try {
+            subject = AuthUtil.loginUsingKeytab(kadminPrincipal, keyTabFile);
+        } catch (LoginException e) {
+            e.printStackTrace();
+        }
+        Subject.doAs(subject, new PrivilegedAction<Object>() {
+            @Override
+            public Object run() {
+                try {
+                    KerbySaslClient saslClient =
+                        new KerbySaslClient(new String[]{
+                            getServerPrincipalName(),
+                            getHostname(innerClient.getSetting())
+                        });
+                    saslClient.withConnection(transport);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        });
+    }
+
+    private String getHostname(AdminSetting setting) {
+        return setting.getKdcHost();
+    }
+
+    private String getServerPrincipalName() {
+        return "krbtgt";
     }
 
     public InternalAdminClient getInnerClient() {
