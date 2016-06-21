@@ -29,18 +29,19 @@ import org.apache.kerby.kerberos.kerb.admin.kadmin.remote.request.AdminRequest;
 import org.apache.kerby.kerberos.kerb.admin.kadmin.remote.request.DeletePrincipalRequest;
 import org.apache.kerby.kerberos.kerb.admin.kadmin.remote.request.GetprincsRequest;
 import org.apache.kerby.kerberos.kerb.admin.kadmin.remote.request.RenamePrincipalRequest;
-import org.apache.kerby.kerberos.kerb.admin.kadmin.sasl.AuthUtil;
-import org.apache.kerby.kerberos.kerb.admin.kadmin.sasl.KerbySaslClient;
 import org.apache.kerby.kerberos.kerb.transport.KrbNetwork;
 import org.apache.kerby.kerberos.kerb.transport.KrbTransport;
 import org.apache.kerby.kerberos.kerb.transport.TransportPair;
 
-import javax.security.auth.Subject;
-import javax.security.auth.login.LoginException;
+import javax.security.sasl.Sasl;
+import javax.security.sasl.SaslClient;
+import javax.security.sasl.SaslException;
 import java.io.File;
 import java.io.IOException;
-import java.security.PrivilegedAction;
+import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Server side admin facilities from remote, similar to MIT Kadmin remote mode.
@@ -55,6 +56,7 @@ public class RemoteKadminImpl implements Kadmin {
 
     private InternalAdminClient innerClient;
     private KrbTransport transport;
+    private static final byte[] EMPTY = new byte[0];
 
     public RemoteKadminImpl(final InternalAdminClient innerClient) throws KrbException {
         this.innerClient = innerClient;
@@ -72,31 +74,60 @@ public class RemoteKadminImpl implements Kadmin {
             throw new KrbException("Failed to create transport", e);
         }
 
-        String kadminPrincipal = null;
-        File keyTabFile = null;
+//        String kadminPrincipal = null;
+//        File keyTabFile = null;
+//
+//        Subject subject = null;
+//        try {
+//            subject = AuthUtil.loginUsingKeytab(kadminPrincipal, keyTabFile);
+//        } catch (LoginException e) {
+//            e.printStackTrace();
+//        }
+//        Subject.doAs(subject, new PrivilegedAction<Object>() {
+//            @Override
+//            public Object run() {
+//                try {
+//                    KerbySaslClient saslClient =
+//                        new KerbySaslClient(new String[]{
+//                            getServerPrincipalName(),
+//                            getHostname(innerClient.getSetting())
+//                        });
+//                    saslClient.withConnection(transport);
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//                return null;
+//            }
+//        });
 
-        Subject subject = null;
+        Map<String, String> props = new HashMap<String, String>();
+        props.put(Sasl.QOP, "auth-conf");
+//        props.put(Sasl.SERVER_AUTH, "true");
+//        props.put("com.sun.security.sasl.digest.cipher", "rc4");
+        SaslClient saslClient = null;
         try {
-            subject = AuthUtil.loginUsingKeytab(kadminPrincipal, keyTabFile);
-        } catch (LoginException e) {
+            saslClient = Sasl.createSaslClient(new String[]{"GSSAPI"}, "kadmin",
+                "protocol", "localhost", props, null);
+
+        } catch (SaslException e) {
             e.printStackTrace();
         }
-        Subject.doAs(subject, new PrivilegedAction<Object>() {
-            @Override
-            public Object run() {
-                try {
-                    KerbySaslClient saslClient =
-                        new KerbySaslClient(new String[]{
-                            getServerPrincipalName(),
-                            getHostname(innerClient.getSetting())
-                        });
-                    saslClient.withConnection(transport);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
-        });
+        if (saslClient == null) {
+            throw new KrbException("Unable to find client implementation for: GSSAPI");
+        }
+        byte[] response = new byte[0];
+        try {
+            response = saslClient.hasInitialResponse()
+                ? saslClient.evaluateChallenge(EMPTY) : EMPTY;
+        } catch (SaslException e) {
+            e.printStackTrace();
+        }
+//        logger.info("initial: " + new String(response));
+        try {
+            transport.sendMessage(ByteBuffer.wrap(response));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private String getHostname(AdminSetting setting) {
