@@ -36,6 +36,7 @@ import javax.security.sasl.SaslServer;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.security.PrivilegedAction;
 import java.util.HashMap;
@@ -44,7 +45,7 @@ import java.util.Map;
 public class DefaultAdminServerHandler extends AdminServerHandler implements Runnable {
     private static Logger logger = LoggerFactory.getLogger(DefaultAdminServerHandler.class);
     private final KrbTransport transport;
-    private boolean sasl = false;
+    private static boolean sasl = false;
     private AdminServerContext adminServerContext;
 
     public DefaultAdminServerHandler(AdminServerContext adminServerContext, KrbTransport transport) {
@@ -58,14 +59,13 @@ public class DefaultAdminServerHandler extends AdminServerHandler implements Run
         while (true) {
             try {
                 if (!sasl) {
+                    System.out.println("doing the sasl negotiation !!!"+sasl);
                     try {
                         sasl();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    sasl = true;
                 } else {
-
                     ByteBuffer message = transport.receiveMessage();
                     if (message == null) {
                         logger.debug("No valid request recved. Disconnect actively");
@@ -104,6 +104,13 @@ public class DefaultAdminServerHandler extends AdminServerHandler implements Run
             @Override
             public Object run() {
                 try {
+                    ByteBuffer message = null;
+                    try {
+                        message = transport.receiveMessage();
+                    } catch (SocketTimeoutException e) {
+                        // ignore time out
+                        return null;
+                    }
                     CallbackHandler callbackHandler = new SaslGssCallbackHandler();
                     Map<String, Object> props = new HashMap<String, Object>();
                     props.put(Sasl.QOP, "auth-conf");
@@ -114,12 +121,13 @@ public class DefaultAdminServerHandler extends AdminServerHandler implements Run
                     if (ss == null) {
                         throw new Exception("Unable to find server implementation for: GSSAPI");
                     }
-                    ByteBuffer message = transport.receiveMessage();
 
                     while (!ss.isComplete()) {
                         int scComplete = message.getInt();
                         System.out.println("sccomplete?:" + scComplete);
                         if(scComplete==0) {
+                            System.out.println("success!!!");
+                            sasl = true;
                             break;
                         }
                         byte[] arr = new byte[message.remaining()];
