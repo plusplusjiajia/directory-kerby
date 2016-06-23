@@ -19,19 +19,25 @@
  */
 package org.apache.kerby.kerberos.kerb.admin.server.kadmin.impl;
 
+import org.apache.kerby.kerberos.kerb.admin.kadmin.sasl.AuthUtil;
 import org.apache.kerby.kerberos.kerb.admin.server.kadmin.AdminServerContext;
 import org.apache.kerby.kerberos.kerb.admin.server.kadmin.AdminServerHandler;
-import org.apache.kerby.kerberos.kerb.admin.server.kadmin.sasl.KerbySaslServer;
 import org.apache.kerby.kerberos.kerb.transport.KrbTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.security.auth.Subject;
+import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
+import javax.security.auth.callback.UnsupportedCallbackException;
+import javax.security.sasl.AuthorizeCallback;
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslServer;
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
+import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,23 +45,35 @@ public class DefaultAdminServerHandler extends AdminServerHandler implements Run
     private static Logger logger = LoggerFactory.getLogger(DefaultAdminServerHandler.class);
     private final KrbTransport transport;
     private boolean sasl = false;
+    private AdminServerContext adminServerContext;
 
     public DefaultAdminServerHandler(AdminServerContext adminServerContext, KrbTransport transport) {
         super(adminServerContext);
         this.transport  = transport;
+        this.adminServerContext = adminServerContext;
     }
 
     @Override
     public void run() {
         while (true) {
             try {
-                ByteBuffer message = transport.receiveMessage();
-                if (message == null) {
-                    logger.debug("No valid request recved. Disconnect actively");
-                    transport.release();
-                    break;
+                if (!sasl) {
+                    try {
+                        sasl();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    sasl = true;
+                } else {
+
+                    ByteBuffer message = transport.receiveMessage();
+                    if (message == null) {
+                        logger.debug("No valid request recved. Disconnect actively");
+                        transport.release();
+                        break;
+                    }
+                    handleMessage(message);
                 }
-                handleMessage(message);
             } catch (IOException e) {
                 transport.release();
                 logger.debug("Transport or decoding error occurred, "
@@ -68,19 +86,6 @@ public class DefaultAdminServerHandler extends AdminServerHandler implements Run
     protected void handleMessage(ByteBuffer message) {
         InetAddress clientAddress = transport.getRemoteAddress();
 
-        if (!sasl) {
-            SaslServer saslServer = null;
-            try {
-                saslServer = sasl();
-                byte[] challenge = saslServer.evaluateResponse(message.array());
-                transport.sendMessage(ByteBuffer.wrap(challenge));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            sasl = true;
-        }
-
-
         try {
             ByteBuffer adminResponse = handleMessage(message, clientAddress);
             transport.sendMessage(adminResponse);
@@ -90,25 +95,91 @@ public class DefaultAdminServerHandler extends AdminServerHandler implements Run
         }
     }
 
-    private SaslServer sasl() throws Exception {
-        CallbackHandler callbackHandler = new KerbySaslServer.SaslGssCallbackHandler();
-        Map<String, Object> props = new HashMap<String, Object>();
-        props.put(Sasl.QOP, "auth-conf");
+    private void sasl() throws Exception {
 
-        SaslServer ss = Sasl.createSaslServer("GSSAPI",
-            "protocol", "localhost", props, callbackHandler);
+        File keytabFile = new File(adminServerContext.getConfig().getKeyTabFile());
 
-        if (ss == null) {
-            throw new Exception("Unable to find server implementation for: GSSAPI");
+        Subject subject = AuthUtil.loginUsingKeytab("test/localhost", keytabFile);
+        Subject.doAs(subject, new PrivilegedAction<Object>() {
+            @Override
+            public Object run() {
+                try {
+                    CallbackHandler callbackHandler = new SaslGssCallbackHandler();
+                    Map<String, Object> props = new HashMap<String, Object>();
+                    props.put(Sasl.QOP, "auth-conf");
+
+                    SaslServer ss = Sasl.createSaslServer("GSSAPI",
+                        "test", "localhost", props, callbackHandler);
+
+                    if (ss == null) {
+                        throw new Exception("Unable to find server implementation for: GSSAPI");
+                    }
+                    ByteBuffer message = transport.receiveMessage();
+
+                    while (!ss.isComplete()) {
+                        int scComplete = message.getInt();
+                        System.out.println("sccomplete?:" + scComplete);
+                        if(scComplete==0) {
+                            break;
+                        }
+                        byte[] arr = new byte[message.remaining()];
+                        message.get(arr);
+                        System.out.println("###message length:" + arr.length);
+//                    System.out.println("###server received token:" + new String(arr));
+                        byte[] challenge = ss.evaluateResponse(arr);
+
+                        ByteBuffer buffer = ByteBuffer.allocate(challenge.length + 8); // 4 is the head to go through network
+                        buffer.putInt(challenge.length + 4);
+                        int ssComplete = ss.isComplete() ? 0 : 1;
+                        buffer.putInt(ssComplete);
+                        buffer.put(challenge);
+                        buffer.flip();
+                        System.out.println("###send message length:" + challenge.length);
+
+                        transport.sendMessage(buffer);
+                        System.out.println("###ss completed?" + ss.isComplete());
+                        if(!ss.isComplete()) {
+                            System.out.println("???waiting receive message");
+                            message = transport.receiveMessage();
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        });
+
+    }
+
+    public static class SaslGssCallbackHandler implements CallbackHandler {
+
+        @Override
+        public void handle(Callback[] callbacks) throws
+            UnsupportedCallbackException {
+            AuthorizeCallback ac = null;
+            for (Callback callback : callbacks) {
+                if (callback instanceof AuthorizeCallback) {
+                    ac = (AuthorizeCallback) callback;
+                } else {
+                    throw new UnsupportedCallbackException(callback,
+                        "Unrecognized SASL GSSAPI Callback");
+                }
+            }
+            if (ac != null) {
+                String authid = ac.getAuthenticationID();
+                String authzid = ac.getAuthorizationID();
+                if (authid.equals(authzid)) {
+                    ac.setAuthorized(true);
+                } else {
+                    ac.setAuthorized(false);
+                }
+                if (ac.isAuthorized()) {
+                    // System.out.println("SASL server GSSAPI callback: setting "
+                    //+ "canonicalized client ID: " + authzid);
+                    ac.setAuthorizedID(authzid);
+                }
+            }
         }
-        return ss;
-    }
-
-    private String getServerPrincipalName() {
-        return "serverprincial";
-    }
-
-    private String getHostname() {
-        return "localhost";
     }
 }

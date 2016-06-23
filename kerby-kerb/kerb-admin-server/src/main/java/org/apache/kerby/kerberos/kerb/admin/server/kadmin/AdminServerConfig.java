@@ -90,4 +90,8 @@ public class AdminServerConfig extends Krb5Conf {
     public String getAdminDomain() {
         return getString(AdminServerConfigKey.ADMIN_DOMAIN, true, KDCDEFAULT);
     }
+
+    public String getKeyTabFile() {
+        return getString(AdminServerConfigKey.KEYTAB_FILE, true, KDCDEFAULT);
+    }
 }

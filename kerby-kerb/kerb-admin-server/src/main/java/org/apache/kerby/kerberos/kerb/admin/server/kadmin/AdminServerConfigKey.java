@@ -32,7 +32,8 @@ public enum AdminServerConfigKey implements ConfigKey {
     ADMIN_UDP_PORT,
     ADMIN_TCP_PORT,
     ADMIN_DOMAIN("example.com"),
-    ADMIN_REALM("EXAMPLE.COM");
+    ADMIN_REALM("EXAMPLE.COM"),
+    KEYTAB_FILE;
 
     private Object defaultValue;
 

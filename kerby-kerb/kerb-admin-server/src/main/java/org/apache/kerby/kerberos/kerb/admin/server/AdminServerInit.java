@@ -21,11 +21,15 @@ package org.apache.kerby.kerberos.kerb.admin.server;
 
 
 import org.apache.kerby.kerberos.kerb.KrbException;
+import org.apache.kerby.kerberos.kerb.admin.Krb5Conf;
 import org.apache.kerby.kerberos.kerb.admin.server.kadmin.AdminServer;
 import org.apache.kerby.kerberos.kerb.admin.server.kadmin.AdminServerConfig;
+import org.apache.kerby.kerberos.kerb.server.KdcConfig;
+import org.apache.kerby.kerberos.kerb.server.KdcUtil;
 import org.apache.kerby.util.OSUtil;
 
 import java.io.File;
+import java.io.IOException;
 
 public class AdminServerInit {
     private static final String USAGE = (OSUtil.isWindows()
@@ -53,6 +57,18 @@ public class AdminServerInit {
         adminServer.setAllowUdp(false);
         adminServer.setAdminServerPort(adminServerConfig.getAdminPort());
 
+        KdcConfig tmpKdcConfig = KdcUtil.getKdcConfig(new File(confDirPath));
+        if (tmpKdcConfig == null) {
+            tmpKdcConfig = new KdcConfig();
+        }
+
+        try {
+            Krb5Conf krb5Conf = new Krb5Conf(new File(confDirPath), tmpKdcConfig);
+            krb5Conf.initKrb5conf();
+        } catch (IOException e) {
+            throw new KrbException("Failed to make krb5.conf", e);
+        }
+
         try {
             adminServer.init();
         } catch (KrbException e) {
@@ -63,4 +79,3 @@ public class AdminServerInit {
         System.out.println("Admin server started!");
     }
 }
-

@@ -89,6 +89,14 @@ public class AdminClient {
         commonOptions.add(AdminOption.ADMIN_REALM, realm);
     }
 
+    public void setKeyTabFile(File file) {
+        commonOptions.add(AdminOption.KEYTAB_FILE, file);
+    }
+
+    public File getKeyTabFile() {
+        return commonOptions.getFileOption(AdminOption.KEYTAB_FILE);
+    }
+
     /**
      * Set Admin Server host.
      * @param kdcHost The kdc host

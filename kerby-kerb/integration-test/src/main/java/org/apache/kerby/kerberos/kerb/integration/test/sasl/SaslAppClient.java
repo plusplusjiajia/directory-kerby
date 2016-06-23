@@ -38,7 +38,7 @@ public class SaslAppClient extends AppClient {
         String protocol = args[2];
         String serverFqdn = args[3];
         Map<String, String> props = new HashMap<String, String>();
-        props.put(Sasl.QOP, "auth");
+        props.put(Sasl.QOP, "auth-conf");
 
         this.saslClient = Sasl.createSaslClient(new String[]{"GSSAPI"}, null,
                 protocol, serverFqdn, props, null);
@@ -61,7 +61,9 @@ public class SaslAppClient extends AppClient {
     @Override
     protected void withConnection(Transport.Connection conn) throws Exception {
         byte[] token = saslClient.hasInitialResponse() ? new byte[0] : null;
+        System.out.println("###token1:"+new String(token, StandardCharsets.UTF_8));
         token = saslClient.evaluateChallenge(token);
+         System.out.println("###token2:"+new String(token, StandardCharsets.UTF_8));
         conn.sendMessage("CONT", token);
 
         Transport.Message msg = conn.recvMessage();

@@ -19,18 +19,23 @@
  */
 package org.apache.kerby.kerberos.kerb.admin;
 
+import org.apache.kerby.KOptions;
 import org.apache.kerby.kerberos.kerb.KrbException;
+import org.apache.kerby.kerberos.kerb.admin.kadmin.KadminOption;
 import org.apache.kerby.kerberos.kerb.admin.kadmin.remote.AdminClient;
 import org.apache.kerby.kerberos.kerb.admin.kadmin.remote.AdminConfig;
-import org.apache.kerby.util.OSUtil;
 import org.apache.kerby.kerberos.kerb.admin.kadmin.remote.command.RemoteAddPrincipalCommand;
 import org.apache.kerby.kerberos.kerb.admin.kadmin.remote.command.RemoteCommand;
 import org.apache.kerby.kerberos.kerb.admin.kadmin.remote.command.RemoteDeletePrincipalCommand;
-import org.apache.kerby.kerberos.kerb.admin.kadmin.remote.command.RemoteRenamePrincipalCommand;
 import org.apache.kerby.kerberos.kerb.admin.kadmin.remote.command.RemoteGetprincsCommand;
 import org.apache.kerby.kerberos.kerb.admin.kadmin.remote.command.RemotePrintUsageCommand;
+import org.apache.kerby.kerberos.kerb.admin.kadmin.remote.command.RemoteRenamePrincipalCommand;
+import org.apache.kerby.kerberos.kerb.server.KdcConfig;
+import org.apache.kerby.kerberos.kerb.server.KdcUtil;
+import org.apache.kerby.util.OSUtil;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Scanner;
 
 /**
@@ -61,7 +66,7 @@ public class RemoteAdminTool {
     public static void main(String[] args) throws Exception {
         AdminClient adminClient;
 
-        if (args.length != 1) {
+        if (args.length < 1) {
             System.err.println(USAGE);
             System.exit(1);
         }
@@ -73,7 +78,29 @@ public class RemoteAdminTool {
         AdminConfig adminConfig = new AdminConfig();
         adminConfig.addKrb5Config(confFile);
 
+        KdcConfig tmpKdcConfig = KdcUtil.getKdcConfig(new File(confDirPath));
+        if (tmpKdcConfig == null) {
+            tmpKdcConfig = new KdcConfig();
+        }
+
+        try {
+            Krb5Conf krb5Conf = new Krb5Conf(new File(confDirPath), tmpKdcConfig);
+            krb5Conf.initKrb5conf();
+        } catch (IOException e) {
+            throw new KrbException("Failed to make krb5.conf", e);
+        }
+
         adminClient = new AdminClient(adminConfig);
+
+        KOptions kOptions = ToolUtil.parseOptions(args, 1, args.length - 1);
+        if (kOptions.contains(KadminOption.K)) {
+            File keyTabFile = new File(kOptions.getStringOption(KadminOption.K));
+            if (keyTabFile == null || !keyTabFile.exists()) {
+                System.err.println("Need the valid keytab file.");
+                return;
+            }
+            adminClient.setKeyTabFile(keyTabFile);
+        }
 
         String adminRealm = adminConfig.getAdminRealm();
 

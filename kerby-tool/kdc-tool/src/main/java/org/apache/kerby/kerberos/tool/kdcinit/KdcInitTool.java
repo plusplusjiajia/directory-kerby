@@ -53,6 +53,8 @@ public class KdcInitTool {
                     + " has been exported to the specified file "
                     + keytabFile.getAbsolutePath() + ", please safely keep it, "
                     + "in order to use kadmin tool later");
+            kadmin.addPrincipal("test/localhost@EXAMPLE.COM");
+            kadmin.exportKeytab(new File("test.keytab"), "test/localhost@EXAMPLE.COM");
         } finally {
             kadmin.release();
         }
