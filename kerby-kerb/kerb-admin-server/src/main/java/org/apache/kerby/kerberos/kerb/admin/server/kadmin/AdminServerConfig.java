@@ -94,4 +94,12 @@ public class AdminServerConfig extends Krb5Conf {
     public String getKeyTabFile() {
         return getString(AdminServerConfigKey.KEYTAB_FILE, true, KDCDEFAULT);
     }
+
+    public String getProtocol() {
+        return getString(AdminServerConfigKey.PROTOCOL, true, KDCDEFAULT);
+    }
+
+    public String getServerName() {
+        return getString(AdminServerConfigKey.SERVER_NAME, true, KDCDEFAULT);
+    }
 }

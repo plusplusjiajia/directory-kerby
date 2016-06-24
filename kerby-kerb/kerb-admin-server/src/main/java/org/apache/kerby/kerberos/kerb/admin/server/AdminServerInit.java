@@ -57,13 +57,12 @@ public class AdminServerInit {
         adminServer.setAllowUdp(false);
         adminServer.setAdminServerPort(adminServerConfig.getAdminPort());
 
-        KdcConfig tmpKdcConfig = KdcUtil.getKdcConfig(new File(confDirPath));
-        if (tmpKdcConfig == null) {
-            tmpKdcConfig = new KdcConfig();
+        KdcConfig kdcConfig = KdcUtil.getKdcConfig(new File(confDirPath));
+        if (kdcConfig == null) {
+            kdcConfig = new KdcConfig();
         }
-
         try {
-            Krb5Conf krb5Conf = new Krb5Conf(new File(confDirPath), tmpKdcConfig);
+            Krb5Conf krb5Conf = new Krb5Conf(new File(confDirPath), kdcConfig);
             krb5Conf.initKrb5conf();
         } catch (IOException e) {
             throw new KrbException("Failed to make krb5.conf", e);

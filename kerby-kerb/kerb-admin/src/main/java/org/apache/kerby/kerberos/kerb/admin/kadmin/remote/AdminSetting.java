@@ -22,8 +22,6 @@ package org.apache.kerby.kerberos.kerb.admin.kadmin.remote;
 import org.apache.kerby.KOptions;
 import org.apache.kerby.kerberos.kerb.KrbException;
 
-import java.io.File;
-
 /**
  * Admin client setting that combines common options and client config.
  */
@@ -43,10 +41,6 @@ public class AdminSetting {
 
     public AdminConfig getAdminConfig() {
         return adminConfig;
-    }
-
-    public File getKeyTabFile() {
-        return commonOptions.getFileOption(AdminOption.KEYTAB_FILE);
     }
 
     public String getKdcRealm() {

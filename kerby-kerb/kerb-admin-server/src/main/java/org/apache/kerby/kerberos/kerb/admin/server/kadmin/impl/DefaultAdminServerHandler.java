@@ -59,7 +59,7 @@ public class DefaultAdminServerHandler extends AdminServerHandler implements Run
         while (true) {
             try {
                 if (!sasl) {
-                    System.out.println("doing the sasl negotiation !!!"+sasl);
+                    logger.info("Doing the sasl negotiation !!!");
                     try {
                         sasl();
                     } catch (Exception e) {
@@ -98,8 +98,10 @@ public class DefaultAdminServerHandler extends AdminServerHandler implements Run
     private void sasl() throws Exception {
 
         File keytabFile = new File(adminServerContext.getConfig().getKeyTabFile());
+        String principal = adminServerContext.getConfig().getProtocol() + "/"
+            + adminServerContext.getConfig().getAdminHost();
 
-        Subject subject = AuthUtil.loginUsingKeytab("test/localhost", keytabFile);
+        Subject subject = AuthUtil.loginUsingKeytab(principal, keytabFile);
         Subject.doAs(subject, new PrivilegedAction<Object>() {
             @Override
             public Object run() {
@@ -115,8 +117,10 @@ public class DefaultAdminServerHandler extends AdminServerHandler implements Run
                     Map<String, Object> props = new HashMap<String, Object>();
                     props.put(Sasl.QOP, "auth-conf");
 
+                    String protocol = adminServerContext.getConfig().getProtocol();
+                    String serverName = adminServerContext.getConfig().getServerName();
                     SaslServer ss = Sasl.createSaslServer("GSSAPI",
-                        "test", "localhost", props, callbackHandler);
+                        protocol, serverName, props, callbackHandler);
 
                     if (ss == null) {
                         throw new Exception("Unable to find server implementation for: GSSAPI");
@@ -124,30 +128,25 @@ public class DefaultAdminServerHandler extends AdminServerHandler implements Run
 
                     while (!ss.isComplete()) {
                         int scComplete = message.getInt();
-                        System.out.println("sccomplete?:" + scComplete);
-                        if(scComplete==0) {
+                        if (scComplete == 0) {
                             System.out.println("success!!!");
                             sasl = true;
                             break;
                         }
                         byte[] arr = new byte[message.remaining()];
                         message.get(arr);
-                        System.out.println("###message length:" + arr.length);
-//                    System.out.println("###server received token:" + new String(arr));
                         byte[] challenge = ss.evaluateResponse(arr);
 
-                        ByteBuffer buffer = ByteBuffer.allocate(challenge.length + 8); // 4 is the head to go through network
+                         // 4 is the head to go through network
+                        ByteBuffer buffer = ByteBuffer.allocate(challenge.length + 8);
                         buffer.putInt(challenge.length + 4);
                         int ssComplete = ss.isComplete() ? 0 : 1;
                         buffer.putInt(ssComplete);
                         buffer.put(challenge);
                         buffer.flip();
-                        System.out.println("###send message length:" + challenge.length);
-
                         transport.sendMessage(buffer);
-                        System.out.println("###ss completed?" + ss.isComplete());
-                        if(!ss.isComplete()) {
-                            System.out.println("???waiting receive message");
+                        if (!ss.isComplete()) {
+                            logger.info("Waiting receive message");
                             message = transport.receiveMessage();
                         }
                     }
