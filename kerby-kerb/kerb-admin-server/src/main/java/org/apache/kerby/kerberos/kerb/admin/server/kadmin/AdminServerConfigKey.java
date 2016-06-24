@@ -25,7 +25,7 @@ public enum AdminServerConfigKey implements ConfigKey {
     KRB_DEBUG(true),
     ADMIN_SERVICE_NAME("Kadmin-Server"),
     KDC_IDENTITY_BACKEND,
-    ADMIN_HOST("127.0.0.1"),
+    ADMIN_HOST("localhost"),
     ADMIN_PORT,
     ADMIN_ALLOW_TCP(true),
     ADMIN_ALLOW_UDP(true),

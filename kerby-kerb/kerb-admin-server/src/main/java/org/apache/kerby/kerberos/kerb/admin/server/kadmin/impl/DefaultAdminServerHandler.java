@@ -113,12 +113,14 @@ public class DefaultAdminServerHandler extends AdminServerHandler implements Run
                         // ignore time out
                         return null;
                     }
-                    CallbackHandler callbackHandler = new SaslGssCallbackHandler();
+
                     Map<String, Object> props = new HashMap<String, Object>();
                     props.put(Sasl.QOP, "auth-conf");
+                    props.put(Sasl.SERVER_AUTH, "true");
 
                     String protocol = adminServerContext.getConfig().getProtocol();
                     String serverName = adminServerContext.getConfig().getServerName();
+                    CallbackHandler callbackHandler = new SaslGssCallbackHandler();
                     SaslServer ss = Sasl.createSaslServer("GSSAPI",
                         protocol, serverName, props, callbackHandler);
 
@@ -133,18 +135,7 @@ public class DefaultAdminServerHandler extends AdminServerHandler implements Run
                             sasl = true;
                             break;
                         }
-                        byte[] arr = new byte[message.remaining()];
-                        message.get(arr);
-                        byte[] challenge = ss.evaluateResponse(arr);
-
-                         // 4 is the head to go through network
-                        ByteBuffer buffer = ByteBuffer.allocate(challenge.length + 8);
-                        buffer.putInt(challenge.length + 4);
-                        int ssComplete = ss.isComplete() ? 0 : 1;
-                        buffer.putInt(ssComplete);
-                        buffer.put(challenge);
-                        buffer.flip();
-                        transport.sendMessage(buffer);
+                        sendMessage(message, ss);
                         if (!ss.isComplete()) {
                             logger.info("Waiting receive message");
                             message = transport.receiveMessage();
@@ -159,7 +150,23 @@ public class DefaultAdminServerHandler extends AdminServerHandler implements Run
 
     }
 
-    public static class SaslGssCallbackHandler implements CallbackHandler {
+    private void sendMessage(ByteBuffer message, SaslServer ss) throws IOException {
+
+        byte[] arr = new byte[message.remaining()];
+        message.get(arr);
+        byte[] challenge = ss.evaluateResponse(arr);
+
+        // 4 is the head to go through network
+        ByteBuffer buffer = ByteBuffer.allocate(challenge.length + 8);
+        buffer.putInt(challenge.length + 4);
+        int ssComplete = ss.isComplete() ? 0 : 1;
+        buffer.putInt(ssComplete);
+        buffer.put(challenge);
+        buffer.flip();
+        transport.sendMessage(buffer);
+    }
+
+    private static class SaslGssCallbackHandler implements CallbackHandler {
 
         @Override
         public void handle(Callback[] callbacks) throws

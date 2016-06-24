@@ -79,7 +79,7 @@ public class RemoteAdminTool {
         + "          List principals\n";
 
     public static void main(String[] args) throws Exception {
-        final AdminClient adminClient;
+        AdminClient adminClient;
 
         if (args.length < 1) {
             System.err.println(USAGE);
@@ -175,40 +175,21 @@ public class RemoteAdminTool {
                         e.printStackTrace();
                     }
 
-                    // 4 is the head to go through network
-                    ByteBuffer buffer = ByteBuffer.allocate(response.length + 8);
-                    buffer.putInt(response.length + 4);
-                    int scComplete = saslClient.isComplete() ? 0 : 1;
-                    buffer.putInt(scComplete);
-                    buffer.put(response);
-                    buffer.flip();
-                    try {
-                        transport.sendMessage(buffer);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    sendMessage(response, saslClient);
+
                     ByteBuffer message = transport.receiveMessage();
 
                     while (!saslClient.isComplete()) {
-
+                        int ssComplete = message.getInt();
+                        if (ssComplete == 0) {
+                            System.out.println("Sasl Server completed");
+                        }
                         byte[] arr = new byte[message.remaining()];
                         message.get(arr);
                         byte[] challenge = saslClient.evaluateChallenge(arr);
 
-                        // 4 is the head to go through network
-                        ByteBuffer buffer1 = ByteBuffer.allocate(challenge.length + 8);
-                        buffer1.putInt(challenge.length + 4);
-                        int scComplete1 = saslClient.isComplete() ? 0 : 1;
+                        sendMessage(challenge, saslClient);
 
-                        buffer1.putInt(scComplete1);
-                        buffer1.put(challenge);
-                        buffer1.flip();
-
-                        try {
-                            transport.sendMessage(buffer1);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
                         if (!saslClient.isComplete()) {
                             message = transport.receiveMessage();
                         }
@@ -230,6 +211,25 @@ public class RemoteAdminTool {
                 System.out.print(PROMPT);
                 input = scanner.nextLine();
             }
+        }
+    }
+
+    private static void sendMessage(byte[] challenge, SaslClient saslClient)
+        throws SaslException {
+
+        // 4 is the head to go through network
+        ByteBuffer buffer = ByteBuffer.allocate(challenge.length + 8);
+        buffer.putInt(challenge.length + 4);
+        int scComplete = saslClient.isComplete() ? 0 : 1;
+
+        buffer.putInt(scComplete);
+        buffer.put(challenge);
+        buffer.flip();
+
+        try {
+            transport.sendMessage(buffer);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
