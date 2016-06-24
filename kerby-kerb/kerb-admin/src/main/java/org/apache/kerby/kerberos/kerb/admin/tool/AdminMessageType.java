@@ -42,9 +42,7 @@ public enum AdminMessageType implements EnumType {
     RENAME_PRINCIPAL_REQ(4),
     RENAME_PRINCIPAL_REP(5),
     GET_PRINCS_REQ(6),
-    GET_PRINCS_REP(7),
-    ADMIN_REQ(10),
-    ADMIN_REP(11);
+    GET_PRINCS_REP(7);
 
     private int value;
 

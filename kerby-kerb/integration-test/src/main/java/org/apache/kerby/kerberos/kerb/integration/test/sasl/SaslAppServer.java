@@ -67,7 +67,7 @@ public class SaslAppServer extends AppServer {
         //mechanism, protocol, serverId, saslProperties, callback
         CallbackHandler callbackHandler = new SaslGssCallbackHandler();
         Map<String, Object> props = new HashMap<String, Object>();
-        props.put(Sasl.QOP, "auth-conf");
+        props.put(Sasl.QOP, "auth");
 
         SaslServer ss = Sasl.createSaslServer(mechanism,
                 serviceProtocol, serverFqdn, props, callbackHandler);
