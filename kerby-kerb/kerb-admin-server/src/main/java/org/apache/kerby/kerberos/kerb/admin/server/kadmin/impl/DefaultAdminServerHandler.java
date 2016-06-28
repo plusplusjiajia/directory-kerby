@@ -61,7 +61,7 @@ public class DefaultAdminServerHandler extends AdminServerHandler implements Run
                 if (!sasl) {
                     logger.info("Doing the sasl negotiation !!!");
                     try {
-                        sasl();
+                        saslNegotiation();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -95,7 +95,7 @@ public class DefaultAdminServerHandler extends AdminServerHandler implements Run
         }
     }
 
-    private void sasl() throws Exception {
+    private void saslNegotiation() throws Exception {
 
         File keytabFile = new File(adminServerContext.getConfig().getKeyTabFile());
         String principal = adminServerContext.getConfig().getProtocol() + "/"
